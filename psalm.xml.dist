@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<psalm
+    errorLevel="1"
+    findUnusedPsalmSuppress="true"
+    findUnusedVariablesAndParams="true"
+    findUnusedCode="true"
+    runTaintAnalysis="true"
+    resolveFromConfigFile="true"
+    useDocblockTypes="true"
+    checkForThrowsDocblock="true"
+    checkForThrowsInGlobalScope="true"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://getpsalm.org/schema/config"
+    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+    errorBaseline="psalm-baseline.xml"
+>
+    <projectFiles>
+        <directory name="src"/>
+        <directory name="tests"/>
+        <ignoreFiles>
+            <directory name="tests"/>
+            <directory name="vendor"/>
+        </ignoreFiles>
+    </projectFiles>
+    <issueHandlers>
+        <MissingConstructor>
+            <errorLevel type="suppress">
+                <directory name="tests" />
+            </errorLevel>
+        </MissingConstructor>
+        <MissingThrowsDocblock>
+            <errorLevel type="suppress">
+                <directory name="tests" />
+            </errorLevel>
+        </MissingThrowsDocblock>
+    </issueHandlers>
+    <plugins>
+        <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
+    </plugins>
+</psalm>

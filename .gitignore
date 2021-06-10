@@ -1,0 +1,5 @@
+.cache/
+dump.txt
+coverage
+clover.xml
+.phpunit.cache/

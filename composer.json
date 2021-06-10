@@ -1,0 +1,112 @@
+{
+    "name": "ghostwriter/container",
+    "description": "Provides a PSR-11, Dependency Injection Service Container",
+    "license": "BSD-3-Clause",
+    "type": "library",
+    "keywords": [
+        "ghostwriter",
+        "container",
+        "psr-11"
+    ],
+    "authors": [
+        {
+            "name": "Nathanael Esayeas",
+            "email": "nathanael.esayeas@protonmail.com",
+            "homepage": "https://github.com/ghostwriter",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://github.com/ghostwriter/container",
+    "funding": [
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/ghostwriter"
+        }
+    ],
+    "require": {
+        "php": ">=8.0,<8.2",
+        "psr/container": "^1.0 || ^2.0"
+    },
+    "require-dev": {
+        "ghostwriter/composer-lock": "^0.1.3",
+        "laminas/laminas-coding-standard": "^2.3.0",
+        "phpunit/phpunit": "^9.5.20",
+        "psalm/plugin-phpunit": "^0.16.1",
+        "roave/infection-static-analysis-plugin": "^1.18.0",
+        "roave/no-leaks": "^1.3.0",
+        "roave/security-advisories": "dev-latest",
+        "vimeo/psalm": "^4.22.0"
+    },
+    "conflict": {
+        "ext-psr": "*"
+    },
+    "provide": {
+        "psr/container-implementation": "^1.1 || ^2.0"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Ghostwriter\\Container\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ghostwriter\\Container\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "infection/extension-installer": true,
+            "ghostwriter/composer-lock": false
+        },
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "scripts": {
+        "bench": "phpbench --colors=always",
+        "check": [
+            "@rector",
+            "@normalizer",
+            "@cs-fix",
+            "@test",
+            "@psalm",
+            "@i2",
+            "@cs-check"
+        ],
+        "cs-check": "phpcs",
+        "cs-fix": "phpcbf || true",
+        "fix": [
+            "@cs-fix",
+            "@missing-returntypes"
+        ],
+        "i2": "XDEBUG_MODE=coverage ./vendor/bin/roave-infection-static-analysis-plugin",
+        "infection": [
+            "@putenv XDEBUG_MODE=coverage",
+            "roave-infection-static-analysis-plugin"
+        ],
+        "infection0": "XDEBUG_MODE=coverage ./vendor/bin/infection",
+        "missing-returntypes": "psalm --alter --issues=MissingReturnType",
+        "normalizer": "@composer normalize --no-check-lock",
+        "phpunit": "phpunit --colors=always --testdox --stop-on-failure",
+        "psalm": "psalm --shepherd --stats",
+        "psalm-baseline": "psalm --set-baseline=psalm-baseline.xml",
+        "psalm-fix-all": "psalm --alter --issues=all --dry-run",
+        "rector": "vendor/bin/rector process",
+        "rector2": "vendor/bin/rector process --dry-run",
+        "test": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --colors=always --testdox --stop-on-failure",
+        "test-coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --colors=always --stop-on-failure --testdox",
+        "test:bench": "phpbench --colors=always",
+        "test:coverage": [
+            "@putenv XDEBUG_MODE=coverage",
+            "phpunit --color=always --coverage-clover='.cache/phpunit/clover.xml'",
+            "@test:coverage-html"
+        ],
+        "test:coverage-html": [
+            "@putenv XDEBUG_MODE=coverage",
+            "phpunit --color=always --coverage-html='.cache/phpunit/coverage-html'"
+        ]
+    }
+}
