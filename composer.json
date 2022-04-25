@@ -25,7 +25,7 @@
     ],
     "require": {
         "php": ">=8.0, <8.2",
-        "psr/container": "^2.0"
+        "psr/container": "^1.0 || ^2.0"
     },
     "require-dev": {
         "laminas/laminas-coding-standard": "^2.3.0",
@@ -39,7 +39,7 @@
         "ext-psr": "*"
     },
     "provide": {
-        "psr/container-implementation": "^2.0"
+        "psr/container-implementation": "^1.0 || ^2.0"
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
