@@ -7,7 +7,6 @@
     },
     "logs": {
         "stryker": {
-            "badge": "/^\\d\\.\\d\\.x$/",
             "report": "/^\\d\\.\\d\\.x$/"
         },
         "text": "php:\/\/stderr",
