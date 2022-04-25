@@ -7,7 +7,7 @@
     },
     "logs": {
         "stryker": {
-            "report": "/^\\d\\.\\d\\.x$/"
+            "report": "/^.*$/"
         },
         "text": "php:\/\/stderr",
         "github": true
