@@ -3,13 +3,10 @@
 [![Continuous Integration](https://github.com/ghostwriter/container/actions/workflows/continuous-integration.yml/badge.svg)](https://github.com/ghostwriter/container/actions/workflows/continuous-integration.yml)
 [![Supported PHP Version](https://badgen.net/packagist/php/ghostwriter/container?color=8892bf)](https://www.php.net/supported-versions)
 [![Type Coverage](https://shepherd.dev/github/ghostwriter/container/coverage.svg)](https://shepherd.dev/github/ghostwriter/container)
-[![Infection MSI](https://img.shields.io/endpoint?url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fghostwriter%2Fcontainer%2Fmain)](https://dashboard.stryker-mutator.io/reports/github.com/ghostwriter/container/main)
 [![Latest Version on Packagist](https://badgen.net/packagist/v/ghostwriter/container)](https://packagist.org/packages/ghostwriter/container)
 [![Downloads](https://badgen.net/packagist/dt/ghostwriter/container?color=blue)](https://packagist.org/packages/ghostwriter/container)
 
-Provides an extensible [PSR-11](https://github.com/php-fig/fig-standards/blob/44a91bcff68f7b6a1479c459cc7c83dd32c7211e/accepted/PSR-11-container.md),
-dependency injection service container with parameters and service
-tagging.
+Provides an extensible [PSR-11](https://www.php-fig.org/psr/psr-11/), dependency injection service container.
 
 ## Installation
 
