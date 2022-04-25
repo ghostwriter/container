@@ -4,9 +4,29 @@ on:
   pull_request:
   push:
     branches:
-      - 'main'
-      - '[0-9]+.[0-9]+.x'
+      - "main"
+      - "[0-9]+.[0-9]+.x"
 
 jobs:
+  matrix:
+    name: Generate job matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - name: Gather CI configuration
+        id: matrix
+        uses: laminas/laminas-ci-matrix-action@1.11.5
+
   qa:
-    uses: laminas/workflow-continuous-integration/.github/workflows/continuous-integration.yml@1.x
+    name: QA Checks
+    needs: [matrix]
+    runs-on: ${{ matrix.operatingSystem }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.matrix.outputs.matrix) }}
+    steps:
+      - name: ${{ matrix.name }}
+        uses: laminas/laminas-continuous-integration-action@1.19.1
+        with:
+          job: ${{ matrix.job }}
