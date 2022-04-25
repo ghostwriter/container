@@ -77,7 +77,7 @@ class MyServiceProvider implements ServiceProviderInterface
 
         $container->set('tagged_service', function (Container $container) {
             return $container->build(MyService::class);
-        }, [ 'tag' => [ 'param1' => 'foobar' ]);
+        }, ['tag', 'foobar']);
     }
 }
 ```
