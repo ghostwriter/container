@@ -41,7 +41,7 @@ $instance = $container->get(MyService::class); // MyService
 ### Simple usage
 
 ```php
-$container = new Container();
+$container = Container::getInstance();
 
 $container->set('foobar', function (Container $container) {
     return new \stdClass();

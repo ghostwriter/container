@@ -440,10 +440,8 @@ final class ContainerTest extends PHPUnitTestCase
         self::assertInstanceOf(Container::class, $this->container);
     }
 
-    /** [dataProviders] */
-
     /** @return iterable<string,array>*/
-    private function dataProviderServiceClasses(): iterable
+    public function dataProviderServiceClasses(): iterable
     {
         yield ArrayConstructor::class => [ArrayConstructor::class, ['value' => []]];
         yield BoolConstructor::class => [BoolConstructor::class, ['value' => true]];
@@ -467,7 +465,7 @@ final class ContainerTest extends PHPUnitTestCase
     }
 
     /** @return iterable<string,array>*/
-    private function dataProviderServices(): iterable
+    public function dataProviderServices(): iterable
     {
         /** $name => [$key, $value, $resultType, $tags] */
 
@@ -490,7 +488,7 @@ final class ContainerTest extends PHPUnitTestCase
     /**
      * @return iterable<string, array{string,string,callable}>
      */
-    private function dataProviderContainerExceptions(): iterable
+    public function dataProviderContainerExceptions(): iterable
     {
         yield 'CircularDependencyException::instantiationStack' => [
             CircularDependencyException::class,
