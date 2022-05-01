@@ -18,65 +18,99 @@ composer require ghostwriter/container
 
 ## Usage
 
-``` php
-use Ghostwriter\Container\Container;
+### Simple usage
 
-class MyService
+Registering a service on the given container.
+
+```php
+class Service
 {
     private Dependency $dependency;
-
     public function __construct(Dependency $dependency)
     {
         $this->dependency = $dependency;
     }
+    public function dependency():Dependency
+    {
+        return $this->dependency;
+    }
 }
 
+use Ghostwriter\Container\Container;
+
 $container = Container::getInstance();
-$instance = $container->get(MyService::class); // MyService
-```
+$service = $container->get(Service::class);
 
-### Simple usage
-
-```php
-$container = Container::getInstance();
-
-$container->set('foobar', function (Container $container) {
-    return new \stdClass();
-},['tag']);
-
-$container->get('foobar'); // stdClass
+assert($service instanceof Service); // true
+assert($service->dependency() instanceof Dependency); // true
 ```
 
 ### Service Providers
 
+Registering a service provider on the container.
+
 ```php
-interface ServiceProviderInterface
+class TaskInterface{}
+
+class Task extends TaskInterface{}
+
+class Tasks
 {
-    /**
-     * Registers a service on the given container.
-     */
-    public function __invoke(ContainerInterface $container): void;
+    private array $tasks;
+    public function addTask(TaskInterface $task)
+    {
+        $this->tasks[$task::class] = $task;
+    }
 }
 
-class MyServiceProvider implements ServiceProviderInterface
+class TasksServiceProvider implements ServiceProviderInterface
 {
     public function __invoke(ContainerInterface $container)
     {
-        $container->set('my_service', function (Container $container) {
-            $service = $container->build(MyService::class);
+        $container->bind(Task::class);
 
-            foreach ($container->tagged('tag') as $serviceId => $params) {
-                $service->add($container->get($serviceId));
+        $container->alias(TaskInterface::class, Task::class);
+
+        $container->set(Tasks::class, function (Container $container) {
+            /** @var Tasks $tasks */
+            $tasks = $container->build(Tasks::class);
+
+            foreach ($container->tagged(Task::class) as $serviceId) {
+                $tasks->addTask($container->get($serviceId));
             }
 
-            return $service;
-        });
-
-        $container->set('tagged_service', function (Container $container) {
-            return $container->build(MyService::class);
-        }, ['tag', 'foobar']);
+            return $tasks;
+        }, [Tasks::class, 'tasks']);
     }
 }
+
+$container->register(new TasksServiceProvider());
+```
+
+### Service Extensions
+
+Registering a service extension on the container.
+
+```php
+$container->extend(GitHubClient::class, function (Container $container, object $client) {
+    $client->setEnterpriseUrl($client->get(GitHubClient::GITHUB_HOST));
+});
+
+// or
+
+class GitHubExtension implements ExtensionInterface
+{
+    public function __invoke(ContainerInterface $container, object $service): object
+    {
+        $service->setEnterpriseUrl(
+            $container->get(GitHubClient::GITHUB_HOST)
+        );
+
+        return $service;
+    }
+}
+
+$container->add(GitHubClient::class, $container->get(GitHubExtention::class));
 ```
 
 ### Testing
@@ -96,7 +130,7 @@ If you discover any security related issues, please email `nathanael.esayeas@pro
 ## Credits
 
 - [Nathanael Esayeas](https://github.com/ghostwriter)
-- [All Contributors](../../contributors)
+- [All Contributors](https://github.com/ghostwriter/container/contributors)
 
 ## License
 
