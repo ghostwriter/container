@@ -7,6 +7,6 @@ namespace Ghostwriter\Container\Contract;
 use Psr\Container\ContainerExceptionInterface as PsrContainerExceptionInterface;
 use Throwable;
 
-interface ContainerExceptionInterface extends Throwable, PsrContainerExceptionInterface
+interface ContainerExceptionInterface extends PsrContainerExceptionInterface, Throwable
 {
 }
