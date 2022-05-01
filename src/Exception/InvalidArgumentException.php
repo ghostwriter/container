@@ -11,14 +11,14 @@ use function sprintf;
 
 final class InvalidArgumentException extends PHPInvalidArgumentException implements ContainerExceptionInterface
 {
-    public static function emptyServiceId(): self
-    {
-        return new self('Service "ID" cannot be empty.');
-    }
-
     public static function emptyServiceAlias(): self
     {
         return new self('Service "Alias" cannot be empty.');
+    }
+
+    public static function emptyServiceId(): self
+    {
+        return new self('Service "ID" cannot be empty.');
     }
 
     public static function emptyServiceTagForServiceId(string $id): self

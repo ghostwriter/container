@@ -18,7 +18,7 @@
         <directory name="src"/>
         <directory name="tests"/>
         <ignoreFiles>
-            <directory name="tests"/>
+            <directory name="tests/Fixture"/>
             <directory name="vendor"/>
         </ignoreFiles>
     </projectFiles>
