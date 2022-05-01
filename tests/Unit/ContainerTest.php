@@ -10,6 +10,7 @@ use Ghostwriter\Container\Contract\ContainerExceptionInterface;
 use Ghostwriter\Container\Contract\ContainerInterface;
 use Ghostwriter\Container\Contract\Exception\NotFoundExceptionInterface;
 use Ghostwriter\Container\Contract\ServiceProviderInterface;
+use Ghostwriter\Container\Exception\BadMethodCallException;
 use Ghostwriter\Container\Exception\CircularDependencyException;
 use Ghostwriter\Container\Exception\InvalidArgumentException;
 use Ghostwriter\Container\Exception\LogicException;
@@ -39,6 +40,9 @@ use Ghostwriter\Container\Tests\Fixture\DummyInterface;
 use Ghostwriter\Container\Tests\Fixture\Extension\FoobarExtension;
 use Ghostwriter\Container\Tests\Fixture\Foo;
 use Ghostwriter\Container\Tests\Fixture\ServiceProvider\FoobarServiceProvider;
+use Ghostwriter\Container\Tests\Fixture\ServiceProvider\FoobarServiceProviderWithDependency;
+use Ghostwriter\Container\Tests\Fixture\ServiceProvider\FoobarWithDependencyServiceProvider;
+use Ghostwriter\Container\Tests\Fixture\TypelessDependency;
 use Ghostwriter\Container\Tests\Fixture\UnionTypehintWithDefaultValue;
 use Ghostwriter\Container\Tests\Fixture\UnionTypehintWithoutDefaultValue;
 use Ghostwriter\Container\Tests\Fixture\UnresolvableParameter;
@@ -46,11 +50,11 @@ use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 use Psr\Container\ContainerExceptionInterface as PsrContainerExceptionInterface;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
 use Psr\Container\NotFoundExceptionInterface as PsrNotFoundExceptionInterface;
+use ReflectionClass;
 use stdClass;
 use Throwable;
 
 use function array_key_exists;
-use function get_class;
 use function is_subclass_of;
 use function serialize;
 use function sprintf;
@@ -85,33 +89,36 @@ final class ContainerTest extends PHPUnitTestCase
      */
     public function testContainerAlias(): void
     {
-        $this->assertFalse($this->container->has('container'));
+        self::assertFalse($this->container->has('container'));
 
         $this->container->alias('container', Container::class);
 
-        $this->assertTrue($this->container->has('container'));
+        self::assertTrue($this->container->has('container'));
 
-        $this->assertInstanceOf(ContainerInterface::class, $this->container->get('container'));
+        self::assertInstanceOf(ContainerInterface::class, $this->container->get('container'));
     }
 
     /**
      * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::add
+     * @covers \Ghostwriter\Container\Container::bind
+     * @covers \Ghostwriter\Container\Container::build
+     * @covers \Ghostwriter\Container\Container::extend
+     * @covers \Ghostwriter\Container\Container::get
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::resolve
-     * @covers \Ghostwriter\Container\Container::alias
-     * @covers \Ghostwriter\Container\Container::has
-     * @covers \Ghostwriter\Container\Container::get
      * @throws Throwable
      */
     public function testContainerAdd(): void
     {
-        $this->assertFalse($this->container->has('container'));
+        $this->container->bind('extendable', stdClass::class);
 
-        $this->container->alias('container', Container::class);
+        $this->container->add('extendable', new FoobarExtension());
 
-        $this->assertTrue($this->container->has('container'));
+        $extendable = $this->container->get('extendable');
 
-        $this->assertInstanceOf(ContainerInterface::class, $this->container->get('container'));
+        self::assertInstanceOf(Foo::class, $extendable->foo);
+        self::assertInstanceOf(Bar::class, $extendable->bar);
     }
 
     /**
@@ -129,28 +136,38 @@ final class ContainerTest extends PHPUnitTestCase
         $this->container->bind(DummyInterface::class, Foo::class);
         $this->container->bind(Baz::class);
 
-        $this->assertTrue($this->container->has(DummyInterface::class));
-        $this->assertTrue($this->container->has(Baz::class));
+        self::assertTrue($this->container->has(DummyInterface::class));
+        self::assertTrue($this->container->has(Baz::class));
 
-        $this->assertInstanceOf(Foo::class, $this->container->get(DummyInterface::class));
-        $this->assertInstanceOf(Baz::class, $this->container->get(Baz::class));
+        self::assertInstanceOf(Foo::class, $this->container->get(DummyInterface::class));
+        self::assertInstanceOf(Baz::class, $this->container->get(Baz::class));
     }
 
     /**
      * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::add
+     * @covers \Ghostwriter\Container\Container::bind
      * @covers \Ghostwriter\Container\Container::build
+     * @covers \Ghostwriter\Container\Container::extend
      * @covers \Ghostwriter\Container\Container::get
      * @covers \Ghostwriter\Container\Container::getInstance
+     * @covers \Ghostwriter\Container\Container::has
+     * @covers \Ghostwriter\Container\Container::register
      * @covers \Ghostwriter\Container\Container::resolve
+     * @covers \Ghostwriter\Container\Container::set
      * @dataProvider dataProviderServiceClasses
      * @throws Throwable
+     * @param array<string, mixed> $arguments
      */
     public function testContainerBuild(string $class, array $arguments): void
     {
         self::assertInstanceOf($class, $this->container->build($class, $arguments));
+
         if (array_key_exists('value', $arguments)) {
             self::assertSame($arguments['value'], $this->container->get($class)->value());
         }
+
+
     }
 
     /**
@@ -185,8 +202,9 @@ final class ContainerTest extends PHPUnitTestCase
 
         $container->__destruct();
 
-        $this->expectError();
-        $this->expectErrorMessage('ll');
+        self::assertFalse($this->container->has('test'));
+//        $this->expectError();
+//        $this->expectErrorMessage('ll');
 
         $this->container->has('test');
     }
@@ -247,6 +265,7 @@ final class ContainerTest extends PHPUnitTestCase
     }
 
     /**
+     * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
      * @covers \Ghostwriter\Container\Container::alias
      * @covers \Ghostwriter\Container\Container::get
@@ -259,6 +278,9 @@ final class ContainerTest extends PHPUnitTestCase
      * @throws PsrContainerExceptionInterface
      * @throws PsrNotFoundExceptionInterface
      * @dataProvider dataProviderServices
+     * @param class-string<\Ghostwriter\Container\Tests\Fixture\Foo>|class-string<\Ghostwriter\Container\Tests\Fixture\TypelessDependency>|class-string<\Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassA>|class-string<\stdClass>|string $value
+     * @param class-string<\Ghostwriter\Container\Tests\Fixture\Foo>|class-string<\Ghostwriter\Container\Tests\Fixture\TypelessDependency>|class-string<\Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassA>|class-string<\stdClass>|string $expected
+     * @param mixed[] $tags
      */
     public function testContainerSet(string $key, mixed $value, mixed $expected, array $tags): void
     {
@@ -295,16 +317,16 @@ final class ContainerTest extends PHPUnitTestCase
         $this->container->set('stdclass4', static fn(): stdClass => new stdClass());
         $this->container->tag('stdclass4', ['tag-2']);
 
-        $this->assertNotNull($this->container->tagged('tag-1'));
-        $this->assertCount(2, $this->container->tagged('tag-1'));
-        $this->assertCount(2, $this->container->tagged('tag-2'));
+        self::assertNotNull($this->container->tagged('tag-1'));
+        self::assertCount(2, $this->container->tagged('tag-1'));
+        self::assertCount(2, $this->container->tagged('tag-2'));
 
         foreach ($this->container->tagged('tag-1') as $serviceId) {
-            $this->assertSame('first-tag', $this->container->get($serviceId));
+            self::assertSame('first-tag', $this->container->get($serviceId));
         }
 
         foreach ($this->container->tagged('tag-2') as $serviceId) {
-            $this->assertInstanceOf(stdClass::class, $this->container->get($serviceId));
+            self::assertInstanceOf(stdClass::class, $this->container->get($serviceId));
         }
     }
 
@@ -359,24 +381,24 @@ final class ContainerTest extends PHPUnitTestCase
      * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Container::set
      * @covers \Ghostwriter\Container\Container::tag
-     * @covers \Ghostwriter\Container\Exception\CircularDependencyException::instantiationStack
+     * @covers \Ghostwriter\Container\Exception\CircularDependencyException::detected
      * @covers \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceId
      * @covers \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceAlias
      * @covers \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceTagForServiceId
-     * @covers \Ghostwriter\Container\Exception\LogicException::dontClone
-     * @covers \Ghostwriter\Container\Exception\LogicException::dontSerialize
-     * @covers \Ghostwriter\Container\Exception\LogicException::dontUnserialize
+     * @covers \Ghostwriter\Container\Exception\BadMethodCallException::dontClone
+     * @covers \Ghostwriter\Container\Exception\BadMethodCallException::dontSerialize
+     * @covers \Ghostwriter\Container\Exception\BadMethodCallException::dontUnserialize
      * @covers \Ghostwriter\Container\Exception\LogicException::serviceAlreadyRegistered
      * @covers \Ghostwriter\Container\Exception\LogicException::serviceCannotAliasItself
      * @covers \Ghostwriter\Container\Exception\LogicException::serviceExtensionAlreadyRegistered
      * @covers \Ghostwriter\Container\Exception\LogicException::serviceProviderAlreadyRegistered
-     * @covers \Ghostwriter\Container\Exception\LogicException::serviceTagAlreadyRegistered
      * @covers \Ghostwriter\Container\Exception\NotFoundException::notRegistered
      * @covers \Ghostwriter\Container\Exception\NotInstantiableException::abstractClassOrInterface
      * @covers \Ghostwriter\Container\Exception\NotInstantiableException::classDoseNotExist
      * @covers \Ghostwriter\Container\Exception\NotInstantiableException::unresolvableParameter
      * @dataProvider dataProviderContainerExceptions
      * @throws Throwable
+     * @param callable(Container):void $test
      */
     public function testExceptionsImplementPsrContainerExceptionInterface(
         string $exception,
@@ -461,6 +483,9 @@ final class ContainerTest extends PHPUnitTestCase
         yield Bar::class => [Bar::class, []];
         yield Baz::class => [Baz::class, []];
         yield Container::class => [Container::class, []];
+        yield FoobarWithDependencyServiceProvider::class => [FoobarWithDependencyServiceProvider::class, []];
+        yield FoobarServiceProvider::class => [FoobarServiceProvider::class, []];
+        yield FoobarExtension::class => [FoobarExtension::class, []];
         yield self::class => [self::class, []];
     }
 
@@ -490,9 +515,9 @@ final class ContainerTest extends PHPUnitTestCase
      */
     public function dataProviderContainerExceptions(): iterable
     {
-        yield 'CircularDependencyException::instantiationStack' => [
+        yield 'CircularDependencyException::detected' => [
             CircularDependencyException::class,
-            CircularDependencyException::instantiationStack(
+            CircularDependencyException::detected(
                 ClassA::class,
                 [
                     ClassA::class,
@@ -503,7 +528,7 @@ final class ContainerTest extends PHPUnitTestCase
                     ClassZ::class,
                 ]
             )->getMessage(),
-            static function (Container $container) {
+            static function (Container $container): void {
                 $container->build(ClassA::class);
             },
         ];
@@ -511,7 +536,7 @@ final class ContainerTest extends PHPUnitTestCase
         yield 'InvalidArgumentException::emptyServiceId@alias' => [
             InvalidArgumentException::class,
             InvalidArgumentException::emptyServiceId()->getMessage(),
-            static function (Container $container) {
+            static function (Container $container): void {
                 $container->alias('empty-value', '');
             },
         ];
@@ -519,7 +544,7 @@ final class ContainerTest extends PHPUnitTestCase
         yield 'InvalidArgumentException::emptyServiceId@bind' => [
             InvalidArgumentException::class,
             InvalidArgumentException::emptyServiceId()->getMessage(),
-            static function (Container $container) {
+            static function (Container $container): void {
                 $container->bind('', 'empty-value');
             },
         ];
@@ -527,8 +552,8 @@ final class ContainerTest extends PHPUnitTestCase
         yield 'InvalidArgumentException::emptyServiceId@extend' => [
             InvalidArgumentException::class,
             InvalidArgumentException::emptyServiceId()->getMessage(),
-            static function (Container $container) {
-                $container->extend('', function () {
+            static function (Container $container): void {
+                $container->extend('', function (): void {
                 });
             },
         ];
@@ -536,7 +561,7 @@ final class ContainerTest extends PHPUnitTestCase
         yield 'InvalidArgumentException::emptyServiceId@set' => [
             InvalidArgumentException::class,
             InvalidArgumentException::emptyServiceId()->getMessage(),
-            static function (Container $container) {
+            static function (Container $container): void {
                 $container->set('', 'empty-key');
             },
         ];
@@ -544,7 +569,7 @@ final class ContainerTest extends PHPUnitTestCase
         yield 'InvalidArgumentException::emptyServiceId@remove' => [
             InvalidArgumentException::class,
             InvalidArgumentException::emptyServiceId()->getMessage(),
-            static function (Container $container) {
+            static function (Container $container): void {
                 $container->remove('');
             },
         ];
@@ -552,7 +577,7 @@ final class ContainerTest extends PHPUnitTestCase
         yield 'InvalidArgumentException::emptyServiceId@resolve-via-has' => [
             InvalidArgumentException::class,
             InvalidArgumentException::emptyServiceId()->getMessage(),
-            static function (Container $container) {
+            static function (Container $container): void {
                 $container->has('');
             },
         ];
@@ -560,7 +585,7 @@ final class ContainerTest extends PHPUnitTestCase
         yield 'InvalidArgumentException::emptyServiceId@tag' => [
             InvalidArgumentException::class,
             InvalidArgumentException::emptyServiceId()->getMessage(),
-            static function (Container $container) {
+            static function (Container $container): void {
                 $container->tag('', ['']);
             },
         ];
@@ -568,7 +593,7 @@ final class ContainerTest extends PHPUnitTestCase
         yield 'InvalidArgumentException::emptyServiceAlias' => [
             InvalidArgumentException::class,
             InvalidArgumentException::emptyServiceAlias()->getMessage(),
-            static function (Container $container) {
+            static function (Container $container): void {
                 $container->alias('', 'empty-key');
             },
         ];
@@ -576,31 +601,31 @@ final class ContainerTest extends PHPUnitTestCase
         yield 'InvalidArgumentException::emptyServiceTagForServiceId' => [
             InvalidArgumentException::class,
             InvalidArgumentException::emptyServiceTagForServiceId(Container::class)->getMessage(),
-            static function (Container $container) {
+            static function (Container $container): void {
                 $container->tag(Container::class, ['']);
             },
         ];
 
-        yield 'LogicException::dontClone' => [
-            LogicException::class,
-            LogicException::dontClone(Container::class)->getMessage(),
-            static function (Container $container) {
+        yield 'BadMethodCallException::dontClone' => [
+            BadMethodCallException::class,
+            BadMethodCallException::dontClone(Container::class)->getMessage(),
+            static function (Container $container): void {
                 $container->set('clone', clone $container);
             },
         ];
 
-        yield 'LogicException::dontSerialize' => [
-            LogicException::class,
-            LogicException::dontSerialize(Container::class)->getMessage(),
-            static function (Container $container) {
+        yield 'BadMethodCallException::dontSerialize' => [
+            BadMethodCallException::class,
+            BadMethodCallException::dontSerialize(Container::class)->getMessage(),
+            static function (Container $container): void {
                 serialize($container);
             },
         ];
 
-        yield 'LogicException::dontUnserialize' => [
-            LogicException::class,
-            LogicException::dontUnserialize(Container::class)->getMessage(),
-            function (Container $container) {
+        yield 'BadMethodCallException::dontUnserialize' => [
+            BadMethodCallException::class,
+            BadMethodCallException::dontUnserialize(Container::class)->getMessage(),
+            function (Container $container): void {
                 unserialize(
                     /** mocks a serialized Container::class */
                     sprintf('O:%s:"%s":0:{}', strlen($container::class), $container::class)
@@ -617,7 +642,7 @@ final class ContainerTest extends PHPUnitTestCase
         yield 'LogicException::serviceAlreadyRegistered@bind' => [
             LogicException::class,
             LogicException::serviceAlreadyRegistered('bind')->getMessage(),
-            static function (Container $container) {
+            static function (Container $container): void {
                 $container->set('bind', 'empty-value');
                 $container->bind('bind', stdClass::class);
             },
@@ -633,7 +658,7 @@ final class ContainerTest extends PHPUnitTestCase
         yield 'LogicException::serviceExtensionAlreadyRegistered' => [
             LogicException::class,
             LogicException::serviceExtensionAlreadyRegistered(FoobarExtension::class)->getMessage(),
-            static function (Container $container) {
+            static function (Container $container): void {
                 $extension = $container->get(FoobarExtension::class);
                 $container->extend('foo', $extension);
                 $container->extend('foo', $extension);
@@ -646,26 +671,18 @@ final class ContainerTest extends PHPUnitTestCase
         yield 'LogicException::serviceProviderAlreadyRegistered' => [
             LogicException::class,
             LogicException::serviceProviderAlreadyRegistered(
-                get_class($serviceProvider = $this->createMock(ServiceProviderInterface::class))
+                ($serviceProvider = $this->createMock(ServiceProviderInterface::class))::class
             )->getMessage(),
-            static function (Container $container) use ($serviceProvider) {
+            static function (Container $container) use ($serviceProvider): void {
                 $container->register($serviceProvider);
                 $container->register($serviceProvider);
-            },
-        ];
-
-        yield 'LogicException::serviceTagAlreadyRegistered' => [
-            LogicException::class,
-            LogicException::serviceTagAlreadyRegistered(LogicException::class, LogicException::class)->getMessage(),
-            static function (Container $container) {
-                $container->tag(LogicException::class, [LogicException::class, LogicException::class]);
             },
         ];
 
         yield 'NotFoundException::missingServiceId@get' => [
             NotFoundException::class,
             NotFoundException::notRegistered('dose-not-exist')->getMessage(),
-            static function (Container $container) {
+            static function (Container $container): void {
                 $container->get('dose-not-exist');
             },
         ];
@@ -673,7 +690,7 @@ final class ContainerTest extends PHPUnitTestCase
         yield 'NotFoundException::missingServiceId@alias' => [
             NotFoundException::class,
             NotFoundException::notRegistered('dose-not-exist')->getMessage(),
-            static function (Container $container) {
+            static function (Container $container): void {
                 $container->alias('alias', 'dose-not-exist');
             },
         ];
@@ -681,7 +698,7 @@ final class ContainerTest extends PHPUnitTestCase
         yield 'NotFoundException::missingServiceId@remove' => [
             NotFoundException::class,
             NotFoundException::notRegistered('dose-not-exist')->getMessage(),
-            static function (Container $container) {
+            static function (Container $container): void {
                 $container->remove('dose-not-exist');
             },
         ];
@@ -689,7 +706,7 @@ final class ContainerTest extends PHPUnitTestCase
         yield 'NotInstantiableException::abstractClassOrInterface' => [
             NotInstantiableException::class,
             NotInstantiableException::abstractClassOrInterface(Throwable::class)->getMessage(),
-            static function (Container $container) {
+            static function (Container $container): void {
                 $container->build(Throwable::class);
             },
         ];
@@ -697,7 +714,7 @@ final class ContainerTest extends PHPUnitTestCase
         yield 'NotInstantiableException::classDoseNotExist' => [
             NotInstantiableException::class,
             NotInstantiableException::classDoseNotExist('dose-not-exist')->getMessage(),
-            static function (Container $container) {
+            static function (Container $container): void {
                 $container->build('dose-not-exist');
             },
         ];
@@ -708,7 +725,7 @@ final class ContainerTest extends PHPUnitTestCase
                 'number',
                 UnresolvableParameter::class
             )->getMessage(),
-            static function (Container $container) {
+            static function (Container $container): void {
                 $container->build(UnresolvableParameter::class);
             },
         ];
