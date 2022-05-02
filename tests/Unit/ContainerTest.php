@@ -40,7 +40,6 @@ use Ghostwriter\Container\Tests\Fixture\DummyInterface;
 use Ghostwriter\Container\Tests\Fixture\Extension\FoobarExtension;
 use Ghostwriter\Container\Tests\Fixture\Foo;
 use Ghostwriter\Container\Tests\Fixture\ServiceProvider\FoobarServiceProvider;
-use Ghostwriter\Container\Tests\Fixture\ServiceProvider\FoobarServiceProviderWithDependency;
 use Ghostwriter\Container\Tests\Fixture\ServiceProvider\FoobarWithDependencyServiceProvider;
 use Ghostwriter\Container\Tests\Fixture\TypelessDependency;
 use Ghostwriter\Container\Tests\Fixture\UnionTypehintWithDefaultValue;
@@ -50,7 +49,6 @@ use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 use Psr\Container\ContainerExceptionInterface as PsrContainerExceptionInterface;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
 use Psr\Container\NotFoundExceptionInterface as PsrNotFoundExceptionInterface;
-use ReflectionClass;
 use stdClass;
 use Throwable;
 
@@ -161,7 +159,11 @@ final class ContainerTest extends PHPUnitTestCase
      */
     public function testContainerBuild(string $class, array $arguments): void
     {
-        self::assertInstanceOf($class, $this->container->build($class, $arguments));
+        $buildService = $this->container->build($class, $arguments);
+
+        $getService = $this->container->get($class);
+
+        self::assertSame($buildService, $getService);
 
         if (array_key_exists('value', $arguments)) {
             self::assertSame($arguments['value'], $this->container->get($class)->value());
@@ -203,10 +205,6 @@ final class ContainerTest extends PHPUnitTestCase
         $container->__destruct();
 
         self::assertFalse($this->container->has('test'));
-//        $this->expectError();
-//        $this->expectErrorMessage('ll');
-
-        $this->container->has('test');
     }
 
     /**
@@ -273,14 +271,14 @@ final class ContainerTest extends PHPUnitTestCase
      * @covers \Ghostwriter\Container\Container::has
      * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Container::set
+     * @param class-string|string $value
+     * @param class-string|string $expected
+     * @param string[] $tags
+     * @throws PsrNotFoundExceptionInterface
+     * @dataProvider dataProviderServices
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      * @throws PsrContainerExceptionInterface
-     * @throws PsrNotFoundExceptionInterface
-     * @dataProvider dataProviderServices
-     * @param class-string<\Ghostwriter\Container\Tests\Fixture\Foo>|class-string<\Ghostwriter\Container\Tests\Fixture\TypelessDependency>|class-string<\Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassA>|class-string<\stdClass>|string $value
-     * @param class-string<\Ghostwriter\Container\Tests\Fixture\Foo>|class-string<\Ghostwriter\Container\Tests\Fixture\TypelessDependency>|class-string<\Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassA>|class-string<\stdClass>|string $expected
-     * @param mixed[] $tags
      */
     public function testContainerSet(string $key, mixed $value, mixed $expected, array $tags): void
     {
@@ -553,7 +551,7 @@ final class ContainerTest extends PHPUnitTestCase
             InvalidArgumentException::class,
             InvalidArgumentException::emptyServiceId()->getMessage(),
             static function (Container $container): void {
-                $container->extend('', function (): void {
+                $container->extend('', static function (): void {
                 });
             },
         ];
