@@ -34,7 +34,7 @@
         "roave/infection-static-analysis-plugin": "^1.18",
         "roave/security-advisories": "dev-latest",
         "symplify/easy-coding-standard": "^10.2",
-        "vimeo/psalm": "^4.22"
+        "vimeo/psalm": "^4.23"
     },
     "replace": {},
     "conflict": {
