@@ -295,6 +295,14 @@ final class ContainerTest extends PHPUnitTestCase
     }
 
     /** @return iterable<string,array> */
+    public function dataProviderPropertyAccessorMagicMethods(): iterable
+    {
+        foreach (['__get', '__isset', '__set', '__unset'] as $method) {
+            yield $method => [$method];
+        }
+    }
+
+    /** @return iterable<string,array> */
     public function dataProviderServiceClasses(): iterable
     {
         yield ArrayConstructor::class => [ArrayConstructor::class, [
@@ -525,6 +533,38 @@ final class ContainerTest extends PHPUnitTestCase
         unset($this->container[__METHOD__]);
 
         self::assertArrayNotHasKey(__METHOD__, $this->container);
+    }
+
+    /**
+     * @covers \Ghostwriter\Container\Container::__construct
+     * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::__get
+     * @covers \Ghostwriter\Container\Container::__isset
+     * @covers \Ghostwriter\Container\Container::__set
+     * @covers \Ghostwriter\Container\Container::__unset
+     * @covers \Ghostwriter\Container\Container::get
+     * @covers \Ghostwriter\Container\Container::getInstance
+     * @covers \Ghostwriter\Container\Container::has
+     * @covers \Ghostwriter\Container\Container::remove
+     * @covers \Ghostwriter\Container\Container::resolve
+     * @covers \Ghostwriter\Container\Container::set
+     * @dataProvider dataProviderPropertyAccessorMagicMethods
+     *
+     * @throws Throwable
+     */
+    public function testContainerImplementsPropertyAccessorMagicMethods(string $method): void
+    {
+        self::assertTrue(method_exists($this->container, $method));
+
+        $this->container->{$method} = true;
+
+        self::assertTrue(isset($this->container->{$method}));
+
+        self::assertTrue($this->container->{$method});
+
+        unset($this->container->{$method});
+
+        self::assertFalse(isset($this->container->{$method}));
     }
 
     /**
