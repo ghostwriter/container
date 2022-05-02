@@ -6,7 +6,6 @@ namespace Ghostwriter\Container\Exception;
 
 use Ghostwriter\Container\Contract\ContainerExceptionInterface;
 use InvalidArgumentException as PHPInvalidArgumentException;
-
 use function sprintf;
 
 final class InvalidArgumentException extends PHPInvalidArgumentException implements ContainerExceptionInterface
