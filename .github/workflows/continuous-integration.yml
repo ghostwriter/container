@@ -7,7 +7,7 @@ on:
       - "main"
       - "[0-9]+.[0-9]+.x"
   schedule:
-    - cron: "30 * * * *" # Runs hourly
+    - cron: "0 * * * *" # Runs hourly
 
 jobs:
   matrix:
@@ -28,6 +28,6 @@ jobs:
       matrix: ${{ fromJSON(needs.matrix.outputs.matrix) }}
     steps:
       - name: ${{ matrix.name }}
-        uses: laminas/laminas-continuous-integration-action@1.19.1
+        uses: ghostwriter/laminas-continuous-integration-action@temp
         with:
           job: ${{ matrix.job }}
