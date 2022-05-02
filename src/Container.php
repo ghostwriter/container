@@ -17,7 +17,6 @@ use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
 use ReflectionNamedType;
-
 use function array_key_exists;
 use function class_exists;
 use function is_callable;
@@ -45,7 +44,7 @@ final class Container implements ContainerInterface
 
     private function __construct()
     {
-        /** singleton */
+        // singleton
     }
 
     public function __destruct()
@@ -115,8 +114,7 @@ final class Container implements ContainerInterface
         }
 
         $this->services[self::FACTORIES][$abstract] =
-            static fn (ContainerInterface $container): object =>
-            $container->build($concrete ?? $abstract);
+            static fn (ContainerInterface $container): object => $container->build($concrete ?? $abstract);
     }
 
     public function build(string $class, array $arguments = []): object
@@ -172,7 +170,8 @@ final class Container implements ContainerInterface
             ) {
                 throw NotInstantiableException::unresolvableParameter(
                     $parameterName,
-                    $reflectionMethod->getDeclaringClass()->getName()
+                    $reflectionMethod->getDeclaringClass()
+                        ->getName()
                 );
             }
 
