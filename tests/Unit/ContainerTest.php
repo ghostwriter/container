@@ -222,10 +222,11 @@ final class ContainerTest extends PHPUnitTestCase
             LogicException::class,
             LogicException::serviceExtensionAlreadyRegistered(FoobarExtension::class)->getMessage(),
             static function (Container $container): void {
+                $container->bind(stdClass::class);
+
                 $extension = $container->get(FoobarExtension::class);
-                $container->add('foo', $extension);
-                $container->add('foo', $extension);
-                $container->get('foo');
+                $container->add(stdClass::class, $extension);
+                $container->add(stdClass::class, $extension);
             },
         ];
 
@@ -240,7 +241,6 @@ final class ContainerTest extends PHPUnitTestCase
                  */
                 // $serviceProvider = $container->get(FoobarServiceProvider::class);
                 $serviceProvider = $container->build(FoobarServiceProvider::class);
-                //
                 $container->register($serviceProvider);
             },
         ];
@@ -258,6 +258,14 @@ final class ContainerTest extends PHPUnitTestCase
             NotFoundException::notRegistered('dose-not-exist')->getMessage(),
             static function (Container $container): void {
                 $container->alias('alias', 'dose-not-exist');
+            },
+        ];
+
+        yield 'NotFoundException::missingServiceId@extend' => [
+            NotFoundException::class,
+            NotFoundException::notRegistered(stdClass::class)->getMessage(),
+            static function (Container $container): void {
+                $container->extend(stdClass::class, static fn () =>null);
             },
         ];
 
@@ -489,17 +497,53 @@ final class ContainerTest extends PHPUnitTestCase
      */
     public function testContainerDestruct(): void
     {
-        $container = $this->container;
-
-        self::assertSame($container, Container::getInstance());
-
         $this->container->set('test', true);
 
         self::assertTrue($this->container->has('test'));
 
-        $container->__destruct();
+        $this->container->__destruct();
 
         self::assertFalse($this->container->has('test'));
+    }
+
+    /**
+     * @covers \Ghostwriter\Container\Container::__construct
+     * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::bind
+     * @covers \Ghostwriter\Container\Container::build
+     * @covers \Ghostwriter\Container\Container::extend
+     * @covers \Ghostwriter\Container\Container::get
+     * @covers \Ghostwriter\Container\Container::getInstance
+     * @covers \Ghostwriter\Container\Container::has
+     * @covers \Ghostwriter\Container\Container::resolve
+     * @covers \Ghostwriter\Container\Container::set
+     *
+     * @throws Throwable
+     */
+    public function testContainerExtend(): void
+    {
+        $this->container->set('extend', true);
+
+        $this->container->bind(stdClass::class);
+
+        $this->container->extend(
+            stdClass::class,
+            static function (Container $container, object $stdClass): stdClass {
+                $stdClass->one = $container->get('extend');
+                return $stdClass;
+            }
+        );
+
+        $this->container->extend(
+            stdClass::class,
+            static function (Container $container, object $stdClass): stdClass {
+                $stdClass->two = $container->get('extend');
+                return $stdClass;
+            }
+        );
+
+        self::assertTrue($this->container->get(stdClass::class)->one);
+        self::assertTrue($this->container->get(stdClass::class)->two);
     }
 
     /**
@@ -761,7 +805,7 @@ final class ContainerTest extends PHPUnitTestCase
         try {
             $test($this->container);
         } catch (Throwable $throwable) {
-            self::assertSame($throwable::class, $exception);
+            self::assertSame($exception, $throwable::class);
 
             self::assertInstanceOf(PsrContainerExceptionInterface::class, $throwable);
             self::assertInstanceOf(ContainerExceptionInterface::class, $throwable);
