@@ -19,10 +19,12 @@ use Psr\Container\NotFoundExceptionInterface as PsrNotFoundExceptionInterface;
 /**
  * An extendable, closure based dependency injection container.
  *
- * @template mixed
  */
 interface ContainerInterface extends ArrayAccess, PsrContainerInterface
 {
+    /**
+     * @var string
+     */
     public const ALIASES = 'aliases';
 
     public const DEFAULT_SERVICES = [
@@ -42,16 +44,34 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
         self::TAGS         => [],
     ];
 
+    /**
+     * @var string
+     */
     public const DEPENDENCIES = 'dependencies';
 
+    /**
+     * @var string
+     */
     public const EXTENSIONS = 'extensions';
 
+    /**
+     * @var string
+     */
     public const FACTORIES = 'factories';
 
+    /**
+     * @var string
+     */
     public const PROVIDERS = 'providers';
 
+    /**
+     * @var string
+     */
     public const SERVICES = 'services';
 
+    /**
+     * @var string
+     */
     public const TAGS = 'tags';
 
     /** Destroy the "static" instance of this container. */
@@ -95,8 +115,10 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     /**
      * Create an object using the given Container to resolve dependencies.
      *
-     * @param class-string|string $class The class name.
+     * @template T of object
+     * @param class-string<T>|string $class The class name.
      * @param array<string,mixed> $arguments Optional constructor arguments passed to build the new class instance.
+     * @return T
      * @throws CircularDependencyException If a circular dependency is detected.
      * @throws NotInstantiableException If $class is not instantiable; (is an interface or an abstract class).
      */
@@ -115,6 +137,9 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      *
      * Note: This method will return the same instance on subsequent calls.
      *
+     * @template T
+     * @param string|class-string<T> $id
+     * @return T
      * @throws InvalidArgumentException If $id is empty.
      * @throws NotFoundException If $id is not registered.
      * @throws CircularDependencyException If a circular dependency is detected.
@@ -167,6 +192,8 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     /**
      * Assigns a service on the given container.
      *
+     * @template T
+     * @param T $value
      * @param iterable<string> $tags
      * @throws InvalidArgumentException If the service $id is empty.
      * @throws LogicException If the service $id is already registered.
