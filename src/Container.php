@@ -57,14 +57,34 @@ final class Container implements ContainerInterface
         throw BadMethodCallException::dontClone(self::class);
     }
 
+    public function __get(string $name)
+    {
+        return $this->get($name);
+    }
+
+    public function __isset(string $name): bool
+    {
+        return $this->has($name);
+    }
+
     public function __serialize(): array
     {
         throw BadMethodCallException::dontSerialize(self::class);
     }
 
+    public function __set(string $name, $value): void
+    {
+        $this->set($name, $value);
+    }
+
     public function __unserialize(array $data): void
     {
         throw BadMethodCallException::dontUnserialize(self::class);
+    }
+
+    public function __unset(string $name): void
+    {
+        $this->remove($name);
     }
 
     public function add(string $id, ExtensionInterface $extension): void
