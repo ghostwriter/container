@@ -102,9 +102,7 @@ class GitHubExtension implements ExtensionInterface
 {
     public function __invoke(ContainerInterface $container, object $service): object
     {
-        $service->setEnterpriseUrl(
-            $container->get(GitHubClient::GITHUB_HOST)
-        );
+        $service->setEnterpriseUrl($container->get(GitHubClient::GITHUB_HOST));
 
         return $service;
     }
