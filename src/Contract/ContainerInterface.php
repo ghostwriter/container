@@ -132,8 +132,10 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      * @param class-string<T>|string $class     the class name
      * @param array<string,mixed>    $arguments optional constructor arguments passed to build the new class instance
      *
-     * @throws CircularDependencyException if a circular dependency is detected
-     * @throws NotInstantiableException    if $class is not instantiable; (is an interface or an abstract class)
+     * @throws PsrNotFoundExceptionInterface  if no entry was found for **this** identifier
+     * @throws PsrContainerExceptionInterface if there is an error while retrieving the entry
+     * @throws CircularDependencyException    if a circular dependency is detected
+     * @throws NotInstantiableException       if $class is not instantiable; (is an interface or an abstract class)
      *
      * @return T
      */
