@@ -166,7 +166,8 @@ final class Container implements ContainerInterface
             }
 
             $parameterType = $reflectionParameter->getType();
-            if (! ($parameterType) instanceof ReflectionNamedType ||
+            if (
+                ! ($parameterType) instanceof ReflectionNamedType ||
                 $parameterType->isBuiltin()
             ) {
                 throw NotInstantiableException::unresolvableParameter(
@@ -314,7 +315,7 @@ final class Container implements ContainerInterface
         return $id;
     }
 
-    public function set(string $id, mixed $value = null, iterable $tags = []): void
+    public function set(string $id, mixed $value, iterable $tags = []): void
     {
         if ('' === trim($id)) {
             throw InvalidArgumentException::emptyServiceId();
