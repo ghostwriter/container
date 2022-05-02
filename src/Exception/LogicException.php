@@ -6,7 +6,6 @@ namespace Ghostwriter\Container\Exception;
 
 use Ghostwriter\Container\Contract\ContainerExceptionInterface;
 use LogicException as PHPLogicException;
-
 use function sprintf;
 
 final class LogicException extends PHPLogicException implements ContainerExceptionInterface

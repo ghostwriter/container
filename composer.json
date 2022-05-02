@@ -80,8 +80,8 @@
             "@infection",
             "@psalm:security"
         ],
-        "cs-check": "vendor/bin/ecs check src --clear-cache || true",
-        "cs-fix": "vendor/bin/ecs check src --fix --clear-cache",
+        "cs-check": "vendor/bin/ecs check --clear-cache || true",
+        "cs-fix": "vendor/bin/ecs check --fix --clear-cache",
         "dev": [
             "@cs-fix",
             "@test",

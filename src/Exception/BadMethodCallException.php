@@ -6,7 +6,6 @@ namespace Ghostwriter\Container\Exception;
 
 use BadMethodCallException as PHPBadMethodCallException;
 use Ghostwriter\Container\Contract\ContainerExceptionInterface;
-
 use function sprintf;
 
 final class BadMethodCallException extends PHPBadMethodCallException implements ContainerExceptionInterface

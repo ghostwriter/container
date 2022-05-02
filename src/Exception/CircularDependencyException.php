@@ -6,7 +6,6 @@ namespace Ghostwriter\Container\Exception;
 
 use Ghostwriter\Container\Contract\ContainerExceptionInterface;
 use RuntimeException as PHPRuntimeException;
-
 use function implode;
 use function sprintf;
 
@@ -14,12 +13,6 @@ final class CircularDependencyException extends PHPRuntimeException implements C
 {
     public static function detected(string $class, array $stack): self
     {
-        return new self(
-            sprintf(
-                'Circular dependency: %s -> %s',
-                implode(' -> ', $stack),
-                $class
-            )
-        );
+        return new self(sprintf('Circular dependency: %s -> %s', implode(' -> ', $stack), $class));
     }
 }

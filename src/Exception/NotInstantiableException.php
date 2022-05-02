@@ -6,7 +6,6 @@ namespace Ghostwriter\Container\Exception;
 
 use Ghostwriter\Container\Contract\ContainerExceptionInterface;
 use RuntimeException as PHPRuntimeException;
-
 use function sprintf;
 
 final class NotInstantiableException extends PHPRuntimeException implements ContainerExceptionInterface
