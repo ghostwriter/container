@@ -6,7 +6,6 @@ namespace Ghostwriter\Container\Exception;
 
 use Ghostwriter\Container\Contract\Exception\NotFoundExceptionInterface;
 use RuntimeException as PHPRuntimeException;
-
 use function sprintf;
 
 final class NotFoundException extends PHPRuntimeException implements NotFoundExceptionInterface
