@@ -99,6 +99,14 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     public function __clone();
 
     /**
+     * @throws PsrNotFoundExceptionInterface
+     * @throws PsrContainerExceptionInterface
+     */
+    public function __get(string $name);
+
+    public function __isset(string $name): bool;
+
+    /**
      * @throws BadMethodCallException if "__serialize()" method is called
      *
      * @return never
@@ -106,11 +114,23 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     public function __serialize(): array;
 
     /**
+     * @throws PsrNotFoundExceptionInterface
+     * @throws PsrContainerExceptionInterface
+     */
+    public function __set(string $name, mixed $value): void;
+
+    /**
      * @throws BadMethodCallException if "__unserialize()" method is called
      *
      * @return never
      */
     public function __unserialize(array $data): void;
+
+    /**
+     * @throws PsrNotFoundExceptionInterface
+     * @throws PsrContainerExceptionInterface
+     */
+    public function __unset(string $name): void;
 
     /**
      * Add a service extension.
@@ -154,14 +174,6 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     public function build(string $class, array $arguments = []): object;
 
     /**
-     * Create an object using the given Container to resolve dependencies.
-     *
-     * @param array<string,mixed> $arguments optional arguments passed to $callback
-     * @throws ReflectionException
-     */
-    public function invoke(callable $callback, array $arguments = []): mixed;
-
-    /**
      * "Extend" a service object in the container.
      *
      * @param callable(self,object):void $extension
@@ -200,6 +212,15 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      * Determine if a service $id exists in the Container.
      */
     public function has(string $id): bool;
+
+    /**
+     * Create an object using the given Container to resolve dependencies.
+     *
+     * @param array<string,mixed> $arguments optional arguments passed to $callback
+     *
+     * @throws ReflectionException
+     */
+    public function invoke(callable $callback, array $arguments = []): mixed;
 
     /** @param string $offset */
     public function offsetExists(mixed $offset): bool;
