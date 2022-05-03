@@ -367,17 +367,6 @@ final class ContainerTest extends PHPUnitTestCase
                 $container->invoke([TestEventListener::class, 'onStaticCallableArray']);
             },
         ];
-        yield 'NotInstantiableException::unresolvableParameter@invoke-undefind-class' => [
-            NotInstantiableException::class,
-            NotInstantiableException::unresolvableParameter(
-                'nullable',
-                TestEventListener::class,
-                'onStaticCallableArray'
-            )->getMessage(),
-            static function (Container $container): void {
-                $container->invoke(TestEventListener::class);
-            },
-        ];
     }
 
     /** @return iterable<string,array> */
