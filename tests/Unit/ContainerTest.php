@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ghostwriter\Container\Tests\Unit;
 
 use ArrayAccess;
+use Generator;
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Contract\ContainerExceptionInterface;
 use Ghostwriter\Container\Contract\ContainerInterface;
@@ -41,6 +42,8 @@ use Ghostwriter\Container\Tests\Fixture\Extension\FoobarExtension;
 use Ghostwriter\Container\Tests\Fixture\Foo;
 use Ghostwriter\Container\Tests\Fixture\ServiceProvider\FoobarServiceProvider;
 use Ghostwriter\Container\Tests\Fixture\ServiceProvider\FoobarWithDependencyServiceProvider;
+use Ghostwriter\Container\Tests\Fixture\TestEvent;
+use Ghostwriter\Container\Tests\Fixture\TestEventListener;
 use Ghostwriter\Container\Tests\Fixture\UnionTypehintWithDefaultValue;
 use Ghostwriter\Container\Tests\Fixture\UnionTypehintWithoutDefaultValue;
 use Ghostwriter\Container\Tests\Fixture\UnresolvableParameter;
@@ -52,6 +55,7 @@ use stdClass;
 use Throwable;
 use function array_key_exists;
 use function is_subclass_of;
+use function random_int;
 use function serialize;
 use function sprintf;
 use function strlen;
@@ -79,9 +83,45 @@ final class ContainerTest extends PHPUnitTestCase
     }
 
     /**
-     * @return iterable<string, array{0: string,1: string,2: callable(Container)}>
+     * @psalm-return Generator<string,array>
      */
-    public function dataProviderContainerExceptions(): iterable
+    public function dataProviderContainerCallables(): Generator
+    {
+        yield 'TypelessAnonymousFunctionCall' => [
+            static function ($event): void {
+                $event->collect($event::class);
+            },
+            [
+                'event'=>new TestEvent(),
+            ],
+        ];
+
+        yield 'AnonymousFunctionCall' => [static function (TestEvent $event): void {
+            $event->collect($event::class);
+        }];
+
+        yield 'FunctionCall@typedFunction' => ['Ghostwriter\Container\Tests\Fixture\typedFunction'];
+        yield 'FunctionCall@typelessFunction' => [
+            'Ghostwriter\Container\Tests\Fixture\typelessFunction', [
+                'event'=>new TestEvent(),
+
+            ], ];
+
+        yield 'StaticMethodCall' => [TestEventListener::class . '::onStatic'];
+
+        yield 'CallableArrayStaticMethodCall' => [[TestEventListener::class, 'onStaticCallableArray'], [
+            'nullable' =>null,
+        ]];
+
+        yield 'CallableArrayInstanceMethodCall' => [[new TestEventListener(), 'onTest']];
+
+        yield 'Invokable' => [new TestEventListener()];
+    }
+
+    /**
+     * @psalm-return Generator<string,array>
+     */
+    public function dataProviderContainerExceptions(): Generator
     {
         yield 'CircularDependencyException::detected' => [
             CircularDependencyException::class,
@@ -114,8 +154,7 @@ final class ContainerTest extends PHPUnitTestCase
             InvalidArgumentException::class,
             InvalidArgumentException::emptyServiceId()->getMessage(),
             static function (Container $container): void {
-                $container->extend('', static function (Container $container): void {
-                });
+                $container->extend('', static fn (Container $container) => $container);
             },
         ];
 
@@ -265,7 +304,7 @@ final class ContainerTest extends PHPUnitTestCase
             NotFoundException::class,
             NotFoundException::notRegistered(stdClass::class)->getMessage(),
             static function (Container $container): void {
-                $container->extend(stdClass::class, static fn () =>null);
+                $container->extend(stdClass::class, static fn (Container $container) => null);
             },
         ];
 
@@ -295,9 +334,48 @@ final class ContainerTest extends PHPUnitTestCase
 
         yield 'NotInstantiableException::unresolvableParameter' => [
             NotInstantiableException::class,
-            NotInstantiableException::unresolvableParameter('number', UnresolvableParameter::class)->getMessage(),
+            NotInstantiableException::unresolvableParameter(
+                'number',
+                UnresolvableParameter::class,
+                '__construct'
+            )->getMessage(),
             static function (Container $container): void {
                 $container->build(UnresolvableParameter::class);
+            },
+        ];
+
+        yield 'NotInstantiableException::unresolvableParameter@call-function' => [
+            NotInstantiableException::class,
+            NotInstantiableException::unresolvableParameter(
+                'event',
+                null,
+                'Ghostwriter\Container\Tests\Fixture\typelessFunction',
+            )->getMessage(),
+            static function (Container $container): void {
+                $container->invoke('Ghostwriter\Container\Tests\Fixture\typelessFunction');
+            },
+        ];
+
+        yield 'NotInstantiableException::unresolvableParameter@invoke-class' => [
+            NotInstantiableException::class,
+            NotInstantiableException::unresolvableParameter(
+                'nullable',
+                TestEventListener::class,
+                'onStaticCallableArray'
+            )->getMessage(),
+            static function (Container $container): void {
+                $container->invoke([TestEventListener::class, 'onStaticCallableArray']);
+            },
+        ];
+        yield 'NotInstantiableException::unresolvableParameter@invoke-undefind-class' => [
+            NotInstantiableException::class,
+            NotInstantiableException::unresolvableParameter(
+                'nullable',
+                TestEventListener::class,
+                'onStaticCallableArray'
+            )->getMessage(),
+            static function (Container $container): void {
+                $container->invoke(TestEventListener::class);
             },
         ];
     }
@@ -320,9 +398,9 @@ final class ContainerTest extends PHPUnitTestCase
             'value' => true,
         ]];
         yield CallableConstructor::class => [CallableConstructor::class, [
-            'value' => static fn () => null,
+            'value' => static fn (Container $container) => null,
         ]];
-        yield EmptyConstructor::class => [EmptyConstructor::class, []];
+        yield EmptyConstructor::class => [EmptyConstructor::class];
         yield FloatConstructor::class => [FloatConstructor::class, [
             'value' => 13.37,
         ]];
@@ -338,7 +416,7 @@ final class ContainerTest extends PHPUnitTestCase
         yield ObjectConstructor::class => [ObjectConstructor::class, [
             'value' => new stdClass(),
         ]];
-        yield OptionalConstructor::class => [OptionalConstructor::class, []];
+        yield OptionalConstructor::class => [OptionalConstructor::class];
         yield StringConstructor::class => [StringConstructor::class, [
             'value' => 'string',
         ]];
@@ -348,22 +426,22 @@ final class ContainerTest extends PHPUnitTestCase
         yield UnionTypehintWithoutDefaultValue::class => [UnionTypehintWithoutDefaultValue::class, [
             'number' => 42,
         ]];
-        yield UnionTypehintWithDefaultValue::class => [UnionTypehintWithDefaultValue::class, []];
-        yield Foo::class => [Foo::class, []];
-        yield Bar::class => [Bar::class, []];
-        yield Baz::class => [Baz::class, []];
-        yield Container::class => [Container::class, []];
-        yield FoobarWithDependencyServiceProvider::class => [FoobarWithDependencyServiceProvider::class, []];
-        yield FoobarServiceProvider::class => [FoobarServiceProvider::class, []];
-        yield FoobarExtension::class => [FoobarExtension::class, []];
-        yield self::class => [self::class, []];
+        yield UnionTypehintWithDefaultValue::class => [UnionTypehintWithDefaultValue::class];
+        yield Foo::class => [Foo::class];
+        yield Bar::class => [Bar::class];
+        yield Baz::class => [Baz::class];
+        yield Container::class => [Container::class];
+        yield FoobarWithDependencyServiceProvider::class => [FoobarWithDependencyServiceProvider::class];
+        yield FoobarServiceProvider::class => [FoobarServiceProvider::class];
+        yield FoobarExtension::class => [FoobarExtension::class];
+        yield self::class => [self::class];
     }
 
     /** @return iterable<string,array> */
     public function dataProviderServices(): iterable
     {
         $object = new stdClass();
-        $closure = static fn (): string => 'closure-called';
+        $closure = static fn (Container $container): string => 'closure-called';
         yield 'object' => ['object', $object, $object];
         yield 'null' => ['null', null, null];
         yield 'int' => ['int', 42, 42];
@@ -404,20 +482,29 @@ final class ContainerTest extends PHPUnitTestCase
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Container::alias
+     * @covers \Ghostwriter\Container\Container::bind
+     * @covers \Ghostwriter\Container\Container::build
      * @covers \Ghostwriter\Container\Container::has
      * @covers \Ghostwriter\Container\Container::get
+     * @covers \Ghostwriter\Container\Container::set
      *
      * @throws Throwable
      */
     public function testContainerAlias(): void
     {
-        self::assertFalse($this->container->has('container'));
+        self::assertFalse($this->container->has(stdClass::class));
 
-        $this->container->alias('container', Container::class);
+        $this->container->bind(stdClass::class);
 
-        self::assertTrue($this->container->has('container'));
+        self::assertTrue($this->container->has(stdClass::class));
 
-        self::assertInstanceOf(ContainerInterface::class, $this->container->get('container'));
+        self::assertFalse($this->container->has('class'));
+
+        $this->container->alias('class', stdClass::class);
+
+        self::assertTrue($this->container->has('class'));
+
+        self::assertInstanceOf(stdClass::class, $this->container->get('class'));
     }
 
     /**
@@ -461,7 +548,7 @@ final class ContainerTest extends PHPUnitTestCase
      *
      * @throws Throwable
      */
-    public function testContainerBuild(string $class, array $arguments): void
+    public function testContainerBuild(string $class, array $arguments = []): void
     {
         $buildService = $this->container->build($class, $arguments);
 
@@ -472,6 +559,33 @@ final class ContainerTest extends PHPUnitTestCase
         if (array_key_exists('value', $arguments)) {
             self::assertSame($arguments['value'], $this->container->get($class)->value());
         }
+    }
+
+    /**
+     * @covers \Ghostwriter\Container\Container::__construct
+     * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::invoke
+     * @covers \Ghostwriter\Container\Container::get
+     * @covers \Ghostwriter\Container\Container::getInstance
+     * @covers \Ghostwriter\Container\Container::resolve
+     * @covers \Ghostwriter\Container\Container::set
+     *
+     * @dataProvider dataProviderContainerCallables
+     *
+     * @throws Throwable
+     */
+    public function testContainerCall(callable $callback, array $arguments = []): void
+    {
+        $this->container->set(TestEvent::class, $arguments['event'] ?? new TestEvent());
+
+        $actual = $expectedCount = random_int(10, 50);
+
+        while ($actual) {
+            $this->container->invoke($callback, $arguments);
+            --$actual;
+        }
+
+        self::assertCount($expectedCount, $this->container->get(TestEvent::class)->all());
     }
 
     /**
@@ -693,12 +807,6 @@ final class ContainerTest extends PHPUnitTestCase
      * @covers \Ghostwriter\Container\Container::has
      * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Container::set
-     *
-     * @template T
-     *
-     * @param T $expected
-     * @param T $value
-     *
      * @dataProvider dataProviderServices
      *
      * @throws PsrNotFoundExceptionInterface
@@ -730,12 +838,12 @@ final class ContainerTest extends PHPUnitTestCase
      */
     public function testContainerTag(): void
     {
-        $this->container->set('stdclass1', static fn (): string => 'first-tag', ['tag-1']);
+        $this->container->set('stdclass1', static fn (Container $container): string => 'first-tag', ['tag-1']);
 
-        $this->container->set('stdclass2', static fn (): string => 'first-tag', ['tag-1']);
+        $this->container->set('stdclass2', static fn (Container $container): string => 'first-tag', ['tag-1']);
 
-        $this->container->set('stdclass3', static fn (): stdClass => new stdClass(), ['tag-2']);
-        $this->container->set('stdclass4', static fn (): stdClass => new stdClass());
+        $this->container->set('stdclass3', static fn (Container $container): stdClass => new stdClass(), ['tag-2']);
+        $this->container->set('stdclass4', static fn (Container $container): stdClass => new stdClass());
         $this->container->tag('stdclass4', ['tag-2']);
 
         self::assertNotNull($this->container->tagged('tag-1'));
@@ -765,6 +873,7 @@ final class ContainerTest extends PHPUnitTestCase
      * @covers \Ghostwriter\Container\Container::get
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::has
+     * @covers \Ghostwriter\Container\Container::invoke
      * @covers \Ghostwriter\Container\Container::register
      * @covers \Ghostwriter\Container\Container::remove
      * @covers \Ghostwriter\Container\Container::resolve
@@ -805,6 +914,9 @@ final class ContainerTest extends PHPUnitTestCase
         try {
             $test($this->container);
         } catch (Throwable $throwable) {
+            if ($exception !== $throwable::class) {
+                self::assertSame($exception, $throwable->getMessage());
+            }
             self::assertSame($exception, $throwable::class);
 
             self::assertInstanceOf(PsrContainerExceptionInterface::class, $throwable);
@@ -826,7 +938,7 @@ final class ContainerTest extends PHPUnitTestCase
     public function testNotFoundExceptionImplementsPsrContainerNotFoundExceptionInterface(): void
     {
         try {
-            $this->container->get(__METHOD__);
+            $this->container->get('not-found');
         } catch (Throwable $throwable) {
             self::assertInstanceOf(PsrContainerExceptionInterface::class, $throwable);
             self::assertInstanceOf(ContainerExceptionInterface::class, $throwable);
