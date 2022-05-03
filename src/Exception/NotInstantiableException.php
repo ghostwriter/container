@@ -20,14 +20,16 @@ final class NotInstantiableException extends PHPRuntimeException implements Cont
         return new self(sprintf('Class "%s" dose not exist.', $class));
     }
 
-    public static function unresolvableParameter($parameter, ?string $class, string $method = '__construct'): self
+    public static function unresolvableParameter(string $parameter, string $class, string $method): self
     {
+        $isFunction = '' === $class;
+
         return new self(sprintf(
             'Unresolvable %s parameter "$%s" in "%s%s"; does not have a default value.',
-            null === $class ? 'function' : 'class',
+            $isFunction ? 'function' : 'class',
             $parameter,
-            $class ?? $method,
-            $class ? '::' . $method : '()'
+            $isFunction ? $method : $class,
+            $isFunction ? '()' : '::' . $method
         ));
     }
 }
