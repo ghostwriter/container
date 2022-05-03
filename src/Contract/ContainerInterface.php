@@ -16,6 +16,7 @@ use Ghostwriter\Container\Exception\NotInstantiableException;
 use Psr\Container\ContainerExceptionInterface as PsrContainerExceptionInterface;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
 use Psr\Container\NotFoundExceptionInterface as PsrNotFoundExceptionInterface;
+use ReflectionException;
 
 /**
  * An extendable, closure based dependency injection container.
@@ -27,6 +28,17 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      */
     public const ALIASES = 'aliases';
 
+    /**
+     * @var array{
+     *     aliases: array<string,string>,
+     *     dependencies: array<string,bool>,
+     *     extensions: array<string,callable(ContainerInterface, object):object>,
+     *     factories: array<string,callable(ContainerInterface):object>,
+     *     providers: array<string,ServiceProviderInterface>,
+     *     services: array<string,int|object|float|callable|string|null|bool>,
+     *     tags: array<string,array<string>>,
+     * }
+     */
     public const DEFAULT_SERVICES = [
         self::ALIASES      => [
             self::class    => Container::class,
@@ -140,6 +152,14 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      * @return T
      */
     public function build(string $class, array $arguments = []): object;
+
+    /**
+     * Create an object using the given Container to resolve dependencies.
+     *
+     * @param array<string,mixed> $arguments optional arguments passed to $callback
+     * @throws ReflectionException
+     */
+    public function invoke(callable $callback, array $arguments = []): mixed;
 
     /**
      * "Extend" a service object in the container.
