@@ -84,6 +84,8 @@ final class ContainerTest extends PHPUnitTestCase
 
     /**
      * @psalm-return Generator<string,array>
+     *
+     * @return Generator<string[]|string[]|class-string<TestEventListener>[]|TestEventListener[][]|array<string, TestEvent>[]|array{nullable: null}[]|Closure():void[]|TestEventListener[]>
      */
     public function dataProviderContainerCallables(): Generator
     {
@@ -96,8 +98,8 @@ final class ContainerTest extends PHPUnitTestCase
             ],
         ];
 
-        yield 'AnonymousFunctionCall' => [static function (TestEvent $event): void {
-            $event->collect($event::class);
+        yield 'AnonymousFunctionCall' => [static function (TestEvent $testEvent): void {
+            $testEvent->collect($testEvent::class);
         }];
 
         yield 'FunctionCall@typedFunction' => ['Ghostwriter\Container\Tests\Fixture\typedFunction'];
@@ -109,17 +111,23 @@ final class ContainerTest extends PHPUnitTestCase
 
         yield 'StaticMethodCall' => [TestEventListener::class . '::onStatic'];
 
-        yield 'CallableArrayStaticMethodCall' => [[TestEventListener::class, 'onStaticCallableArray'], [
+        yield 'CallableArrayStaticMethodCall' => [static function (TestEvent $testEvent, ?string $nullable): void {
+            TestEventListener::onStaticCallableArray($testEvent, $nullable);
+        }, [
             'nullable' =>null,
         ]];
 
-        yield 'CallableArrayInstanceMethodCall' => [[new TestEventListener(), 'onTest']];
+        yield 'CallableArrayInstanceMethodCall' => [static function (TestEvent $testEvent): void {
+            (new TestEventListener())->onTest($testEvent);
+        }];
 
         yield 'Invokable' => [new TestEventListener()];
     }
 
     /**
      * @psalm-return Generator<string,array>
+     *
+     * @return Generator<Closure():string[]|void[]>
      */
     public function dataProviderContainerExceptions(): Generator
     {
@@ -154,7 +162,10 @@ final class ContainerTest extends PHPUnitTestCase
             InvalidArgumentException::class,
             InvalidArgumentException::emptyServiceId()->getMessage(),
             static function (Container $container): void {
-                $container->extend('', static fn (Container $container) => $container);
+                $container->extend(
+                    '',
+                    static fn (Container $container): Container => $container
+                );
             },
         ];
 
@@ -348,7 +359,7 @@ final class ContainerTest extends PHPUnitTestCase
             NotInstantiableException::class,
             NotInstantiableException::unresolvableParameter(
                 'event',
-                null,
+                '',
                 'Ghostwriter\Container\Tests\Fixture\typelessFunction',
             )->getMessage(),
             static function (Container $container): void {
@@ -561,13 +572,17 @@ final class ContainerTest extends PHPUnitTestCase
      *
      * @dataProvider dataProviderContainerCallables
      *
+     * @param callable():void|string|TestEventListener|class-string<TestEventListener>[]|TestEventListener[]|string[] $callback
+     * @param array<class-string|string, mixed> $arguments
+     *
      * @throws Throwable
      */
     public function testContainerCall(callable $callback, array $arguments = []): void
     {
         $this->container->set(TestEvent::class, $arguments['event'] ?? new TestEvent());
+        $actual = random_int(10, 50);
 
-        $actual = $expectedCount = random_int(10, 50);
+        $expectedCount = $actual;
 
         while ($actual) {
             $this->container->invoke($callback, $arguments);
@@ -798,6 +813,9 @@ final class ContainerTest extends PHPUnitTestCase
      * @covers \Ghostwriter\Container\Container::set
      * @dataProvider dataProviderServices
      *
+     * @param bool|Closure():null|float|int|stdClass|string|string|string[] $value
+     * @param bool|float|int|stdClass|string|string[]                       $expected
+     *
      * @throws PsrNotFoundExceptionInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
@@ -906,6 +924,7 @@ final class ContainerTest extends PHPUnitTestCase
             if ($exception !== $throwable::class) {
                 self::assertSame($exception, $throwable->getMessage());
             }
+
             self::assertSame($exception, $throwable::class);
 
             self::assertInstanceOf(PsrContainerExceptionInterface::class, $throwable);
