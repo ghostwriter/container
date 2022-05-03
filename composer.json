@@ -53,7 +53,10 @@
     "autoload-dev": {
         "psr-4": {
             "Ghostwriter\\Container\\Tests\\": "tests/"
-        }
+        },
+        "files": [
+            "tests/Fixture/functions.php"
+        ]
     },
     "config": {
         "allow-plugins": {
@@ -100,7 +103,7 @@
         "psalm:dry-run": "psalm --alter --issues=all --dry-run",
         "psalm:missing": "psalm --alter --issues=MissingReturnType",
         "psalm:security": "psalm --taint-analysis",
-        "psalm:shepherd": "psalm --shepherd --stats",
+        "psalm:shepherd": "psalm --shepherd --stats --no-diff --no-cache",
         "rector": "vendor/bin/rector process",
         "rector:dry-run": "vendor/bin/rector process --dry-run || true",
         "test": [
