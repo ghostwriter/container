@@ -75,7 +75,7 @@ final class Container implements ContainerInterface
         throw BadMethodCallException::dontSerialize(self::class);
     }
 
-    public function __set(string $name, $value): void
+    public function __set(string $name, mixed $value): void
     {
         $this->set($name, $value);
     }
@@ -296,9 +296,11 @@ final class Container implements ContainerInterface
                 ! ($parameterType) instanceof ReflectionNamedType ||
                 $parameterType->isBuiltin()
             ) {
+                $reflectionClass = $parameter->getDeclaringClass();
                 throw NotInstantiableException::unresolvableParameter(
                     $parameterName,
-                    $parameter->getDeclaringClass()?->getName(),
+                    $reflectionClass instanceof ReflectionClass ?
+                        $reflectionClass->getName() : '',
                     $parameter->getDeclaringFunction()
                         ->getName()
                 );
