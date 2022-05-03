@@ -16,6 +16,7 @@ use Ghostwriter\Container\Exception\NotInstantiableException;
 use Psr\Container\ContainerExceptionInterface as PsrContainerExceptionInterface;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
 use Psr\Container\NotFoundExceptionInterface as PsrNotFoundExceptionInterface;
+use ReflectionException;
 
 /**
  * An extendable, closure based dependency injection container.
@@ -27,6 +28,17 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      */
     public const ALIASES = 'aliases';
 
+    /**
+     * @var array{
+     *     aliases: array<string,string>,
+     *     dependencies: array<string,bool>,
+     *     extensions: array<string,callable(ContainerInterface, object):object>,
+     *     factories: array<string,callable(ContainerInterface):object>,
+     *     providers: array<string,ServiceProviderInterface>,
+     *     services: array<string,int|object|float|callable|string|null|bool>,
+     *     tags: array<string,array<string>>,
+     * }
+     */
     public const DEFAULT_SERVICES = [
         self::ALIASES      => [
             self::class    => Container::class,
@@ -87,6 +99,14 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     public function __clone();
 
     /**
+     * @throws PsrNotFoundExceptionInterface
+     * @throws PsrContainerExceptionInterface
+     */
+    public function __get(string $name);
+
+    public function __isset(string $name): bool;
+
+    /**
      * @throws BadMethodCallException if "__serialize()" method is called
      *
      * @return never
@@ -94,11 +114,23 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     public function __serialize(): array;
 
     /**
+     * @throws PsrNotFoundExceptionInterface
+     * @throws PsrContainerExceptionInterface
+     */
+    public function __set(string $name, mixed $value): void;
+
+    /**
      * @throws BadMethodCallException if "__unserialize()" method is called
      *
      * @return never
      */
     public function __unserialize(array $data): void;
+
+    /**
+     * @throws PsrNotFoundExceptionInterface
+     * @throws PsrContainerExceptionInterface
+     */
+    public function __unset(string $name): void;
 
     /**
      * Add a service extension.
@@ -132,8 +164,10 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      * @param class-string<T>|string $class     the class name
      * @param array<string,mixed>    $arguments optional constructor arguments passed to build the new class instance
      *
-     * @throws CircularDependencyException if a circular dependency is detected
-     * @throws NotInstantiableException    if $class is not instantiable; (is an interface or an abstract class)
+     * @throws PsrNotFoundExceptionInterface  if no entry was found for **this** identifier
+     * @throws PsrContainerExceptionInterface if there is an error while retrieving the entry
+     * @throws CircularDependencyException    if a circular dependency is detected
+     * @throws NotInstantiableException       if $class is not instantiable; (is an interface or an abstract class)
      *
      * @return T
      */
@@ -178,6 +212,15 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      * Determine if a service $id exists in the Container.
      */
     public function has(string $id): bool;
+
+    /**
+     * Create an object using the given Container to resolve dependencies.
+     *
+     * @param array<string,mixed> $arguments optional arguments passed to $callback
+     *
+     * @throws ReflectionException
+     */
+    public function invoke(callable $callback, array $arguments = []): mixed;
 
     /** @param string $offset */
     public function offsetExists(mixed $offset): bool;

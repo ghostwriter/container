@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ghostwriter\Container;
 
+use Closure;
 use Ghostwriter\Container\Contract\ContainerInterface;
 use Ghostwriter\Container\Contract\ExtensionInterface;
 use Ghostwriter\Container\Contract\ServiceProviderInterface;
@@ -15,10 +16,12 @@ use Ghostwriter\Container\Exception\NotFoundException;
 use Ghostwriter\Container\Exception\NotInstantiableException;
 use ReflectionClass;
 use ReflectionException;
+use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionNamedType;
 use function array_key_exists;
 use function class_exists;
+use function is_array;
 use function is_callable;
 use function trim;
 
@@ -36,7 +39,7 @@ final class Container implements ContainerInterface
      *     extensions: array<string,callable(ContainerInterface, object):object>,
      *     factories: array<string,callable(ContainerInterface):object>,
      *     providers: array<string,ServiceProviderInterface>,
-     *     services: array<string,int|object|float|callable|string|null|bool>,
+     *     services: array<string,callable|null|object|scalar>,
      *     tags: array<string,array<string>>,
      * } $services
      */
@@ -57,14 +60,34 @@ final class Container implements ContainerInterface
         throw BadMethodCallException::dontClone(self::class);
     }
 
+    public function __get(string $name)
+    {
+        return $this->get($name);
+    }
+
+    public function __isset(string $name): bool
+    {
+        return $this->has($name);
+    }
+
     public function __serialize(): array
     {
         throw BadMethodCallException::dontSerialize(self::class);
     }
 
+    public function __set(string $name, mixed $value): void
+    {
+        $this->set($name, $value);
+    }
+
     public function __unserialize(array $data): void
     {
         throw BadMethodCallException::dontUnserialize(self::class);
+    }
+
+    public function __unset(string $name): void
+    {
+        $this->remove($name);
     }
 
     public function add(string $id, ExtensionInterface $extension): void
@@ -171,7 +194,8 @@ final class Container implements ContainerInterface
                 throw NotInstantiableException::unresolvableParameter(
                     $parameterName,
                     $reflectionMethod->getDeclaringClass()
-                        ->getName()
+                        ->getName(),
+                    $reflectionMethod->getName()
                 );
             }
 
@@ -198,43 +222,40 @@ final class Container implements ContainerInterface
             throw InvalidArgumentException::emptyServiceId();
         }
 
-        $extensions = $this->services[self::EXTENSIONS];
-        if (array_key_exists($class, $extensions)) {
-            $this->services[self::EXTENSIONS][$class] =
-                static fn (ContainerInterface $container, object $service): object => $extension($container, $extensions[$class]($container, $service));
-
-            return;
+        if (! array_key_exists($class, $this->services[self::FACTORIES])) {
+            throw NotFoundException::notRegistered($class);
         }
 
-        $this->services[self::EXTENSIONS][$class] =
-            static fn (ContainerInterface $container, object $service): object => $extension($container, $service);
+        $extensions = $this->services[self::EXTENSIONS];
+
+        $this->services[self::EXTENSIONS][$class] = array_key_exists($class, $extensions) ?
+            static fn (ContainerInterface $container, object $service): object =>
+                $extension($container, $extensions[$class]($container, $service)) :
+            static fn (ContainerInterface $container, object $service): object =>
+                $extension($container, $service);
     }
 
     public function get(string $id): mixed
     {
         $id = $this->resolve($id);
 
-        if (array_key_exists($id, $this->services[self::SERVICES])) {
-            if (self::class === $id) {
-                return self::$instance;
-            }
+        if (self::class === $id) {
+            return $this;
+        }
 
+        if (array_key_exists($id, $this->services[self::SERVICES])) {
             return $this->services[self::SERVICES][$id];
         }
 
-        if (array_key_exists($id, $this->services[self::FACTORIES])) {
-            $service = $this->services[self::FACTORIES][$id](self::$instance);
+        $factories = $this->services[self::FACTORIES];
+        if (array_key_exists($id, $factories) || class_exists($id)) {
+            $service = $factories[$id] ?? static fn (Container $container): object => $container->build($id);
 
             $extensions = $this->services[self::EXTENSIONS];
-            if (array_key_exists($id, $extensions)) {
-                return $this->services[self::SERVICES][$id] = $extensions[$id](self::$instance, $service);
-            }
 
-            return $this->services[self::SERVICES][$id] = $service;
-        }
-
-        if (class_exists($id, true)) {
-            return $this->services[self::SERVICES][$id] = $this->build($id);
+            return $this->services[self::SERVICES][$id] = array_key_exists($id, $extensions) ?
+                $extensions[$id]($this, $service($this)) :
+                $service($this);
         }
 
         throw NotFoundException::notRegistered($id);
@@ -250,7 +271,45 @@ final class Container implements ContainerInterface
         $id = $this->resolve($id);
 
         return array_key_exists($id, $this->services[self::SERVICES]) ||
-            array_key_exists($id, $this->services[self::FACTORIES]);
+            array_key_exists($id, $this->services[self::FACTORIES]) ||
+            array_key_exists($id, $this->services[self::ALIASES]);
+    }
+
+    public function invoke(callable $callback, array $arguments = []): mixed
+    {
+        $parameters = is_array($callback) ?
+                (new ReflectionClass($callback[0]))->getMethod($callback[1])->getParameters() :
+                (new ReflectionFunction(Closure::fromCallable($callback)))->getParameters();
+
+        foreach ($parameters as $parameter) {
+            $parameterName = $parameter->getName();
+            if (array_key_exists($parameterName, $arguments)) {
+                continue;
+            }
+
+            if ($parameter->isOptional()) {
+                continue;
+            }
+
+            $parameterType = $parameter->getType();
+            if (
+                ! ($parameterType) instanceof ReflectionNamedType ||
+                $parameterType->isBuiltin()
+            ) {
+                $reflectionClass = $parameter->getDeclaringClass();
+                throw NotInstantiableException::unresolvableParameter(
+                    $parameterName,
+                    $reflectionClass instanceof ReflectionClass ?
+                        $reflectionClass->getName() : '',
+                    $parameter->getDeclaringFunction()
+                        ->getName()
+                );
+            }
+
+            $arguments[$parameterName] = $this->get($parameterType->getName());
+        }
+
+        return $callback(...$arguments);
     }
 
     public function offsetExists(mixed $offset): bool
@@ -279,7 +338,7 @@ final class Container implements ContainerInterface
             throw LogicException::serviceProviderAlreadyRegistered($serviceProvider::class);
         }
 
-        $serviceProvider(self::$instance);
+        $serviceProvider($this);
 
         $this->services[self::PROVIDERS][$serviceProvider::class] = true;
     }
@@ -322,13 +381,10 @@ final class Container implements ContainerInterface
 
         if (
             array_key_exists($id, $this->services[self::SERVICES]) ||
-            array_key_exists($id, $this->services[self::FACTORIES])
+            array_key_exists($id, $this->services[self::FACTORIES]) ||
+            array_key_exists($id, $this->services[self::ALIASES])
         ) {
             throw LogicException::serviceAlreadyRegistered($id);
-        }
-
-        if (array_key_exists($id, $this->services[self::ALIASES])) {
-            unset($this->services[self::ALIASES][$id]);
         }
 
         $this->services[is_callable($value, false) ?

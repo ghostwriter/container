@@ -31,7 +31,6 @@
         "phpunit/phpunit": "^9.5",
         "psalm/plugin-phpunit": "^0.16",
         "rector/rector": "^0.12",
-        "roave/infection-static-analysis-plugin": "^1.18",
         "roave/security-advisories": "dev-latest",
         "symplify/easy-coding-standard": "^10.2",
         "vimeo/psalm": "^4.23"
@@ -53,7 +52,10 @@
     "autoload-dev": {
         "psr-4": {
             "Ghostwriter\\Container\\Tests\\": "tests/"
-        }
+        },
+        "files": [
+            "tests/Fixture/functions.php"
+        ]
     },
     "config": {
         "allow-plugins": {
@@ -77,7 +79,6 @@
             "@test",
             "@psalm",
             "@rector:dry-run",
-            "@infection",
             "@psalm:security"
         ],
         "cs-check": "vendor/bin/ecs check --clear-cache || true",
@@ -88,10 +89,6 @@
             "@psalm",
             "@infection"
         ],
-        "infection": [
-            "@xdebug",
-            "roave-infection-static-analysis-plugin"
-        ],
         "missing-returntypes": "psalm --alter --issues=MissingReturnType",
         "normalizer": "@composer normalize --no-check-lock",
         "phpunit": "phpunit --colors=always --testdox --stop-on-failure",
@@ -100,7 +97,7 @@
         "psalm:dry-run": "psalm --alter --issues=all --dry-run",
         "psalm:missing": "psalm --alter --issues=MissingReturnType",
         "psalm:security": "psalm --taint-analysis",
-        "psalm:shepherd": "psalm --shepherd --stats",
+        "psalm:shepherd": "psalm --shepherd --stats --no-diff --no-cache",
         "rector": "vendor/bin/rector process",
         "rector:dry-run": "vendor/bin/rector process --dry-run || true",
         "test": [

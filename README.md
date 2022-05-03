@@ -92,6 +92,7 @@ $container->register(new TasksServiceProvider());
 Registering a service extension on the container.
 
 ```php
+$container->bind(GitHubClient::class);
 $container->extend(GitHubClient::class, function (Container $container, object $client) {
     $client->setEnterpriseUrl($client->get(GitHubClient::GITHUB_HOST));
 });
@@ -110,6 +111,7 @@ class GitHubExtension implements ExtensionInterface
     }
 }
 
+$container->bind(GitHubClient::class);
 $container->add(GitHubClient::class, $container->get(GitHubExtention::class));
 ```
 
