@@ -17,6 +17,7 @@ use Psr\Container\ContainerExceptionInterface as PsrContainerExceptionInterface;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
 use Psr\Container\NotFoundExceptionInterface as PsrNotFoundExceptionInterface;
 use ReflectionException;
+use Throwable;
 
 /**
  * An extendable, closure based dependency injection container.
@@ -87,7 +88,7 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     public const TAGS = 'tags';
 
     /**
-     * Destroy the "static" instance of this container.
+     * Remove all registered services from this container and reset the default services.
      */
     public function __destruct();
 
@@ -219,13 +220,18 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      * @param array<string,mixed> $arguments optional arguments passed to $callback
      *
      * @throws ReflectionException
+     * @throws Throwable
      */
     public function invoke(callable $callback, array $arguments = []): mixed;
 
     /** @param string $offset */
     public function offsetExists(mixed $offset): bool;
 
-    /** @param string $offset */
+    /**
+     * @param string $offset
+     *
+     * @throws Throwable
+     */
     public function offsetGet(mixed $offset): mixed;
 
     /** @param string $offset */

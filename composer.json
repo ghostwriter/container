@@ -1,6 +1,6 @@
 {
     "name": "ghostwriter/container",
-    "description": "Provides a PSR-11, Dependency Injection Service Container",
+    "description": "Provides an extensible PSR-11, Dependency Injection Service Container for Automated Object Composition, Interception, and Lifetime Management.",
     "license": "BSD-3-Clause",
     "type": "library",
     "keywords": [

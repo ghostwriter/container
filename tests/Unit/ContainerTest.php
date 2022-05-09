@@ -162,10 +162,7 @@ final class ContainerTest extends PHPUnitTestCase
             InvalidArgumentException::class,
             InvalidArgumentException::emptyServiceId()->getMessage(),
             static function (Container $container): void {
-                $container->extend(
-                    '',
-                    static fn (Container $container): Container => $container
-                );
+                $container->extend('', static fn (Container $container): Container => $container);
             },
         ];
 
@@ -564,37 +561,6 @@ final class ContainerTest extends PHPUnitTestCase
     /**
      * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
-     * @covers \Ghostwriter\Container\Container::invoke
-     * @covers \Ghostwriter\Container\Container::get
-     * @covers \Ghostwriter\Container\Container::getInstance
-     * @covers \Ghostwriter\Container\Container::resolve
-     * @covers \Ghostwriter\Container\Container::set
-     *
-     * @dataProvider dataProviderContainerCallables
-     *
-     * @param callable():void|string|TestEventListener|class-string<TestEventListener>[]|TestEventListener[]|string[] $callback
-     * @param array<class-string|string, mixed> $arguments
-     *
-     * @throws Throwable
-     */
-    public function testContainerCall(callable $callback, array $arguments = []): void
-    {
-        $this->container->set(TestEvent::class, $arguments['event'] ?? new TestEvent());
-        $actual = random_int(10, 50);
-
-        $expectedCount = $actual;
-
-        while ($actual) {
-            $this->container->invoke($callback, $arguments);
-            --$actual;
-        }
-
-        self::assertCount($expectedCount, $this->container->get(TestEvent::class)->all());
-    }
-
-    /**
-     * @covers \Ghostwriter\Container\Container::__construct
-     * @covers \Ghostwriter\Container\Container::__destruct
      * @covers \Ghostwriter\Container\Container::getInstance
      */
     public function testContainerConstruct(): void
@@ -746,6 +712,37 @@ final class ContainerTest extends PHPUnitTestCase
     }
 
     /**
+     * @covers \Ghostwriter\Container\Container::__construct
+     * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::invoke
+     * @covers \Ghostwriter\Container\Container::get
+     * @covers \Ghostwriter\Container\Container::getInstance
+     * @covers \Ghostwriter\Container\Container::resolve
+     * @covers \Ghostwriter\Container\Container::set
+     *
+     * @dataProvider dataProviderContainerCallables
+     *
+     * @param callable():void|string|TestEventListener|class-string<TestEventListener>[]|TestEventListener[]|string[] $callback
+     * @param array<class-string|string, mixed> $arguments
+     *
+     * @throws Throwable
+     */
+    public function testContainerInvoke(callable|string|TestEventListener|array $callback, array $arguments = []): void
+    {
+        $this->container->set(TestEvent::class, $arguments['event'] ?? new TestEvent());
+        $actual = random_int(10, 50);
+
+        $expectedCount = $actual;
+
+        while ($actual) {
+            $this->container->invoke($callback, $arguments);
+            --$actual;
+        }
+
+        self::assertCount($expectedCount, $this->container->get(TestEvent::class)->all());
+    }
+
+    /**
      * @covers \Ghostwriter\Container\Container::__destruct
      * @covers \Ghostwriter\Container\Container::add
      * @covers \Ghostwriter\Container\Container::bind
@@ -813,16 +810,19 @@ final class ContainerTest extends PHPUnitTestCase
      * @covers \Ghostwriter\Container\Container::set
      * @dataProvider dataProviderServices
      *
-     * @param bool|Closure():null|float|int|stdClass|string|string|string[] $value
-     * @param bool|float|int|stdClass|string|string[]                       $expected
+     * @param bool|Closure():null|float|int|stdClass|string|string[] $value
+     * @param null|bool|float|int|stdClass|string|string[]           $expected
      *
      * @throws PsrNotFoundExceptionInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      * @throws PsrContainerExceptionInterface
      */
-    public function testContainerSet(string $key, mixed $value, mixed $expected): void
-    {
+    public function testContainerSet(
+        string $key,
+        mixed $value,
+        null|bool|float|int|stdClass|string|array $expected
+    ): void {
         $this->container->set($key, $value);
         self::assertSame($expected, $this->container->get($key));
     }
