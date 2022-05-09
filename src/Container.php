@@ -41,7 +41,7 @@ final class Container implements ContainerInterface
      *     providers: array<string,ServiceProviderInterface>,
      *     services: array<string,callable|null|object|scalar>,
      *     tags: array<string,array<string>>,
-     * } $services
+     * }
      */
     private array $services = self::DEFAULT_SERVICES;
 
@@ -230,9 +230,9 @@ final class Container implements ContainerInterface
 
         $this->services[self::EXTENSIONS][$class] = array_key_exists($class, $extensions) ?
             static fn (ContainerInterface $container, object $service): object =>
-                $extension($container, $extensions[$class]($container, $service)) :
+            $extension($container, $extensions[$class]($container, $service)) :
             static fn (ContainerInterface $container, object $service): object =>
-                $extension($container, $service);
+            $extension($container, $service);
     }
 
     public function get(string $id): mixed
@@ -417,6 +417,9 @@ final class Container implements ContainerInterface
         $this->services[self::TAGS] = $serviceTags;
     }
 
+    /**
+     * @return iterable<string>
+     */
     public function tagged(string $tag): iterable
     {
         yield from $this->services[self::TAGS][$tag] ?? [];
