@@ -6,7 +6,7 @@
 [![Latest Version on Packagist](https://badgen.net/packagist/v/ghostwriter/container)](https://packagist.org/packages/ghostwriter/container)
 [![Downloads](https://badgen.net/packagist/dt/ghostwriter/container?color=blue)](https://packagist.org/packages/ghostwriter/container)
 
-Provides an extensible [PSR-11](https://www.php-fig.org/psr/psr-11/), dependency injection service container.
+Provides an extensible [PSR-11](https://www.php-fig.org/psr/psr-11/), Dependency Injection Service Container for Automated Object Composition, Interception, and Lifetime Management.
 
 ## Installation
 
