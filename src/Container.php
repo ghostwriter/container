@@ -27,6 +27,8 @@ use function trim;
 
 /**
  * @implements ContainerInterface
+ *
+ * @see \Ghostwriter\Container\Tests\Unit\ContainerTest
  */
 final class Container implements ContainerInterface
 {
@@ -152,7 +154,7 @@ final class Container implements ContainerInterface
         }
 
         try {
-            $reflectionClass = new ReflectionClass($class);
+            $reflectionClass = $this->services[self::REFLECTIONS][$class] ??= new ReflectionClass($class);
             if (! $reflectionClass->isInstantiable()) {
                 throw NotInstantiableException::abstractClassOrInterface($class);
             }
