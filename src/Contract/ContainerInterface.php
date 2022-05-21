@@ -16,8 +16,10 @@ use Ghostwriter\Container\Exception\NotInstantiableException;
 use Psr\Container\ContainerExceptionInterface as PsrContainerExceptionInterface;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
 use Psr\Container\NotFoundExceptionInterface as PsrNotFoundExceptionInterface;
+use ReflectionClass;
 use ReflectionException;
 use Throwable;
+use Traversable;
 
 /**
  * An extendable, closure based dependency injection container.
@@ -32,11 +34,12 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     /**
      * @var array{
      *     aliases: array<string,string>,
-     *     dependencies: array<string,bool>,
-     *     extensions: array<string,callable(ContainerInterface, object):object>,
+     *     dependencies: array<class-string,bool>,
+     *     extensions: array<class-string,callable(ContainerInterface, object):object>,
      *     factories: array<string,callable(ContainerInterface):object>,
-     *     providers: array<string,ServiceProviderInterface>,
-     *     services: array<string,int|object|float|callable|string|null|bool>,
+     *     providers: array<class-string,ServiceProviderInterface>,
+     *     reflections: array<class-string,ReflectionClass>,
+     *     services: array<string,callable|null|object|scalar>,
      *     tags: array<string,array<string>>,
      * }
      */
@@ -51,6 +54,7 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
         ],
         self::FACTORIES    => [],
         self::PROVIDERS    => [],
+        self::REFLECTIONS => [],
         self::SERVICES     => [
             Container::class => null,
         ],
@@ -80,6 +84,11 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     /**
      * @var string
      */
+    public const REFLECTIONS = 'reflections';
+
+    /**
+     * @var string
+     */
     public const SERVICES = 'services';
 
     /**
@@ -94,8 +103,6 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
 
     /**
      * @throws BadMethodCallException if "__clone()" method is called
-     *
-     * @return never
      */
     public function __clone();
 
@@ -109,8 +116,6 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
 
     /**
      * @throws BadMethodCallException if "__serialize()" method is called
-     *
-     * @return never
      */
     public function __serialize(): array;
 
@@ -122,8 +127,6 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
 
     /**
      * @throws BadMethodCallException if "__unserialize()" method is called
-     *
-     * @return never
      */
     public function __unserialize(array $data): void;
 
@@ -160,24 +163,27 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     /**
      * Create an object using the given Container to resolve dependencies.
      *
-     * @template T of object
+     * @template TObject of object
      *
-     * @param class-string<T>|string $class     the class name
-     * @param array<string,mixed>    $arguments optional constructor arguments passed to build the new class instance
+     * @param class-string<TObject> $class     the class name
+     * @param array<string,mixed>   $arguments optional constructor arguments passed to build the new class instance
      *
      * @throws PsrNotFoundExceptionInterface  if no entry was found for **this** identifier
      * @throws PsrContainerExceptionInterface if there is an error while retrieving the entry
      * @throws CircularDependencyException    if a circular dependency is detected
      * @throws NotInstantiableException       if $class is not instantiable; (is an interface or an abstract class)
      *
-     * @return T
+     * @return TObject
      */
     public function build(string $class, array $arguments = []): object;
 
     /**
      * "Extend" a service object in the container.
      *
-     * @param callable(self,object):void $extension
+     * @template TObject of object
+     *
+     * @param class-string<TObject>          $class     the class name
+     * @param callable(self,TObject):TObject $extension the callable
      *
      * @throws InvalidArgumentException if $class is empty
      */
@@ -188,10 +194,10 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      *
      * Note: This method will return the same instance on subsequent calls.
      *
-     * @template T of mixed
+     * @template T
      * @template TObject of object
      *
-     * @param class-string<T>|string $id
+     * @param class-string<TObject>|string $id
      *
      * @throws InvalidArgumentException                                   if $id is empty
      * @throws NotFoundException                                          if $id is not registered
@@ -200,7 +206,7 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      * @throws NotFoundExceptionInterface|PsrNotFoundExceptionInterface   if no entry was found for **this** identifier
      * @throws ContainerExceptionInterface|PsrContainerExceptionInterface If error while retrieving the entry
      *
-     * @return T|TObject
+     * @return ($id is class-string ? TObject : T)
      */
     public function get(string $id): mixed;
 
@@ -217,10 +223,14 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     /**
      * Create an object using the given Container to resolve dependencies.
      *
+     * @template T
+     *
      * @param array<string,mixed> $arguments optional arguments passed to $callback
      *
      * @throws ReflectionException
      * @throws Throwable
+     *
+     * @return T
      */
     public function invoke(callable $callback, array $arguments = []): mixed;
 
@@ -289,7 +299,7 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     /**
      * Resolve services for a given tag.
      *
-     * @return iterable<string>
+     * @return Traversable<string>
      */
     public function tagged(string $tag): iterable;
 }
