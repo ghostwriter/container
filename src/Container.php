@@ -34,17 +34,6 @@ final class Container implements ContainerInterface
 {
     private static ?ContainerInterface $instance = null;
 
-    /**
-     * @var array{
-     *     aliases: array<string,string>,
-     *     dependencies: array<string,bool>,
-     *     extensions: array<string,callable(ContainerInterface, object):object>,
-     *     factories: array<string,callable(ContainerInterface):object>,
-     *     providers: array<string,ServiceProviderInterface>,
-     *     services: array<string,callable|null|object|scalar>,
-     *     tags: array<string,array<string>>,
-     * }
-     */
     private array $services = self::DEFAULT_SERVICES;
 
     private function __construct()
@@ -419,9 +408,6 @@ final class Container implements ContainerInterface
         $this->services[self::TAGS] = $serviceTags;
     }
 
-    /**
-     * @return iterable<string>
-     */
     public function tagged(string $tag): iterable
     {
         yield from $this->services[self::TAGS][$tag] ?? [];
