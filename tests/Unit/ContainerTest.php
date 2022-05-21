@@ -47,7 +47,7 @@ use Ghostwriter\Container\Tests\Fixture\TestEventListener;
 use Ghostwriter\Container\Tests\Fixture\UnionTypehintWithDefaultValue;
 use Ghostwriter\Container\Tests\Fixture\UnionTypehintWithoutDefaultValue;
 use Ghostwriter\Container\Tests\Fixture\UnresolvableParameter;
-use PHPUnit\Framework\TestCase as PHPUnitTestCase;
+use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerExceptionInterface as PsrContainerExceptionInterface;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
 use Psr\Container\NotFoundExceptionInterface as PsrNotFoundExceptionInterface;
@@ -55,6 +55,7 @@ use stdClass;
 use Throwable;
 use function array_key_exists;
 use function is_subclass_of;
+use function iterator_to_array;
 use function random_int;
 use function serialize;
 use function sprintf;
@@ -68,7 +69,7 @@ use function unserialize;
  *
  * @small
  */
-final class ContainerTest extends PHPUnitTestCase
+final class ContainerTest extends TestCase
 {
     private ContainerInterface $container;
 
@@ -722,12 +723,12 @@ final class ContainerTest extends PHPUnitTestCase
      *
      * @dataProvider dataProviderContainerCallables
      *
-     * @param callable():void|string|TestEventListener|class-string<TestEventListener>[]|TestEventListener[]|string[] $callback
+     * @param callable():void                   $callback
      * @param array<class-string|string, mixed> $arguments
      *
      * @throws Throwable
      */
-    public function testContainerInvoke(callable|string|TestEventListener|array $callback, array $arguments = []): void
+    public function testContainerInvoke(callable $callback, array $arguments = []): void
     {
         $this->container->set(TestEvent::class, $arguments['event'] ?? new TestEvent());
         $actual = random_int(10, 50);
@@ -846,9 +847,7 @@ final class ContainerTest extends PHPUnitTestCase
     public function testContainerTag(): void
     {
         $this->container->set('stdclass1', static fn (Container $container): string => 'first-tag', ['tag-1']);
-
         $this->container->set('stdclass2', static fn (Container $container): string => 'first-tag', ['tag-1']);
-
         $this->container->set('stdclass3', static fn (Container $container): stdClass => new stdClass(), ['tag-2']);
         $this->container->set('stdclass4', static fn (Container $container): stdClass => new stdClass());
         $this->container->tag('stdclass4', ['tag-2']);
@@ -864,6 +863,11 @@ final class ContainerTest extends PHPUnitTestCase
         foreach ($this->container->tagged('tag-2') as $serviceId) {
             self::assertInstanceOf(stdClass::class, $this->container->get($serviceId));
         }
+
+        self::assertSame([
+            'stdclass3' => 'stdclass3',
+            'stdclass4' => 'stdclass4',
+        ], iterator_to_array($this->container->tagged('tag-2')));
     }
 
     /**
