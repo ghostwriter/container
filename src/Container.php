@@ -113,7 +113,7 @@ final class Container implements ContainerInterface
         $this->services[self::ALIASES][$alias] = $id;
     }
 
-    public function bind(string $abstract, ?string $concrete = null): void
+    public function bind(string $abstract, ?string $concrete = null, iterable $tags = []): void
     {
         if ('' === trim($abstract)) {
             throw InvalidArgumentException::emptyServiceId();
@@ -129,6 +129,12 @@ final class Container implements ContainerInterface
 
         $this->services[self::FACTORIES][$abstract] =
             static fn (ContainerInterface $container): object => $container->build($concrete ?? $abstract);
+
+        if ([] === $tags) {
+            return;
+        }
+
+        $this->tag($abstract, $tags);
     }
 
     public function build(string $class, array $arguments = []): object
