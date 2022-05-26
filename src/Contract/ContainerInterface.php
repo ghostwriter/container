@@ -155,10 +155,12 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     /**
      * Bind abstract classes or interfaces to concrete implementations.
      *
+     * @param iterable<string> $tags
+     *
      * @throws InvalidArgumentException if $abstract is empty
      * @throws LogicException           if $abstract is already registered
      */
-    public function bind(string $abstract, ?string $concrete = null): void;
+    public function bind(string $abstract, ?string $concrete = null, iterable $tags = []): void;
 
     /**
      * Create an object using the given Container to resolve dependencies.

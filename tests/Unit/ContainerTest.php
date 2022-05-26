@@ -513,12 +513,14 @@ final class ContainerTest extends TestCase
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::has
      * @covers \Ghostwriter\Container\Container::resolve
+     * @covers \Ghostwriter\Container\Container::tag
+     * @covers \Ghostwriter\Container\Container::tagged
      *
      * @throws Throwable
      */
     public function testContainerBind(): void
     {
-        $this->container->bind(DummyInterface::class, Foo::class);
+        $this->container->bind(DummyInterface::class, Foo::class, ['taggable']);
         $this->container->bind(Baz::class);
 
         self::assertTrue($this->container->has(DummyInterface::class));
@@ -526,6 +528,7 @@ final class ContainerTest extends TestCase
 
         self::assertInstanceOf(Foo::class, $this->container->get(DummyInterface::class));
         self::assertInstanceOf(Baz::class, $this->container->get(Baz::class));
+        self::assertCount(1, $this->container->tagged('taggable'));
     }
 
     /**
