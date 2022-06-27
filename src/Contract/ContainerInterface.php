@@ -270,6 +270,19 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     public function remove(string $id): void;
 
     /**
+     * Reassigns a service on the given container.
+     *
+     * @template T
+     *
+     * @param T                $value
+     * @param iterable<string> $tags
+     *
+     * @throws InvalidArgumentException if the service $id is empty
+     * @throws LogicException           if the service $id is already registered
+     */
+    public function reset(string $id, mixed $value, iterable $tags = []): void;
+
+    /**
      * Resolves an alias to the service id.
      *
      * @throws InvalidArgumentException if the service $id is empty
