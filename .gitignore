@@ -1,4 +1,4 @@
-/.cache
+/.cache/
 /.phpunit.cache/
 /docs/html/
 /vendor/
