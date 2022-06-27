@@ -357,6 +357,12 @@ final class Container implements ContainerInterface
         }
     }
 
+    public function reset(string $id, mixed $value, iterable $tags = []): void
+    {
+        $this->remove($id);
+        $this->set($id, $value, $tags);
+    }
+
     public function resolve(string $id): string
     {
         if ('' === trim($id)) {
