@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ghostwriter\Container\Contract;
 
 use ArrayAccess;
+use Generator;
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Contract\Exception\NotFoundExceptionInterface;
 use Ghostwriter\Container\Exception\BadMethodCallException;
@@ -13,18 +14,14 @@ use Ghostwriter\Container\Exception\InvalidArgumentException;
 use Ghostwriter\Container\Exception\LogicException;
 use Ghostwriter\Container\Exception\NotFoundException;
 use Ghostwriter\Container\Exception\NotInstantiableException;
-use Psr\Container\ContainerExceptionInterface as PsrContainerExceptionInterface;
-use Psr\Container\ContainerInterface as PsrContainerInterface;
-use Psr\Container\NotFoundExceptionInterface as PsrNotFoundExceptionInterface;
 use ReflectionClass;
 use ReflectionException;
 use Throwable;
-use Traversable;
 
 /**
  * An extendable, closure based dependency injection container.
  */
-interface ContainerInterface extends ArrayAccess, PsrContainerInterface
+interface ContainerInterface extends ArrayAccess
 {
     /**
      * @var string
@@ -46,7 +43,6 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     public const DEFAULT_SERVICES = [
         self::ALIASES      => [
             self::class    => Container::class,
-            PsrContainerInterface::class => Container::class,
         ],
         self::DEPENDENCIES => [],
         self::EXTENSIONS   => [
@@ -107,8 +103,8 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     public function __clone();
 
     /**
-     * @throws PsrNotFoundExceptionInterface
-     * @throws PsrContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
      */
     public function __get(string $name);
 
@@ -120,8 +116,8 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     public function __serialize(): array;
 
     /**
-     * @throws PsrNotFoundExceptionInterface
-     * @throws PsrContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
      */
     public function __set(string $name, mixed $value): void;
 
@@ -131,8 +127,8 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     public function __unserialize(array $data): void;
 
     /**
-     * @throws PsrNotFoundExceptionInterface
-     * @throws PsrContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
      */
     public function __unset(string $name): void;
 
@@ -170,10 +166,10 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      * @param class-string<TObject> $class     the class name
      * @param array<string,mixed>   $arguments optional constructor arguments passed to build the new class instance
      *
-     * @throws PsrNotFoundExceptionInterface  if no entry was found for **this** identifier
-     * @throws PsrContainerExceptionInterface if there is an error while retrieving the entry
-     * @throws CircularDependencyException    if a circular dependency is detected
-     * @throws NotInstantiableException       if $class is not instantiable; (is an interface or an abstract class)
+     * @throws NotFoundExceptionInterface  if no entry was found for **this** identifier
+     * @throws ContainerExceptionInterface if there is an error while retrieving the entry
+     * @throws CircularDependencyException if a circular dependency is detected
+     * @throws NotInstantiableException    if $class is not instantiable; (is an interface or an abstract class)
      *
      * @return TObject
      */
@@ -196,19 +192,19 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      *
      * Note: This method will return the same instance on subsequent calls.
      *
-     * @template T
+     * @template TService
      * @template TObject of object
      *
      * @param class-string<TObject>|string $id
      *
-     * @throws InvalidArgumentException                                   if $id is empty
-     * @throws NotFoundException                                          if $id is not registered
-     * @throws CircularDependencyException                                if a circular dependency is detected
-     * @throws NotInstantiableException                                   if $class is not instantiable; (is an interface or an abstract class)
-     * @throws NotFoundExceptionInterface|PsrNotFoundExceptionInterface   if no entry was found for **this** identifier
-     * @throws ContainerExceptionInterface|PsrContainerExceptionInterface If error while retrieving the entry
+     * @throws InvalidArgumentException    if $id is empty
+     * @throws NotFoundException           if $id is not registered
+     * @throws CircularDependencyException if a circular dependency is detected
+     * @throws NotInstantiableException    if $class is not instantiable; (is an interface or an abstract class)
+     * @throws NotFoundExceptionInterface  if no entry was found for **this** identifier
+     * @throws ContainerExceptionInterface If error while retrieving the entry
      *
-     * @return ($id is class-string ? TObject : T)
+     * @return ($id is class-string ? TObject : TService)
      */
     public function get(string $id): mixed;
 
@@ -225,14 +221,14 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     /**
      * Create an object using the given Container to resolve dependencies.
      *
-     * @template T
+     * @template TService
      *
      * @param array<string,mixed> $arguments optional arguments passed to $callback
      *
      * @throws ReflectionException
      * @throws Throwable
      *
-     * @return T
+     * @return TService
      */
     public function invoke(callable $callback, array $arguments = []): mixed;
 
@@ -270,6 +266,19 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     public function remove(string $id): void;
 
     /**
+     * Reassigns a service on the given container.
+     *
+     * @template TService
+     *
+     * @param TService         $value
+     * @param iterable<string> $tags
+     *
+     * @throws InvalidArgumentException if the service $id is empty
+     * @throws LogicException           if the service $id is already registered
+     */
+    public function replace(string $id, mixed $value, iterable $tags = []): void;
+
+    /**
      * Resolves an alias to the service id.
      *
      * @throws InvalidArgumentException if the service $id is empty
@@ -279,9 +288,9 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     /**
      * Assigns a service on the given container.
      *
-     * @template T
+     * @template TService
      *
-     * @param T                $value
+     * @param TService         $value
      * @param iterable<string> $tags
      *
      * @throws InvalidArgumentException if the service $id is empty
@@ -301,7 +310,7 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     /**
      * Resolve services for a given tag.
      *
-     * @return Traversable<string>
+     * @return Generator<class-string|string>
      */
-    public function tagged(string $tag): iterable;
+    public function tagged(string $tag): Generator;
 }

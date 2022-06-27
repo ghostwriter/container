@@ -48,9 +48,6 @@ use Ghostwriter\Container\Tests\Fixture\UnionTypehintWithDefaultValue;
 use Ghostwriter\Container\Tests\Fixture\UnionTypehintWithoutDefaultValue;
 use Ghostwriter\Container\Tests\Fixture\UnresolvableParameter;
 use PHPUnit\Framework\TestCase;
-use Psr\Container\ContainerExceptionInterface as PsrContainerExceptionInterface;
-use Psr\Container\ContainerInterface as PsrContainerInterface;
-use Psr\Container\NotFoundExceptionInterface as PsrNotFoundExceptionInterface;
 use stdClass;
 use Throwable;
 use function array_key_exists;
@@ -638,7 +635,6 @@ final class ContainerTest extends TestCase
      * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
      * @covers \Ghostwriter\Container\Container::get
-     * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::has
      * @covers \Ghostwriter\Container\Container::offsetExists
@@ -646,6 +642,7 @@ final class ContainerTest extends TestCase
      * @covers \Ghostwriter\Container\Container::offsetSet
      * @covers \Ghostwriter\Container\Container::offsetUnset
      * @covers \Ghostwriter\Container\Container::remove
+     * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Container::set
      *
      * @throws Throwable
@@ -665,6 +662,19 @@ final class ContainerTest extends TestCase
         unset($this->container[__METHOD__]);
 
         self::assertArrayNotHasKey(__METHOD__, $this->container);
+    }
+
+    /**
+     * @covers \Ghostwriter\Container\Container::__construct
+     * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::getInstance
+     */
+    public function testContainerImplementsContainerInterface(): void
+    {
+        self::assertTrue(is_subclass_of(Container::class, ContainerInterface::class));
+
+        self::assertInstanceOf(ContainerInterface::class, $this->container);
+        self::assertInstanceOf(Container::class, $this->container);
     }
 
     /**
@@ -702,25 +712,9 @@ final class ContainerTest extends TestCase
     /**
      * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
-     * @covers \Ghostwriter\Container\Container::getInstance
-     */
-    public function testContainerImplementsPsrContainerInterface(): void
-    {
-        self::assertTrue(is_subclass_of(ContainerInterface::class, PsrContainerInterface::class));
-        self::assertTrue(is_subclass_of(Container::class, PsrContainerInterface::class));
-        self::assertTrue(is_subclass_of(Container::class, ContainerInterface::class));
-
-        self::assertInstanceOf(PsrContainerInterface::class, $this->container);
-        self::assertInstanceOf(ContainerInterface::class, $this->container);
-        self::assertInstanceOf(Container::class, $this->container);
-    }
-
-    /**
-     * @covers \Ghostwriter\Container\Container::__construct
-     * @covers \Ghostwriter\Container\Container::__destruct
-     * @covers \Ghostwriter\Container\Container::invoke
      * @covers \Ghostwriter\Container\Container::get
      * @covers \Ghostwriter\Container\Container::getInstance
+     * @covers \Ghostwriter\Container\Container::invoke
      * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Container::set
      *
@@ -781,8 +775,8 @@ final class ContainerTest extends TestCase
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::has
      * @covers \Ghostwriter\Container\Container::register
-     * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Container::remove
+     * @covers \Ghostwriter\Container\Container::resolve
      *
      * @throws Throwable
      */
@@ -804,6 +798,48 @@ final class ContainerTest extends TestCase
     }
 
     /**
+     * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::add
+     * @covers \Ghostwriter\Container\Container::bind
+     * @covers \Ghostwriter\Container\Container::build
+     * @covers \Ghostwriter\Container\Container::extend
+     * @covers \Ghostwriter\Container\Container::get
+     * @covers \Ghostwriter\Container\Container::getInstance
+     * @covers \Ghostwriter\Container\Container::has
+     * @covers \Ghostwriter\Container\Container::register
+     * @covers \Ghostwriter\Container\Container::remove
+     * @covers \Ghostwriter\Container\Container::replace
+     * @covers \Ghostwriter\Container\Container::resolve
+     * @covers \Ghostwriter\Container\Container::set
+     *
+     * @throws Throwable
+     */
+    public function testContainerReset(): void
+    {
+        $this->container->register(new FoobarServiceProvider());
+
+        self::assertTrue($this->container->has(Foo::class));
+        self::assertTrue($this->container->has(Bar::class));
+        self::assertTrue($this->container->has(Baz::class));
+
+        $foo = $this->container->get(Foo::class);
+        $bar = $this->container->get(Bar::class);
+        $baz = $this->container->get(Baz::class);
+
+        $this->container->replace(Foo::class, $this->container->build(Foo::class));
+        $this->container->replace(Bar::class, $this->container->build(Bar::class));
+        $this->container->replace(Baz::class, $this->container->build(Baz::class));
+
+        self::assertInstanceOf(Foo::class, $this->container->get(Foo::class));
+        self::assertInstanceOf(Bar::class, $this->container->get(Bar::class));
+        self::assertInstanceOf(Baz::class, $this->container->get(Baz::class));
+
+        self::assertNotSame($foo, $this->container->get(Foo::class));
+        self::assertNotSame($bar, $this->container->get(Bar::class));
+        self::assertNotSame($baz, $this->container->get(Baz::class));
+    }
+
+    /**
      * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
      * @covers \Ghostwriter\Container\Container::alias
@@ -817,10 +853,8 @@ final class ContainerTest extends TestCase
      * @param bool|Closure():null|float|int|stdClass|string|string[] $value
      * @param null|bool|float|int|stdClass|string|string[]           $expected
      *
-     * @throws PsrNotFoundExceptionInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
-     * @throws PsrContainerExceptionInterface
      */
     public function testContainerSet(
         string $key,
@@ -837,12 +871,12 @@ final class ContainerTest extends TestCase
      * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
      * @covers \Ghostwriter\Container\Container::get
-     * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Container::getInstance
-     * @covers \Ghostwriter\Container\Container::tagged
+     * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Container::set
      * @covers \Ghostwriter\Container\Container::set
      * @covers \Ghostwriter\Container\Container::tag
+     * @covers \Ghostwriter\Container\Container::tagged
      * @covers \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceTagForServiceId
      *
      * @throws Throwable
@@ -874,52 +908,52 @@ final class ContainerTest extends TestCase
     }
 
     /**
-     * @covers \Ghostwriter\Container\Container::__construct
-     * @covers \Ghostwriter\Container\Container::__clone
-     * @covers \Ghostwriter\Container\Container::__destruct
-     * @covers \Ghostwriter\Container\Container::__serialize
-     * @covers \Ghostwriter\Container\Container::__unserialize
-     * @covers \Ghostwriter\Container\Container::add
-     * @covers \Ghostwriter\Container\Container::alias
-     * @covers \Ghostwriter\Container\Container::bind
-     * @covers \Ghostwriter\Container\Container::build
-     * @covers \Ghostwriter\Container\Container::extend
-     * @covers \Ghostwriter\Container\Container::get
-     * @covers \Ghostwriter\Container\Container::getInstance
-     * @covers \Ghostwriter\Container\Container::has
-     * @covers \Ghostwriter\Container\Container::invoke
-     * @covers \Ghostwriter\Container\Container::register
-     * @covers \Ghostwriter\Container\Container::remove
-     * @covers \Ghostwriter\Container\Container::resolve
-     * @covers \Ghostwriter\Container\Container::set
-     * @covers \Ghostwriter\Container\Container::tag
-     * @covers \Ghostwriter\Container\Exception\CircularDependencyException::detected
-     * @covers \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceId
-     * @covers \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceAlias
-     * @covers \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceTagForServiceId
-     * @covers \Ghostwriter\Container\Exception\BadMethodCallException::dontClone
-     * @covers \Ghostwriter\Container\Exception\BadMethodCallException::dontSerialize
-     * @covers \Ghostwriter\Container\Exception\BadMethodCallException::dontUnserialize
-     * @covers \Ghostwriter\Container\Exception\LogicException::serviceAlreadyRegistered
-     * @covers \Ghostwriter\Container\Exception\LogicException::serviceCannotAliasItself
-     * @covers \Ghostwriter\Container\Exception\LogicException::serviceExtensionAlreadyRegistered
-     * @covers \Ghostwriter\Container\Exception\LogicException::serviceProviderAlreadyRegistered
-     * @covers \Ghostwriter\Container\Exception\NotFoundException::notRegistered
-     * @covers \Ghostwriter\Container\Exception\NotInstantiableException::abstractClassOrInterface
-     * @covers \Ghostwriter\Container\Exception\NotInstantiableException::classDoseNotExist
-     * @covers \Ghostwriter\Container\Exception\NotInstantiableException::unresolvableParameter
+     * @covers       \Ghostwriter\Container\Container::__clone
+     * @covers       \Ghostwriter\Container\Container::__construct
+     * @covers       \Ghostwriter\Container\Container::__destruct
+     * @covers       \Ghostwriter\Container\Container::__serialize
+     * @covers       \Ghostwriter\Container\Container::__unserialize
+     * @covers       \Ghostwriter\Container\Container::add
+     * @covers       \Ghostwriter\Container\Container::alias
+     * @covers       \Ghostwriter\Container\Container::bind
+     * @covers       \Ghostwriter\Container\Container::build
+     * @covers       \Ghostwriter\Container\Container::extend
+     * @covers       \Ghostwriter\Container\Container::get
+     * @covers       \Ghostwriter\Container\Container::getInstance
+     * @covers       \Ghostwriter\Container\Container::has
+     * @covers       \Ghostwriter\Container\Container::invoke
+     * @covers       \Ghostwriter\Container\Container::register
+     * @covers       \Ghostwriter\Container\Container::remove
+     * @covers       \Ghostwriter\Container\Container::resolve
+     * @covers       \Ghostwriter\Container\Container::set
+     * @covers       \Ghostwriter\Container\Container::tag
+     * @covers       \Ghostwriter\Container\Exception\BadMethodCallException::dontClone
+     * @covers       \Ghostwriter\Container\Exception\BadMethodCallException::dontSerialize
+     * @covers       \Ghostwriter\Container\Exception\BadMethodCallException::dontUnserialize
+     * @covers       \Ghostwriter\Container\Exception\CircularDependencyException::detected
+     * @covers       \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceAlias
+     * @covers       \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceId
+     * @covers       \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceTagForServiceId
+     * @covers       \Ghostwriter\Container\Exception\LogicException::serviceAlreadyRegistered
+     * @covers       \Ghostwriter\Container\Exception\LogicException::serviceCannotAliasItself
+     * @covers       \Ghostwriter\Container\Exception\LogicException::serviceExtensionAlreadyRegistered
+     * @covers       \Ghostwriter\Container\Exception\LogicException::serviceProviderAlreadyRegistered
+     * @covers       \Ghostwriter\Container\Exception\NotFoundException::notRegistered
+     * @covers       \Ghostwriter\Container\Exception\NotInstantiableException::abstractClassOrInterface
+     * @covers       \Ghostwriter\Container\Exception\NotInstantiableException::classDoseNotExist
+     * @covers       \Ghostwriter\Container\Exception\NotInstantiableException::unresolvableParameter
      * @dataProvider dataProviderContainerExceptions
      *
      * @param callable(Container):void $test
      *
+     * @throws ContainerExceptionInterface
      * @throws Throwable
      */
-    public function testExceptionsImplementPsrContainerExceptionInterface(
+    public function testExceptionsImplementContainerExceptionInterface(
         string $exception,
         string $message,
         callable $test
     ): void {
-        self::assertTrue(is_subclass_of($exception, PsrContainerExceptionInterface::class));
         self::assertTrue(is_subclass_of($exception, ContainerExceptionInterface::class));
 
         $this->expectException($exception);
@@ -934,7 +968,6 @@ final class ContainerTest extends TestCase
 
             self::assertSame($exception, $throwable::class);
 
-            self::assertInstanceOf(PsrContainerExceptionInterface::class, $throwable);
             self::assertInstanceOf(ContainerExceptionInterface::class, $throwable);
 
             // re-throw to validate the expected exception message.
@@ -945,20 +978,17 @@ final class ContainerTest extends TestCase
     /**
      * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
-     * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::get
+     * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Exception\NotFoundException::notRegistered
      */
-    public function testNotFoundExceptionImplementsPsrContainerNotFoundExceptionInterface(): void
+    public function testNotFoundExceptionImplementsContainerNotFoundExceptionInterface(): void
     {
         try {
             $this->container->get('not-found');
         } catch (Throwable $throwable) {
-            self::assertInstanceOf(PsrContainerExceptionInterface::class, $throwable);
             self::assertInstanceOf(ContainerExceptionInterface::class, $throwable);
-
-            self::assertInstanceOf(PsrNotFoundExceptionInterface::class, $throwable);
             self::assertInstanceOf(NotFoundExceptionInterface::class, $throwable);
             self::assertInstanceOf(NotFoundException::class, $throwable);
         }
