@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ghostwriter\Container;
 
 use Closure;
+use Generator;
 use Ghostwriter\Container\Contract\ContainerInterface;
 use Ghostwriter\Container\Contract\ExtensionInterface;
 use Ghostwriter\Container\Contract\ServiceProviderInterface;
@@ -357,7 +358,7 @@ final class Container implements ContainerInterface
         }
     }
 
-    public function reset(string $id, mixed $value, iterable $tags = []): void
+    public function replace(string $id, mixed $value, iterable $tags = []): void
     {
         $this->remove($id);
         $this->set($id, $value, $tags);
@@ -420,7 +421,7 @@ final class Container implements ContainerInterface
         $this->services[self::TAGS] = $serviceTags;
     }
 
-    public function tagged(string $tag): iterable
+    public function tagged(string $tag): Generator
     {
         yield from $this->services[self::TAGS][$tag] ?? [];
     }
