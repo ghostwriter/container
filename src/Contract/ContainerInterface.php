@@ -252,9 +252,10 @@ interface ContainerInterface extends ArrayAccess
      * Register a ServiceProvider class.
      *
      * Note: Service providers are automatically registered via `build` or `get` method.
+     *
      * @param class-string<ServiceProviderInterface> $serviceProvider
      *
-     * @throws LogicException if the ServiceProvider is already registered
+     * @throws LogicException              if the ServiceProvider is already registered
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
