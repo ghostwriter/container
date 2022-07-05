@@ -84,7 +84,7 @@ class TasksServiceProvider implements ServiceProviderInterface
     }
 }
 
-$container->register(new TasksServiceProvider());
+$container->register(TasksServiceProvider::class);
 ```
 
 ### Service Extensions
