@@ -162,11 +162,11 @@ final class Container implements ContainerInterface
         if (! $reflectionMethod  instanceof ReflectionMethod) {
             $service =  new $class();
 
-            if (
-                $service instanceof ServiceProviderInterface &&
-                ! array_key_exists($class, $this->services[self::PROVIDERS])
-            ) {
-                $this->register($service);
+            if ($service instanceof ServiceProviderInterface) {
+                if (array_key_exists($class, $this->services[self::PROVIDERS])) {
+                    throw LogicException::serviceProviderAlreadyRegistered($class);
+                }
+                $this->services[self::PROVIDERS][$class] = true;
             }
 
             return $this->services[self::SERVICES][$class] = $service;
@@ -204,11 +204,11 @@ final class Container implements ContainerInterface
 
         $service =  new $class(...$arguments);
 
-        if (
-            $service instanceof ServiceProviderInterface &&
-            ! array_key_exists($class, $this->services[self::PROVIDERS])
-        ) {
-            $this->register($service);
+        if ($service instanceof ServiceProviderInterface) {
+            if (array_key_exists($class, $this->services[self::PROVIDERS])) {
+                throw LogicException::serviceProviderAlreadyRegistered($class);
+            }
+            $this->services[self::PROVIDERS][$class] = true;
         }
 
         return $this->services[self::SERVICES][$class] = $service;
@@ -330,15 +330,14 @@ final class Container implements ContainerInterface
         $this->remove($offset);
     }
 
-    public function register(ServiceProviderInterface $serviceProvider): void
+    public function register(string $serviceProvider): void
     {
-        if (array_key_exists($serviceProvider::class, $this->services[self::PROVIDERS])) {
-            throw LogicException::serviceProviderAlreadyRegistered($serviceProvider::class);
+        if (! is_subclass_of($serviceProvider, ServiceProviderInterface::class)) {
+            throw new InvalidArgumentException(
+                sprintf('$service MUST be an instance of %s', ServiceProviderInterface::class)
+            );
         }
-
-        $serviceProvider($this);
-
-        $this->services[self::PROVIDERS][$serviceProvider::class] = true;
+        $this->build($serviceProvider)($this);
     }
 
     public function remove(string $id): void

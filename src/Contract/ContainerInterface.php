@@ -249,13 +249,17 @@ interface ContainerInterface extends ArrayAccess
     public function offsetUnset(mixed $offset): void;
 
     /**
-     * Register a service provider.
+     * Register a ServiceProvider class.
      *
      * Note: Service providers are automatically registered via `build` or `get` method.
      *
-     * @throws LogicException if $serviceProvider is already registered
+     * @param class-string<ServiceProviderInterface> $serviceProvider
+     *
+     * @throws LogicException              if the ServiceProvider is already registered
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
-    public function register(ServiceProviderInterface $serviceProvider): void;
+    public function register(string $serviceProvider): void;
 
     /**
      * Remove a registered service.
