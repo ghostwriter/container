@@ -284,9 +284,9 @@ final class ContainerTest extends TestCase
                  *
                  * if you register it again,it fails.
                  */
-                // $serviceProvider = $container->get(FoobarServiceProvider::class);
-                $serviceProvider = $container->build(FoobarServiceProvider::class);
-                $container->register($serviceProvider);
+                // $container->get(FoobarServiceProvider::class);
+                $container->build(FoobarServiceProvider::class);
+                $container->register(FoobarServiceProvider::class);
             },
         ];
 
@@ -756,7 +756,7 @@ final class ContainerTest extends TestCase
      */
     public function testContainerRegister(): void
     {
-        $this->container->register(new FoobarServiceProvider());
+        $this->container->register(FoobarServiceProvider::class);
 
         self::assertTrue($this->container->has(Foo::class));
         self::assertTrue($this->container->has(Bar::class));
@@ -782,7 +782,7 @@ final class ContainerTest extends TestCase
      */
     public function testContainerRemove(): void
     {
-        $this->container->register(new FoobarServiceProvider());
+        $this->container->register(FoobarServiceProvider::class);
 
         self::assertTrue($this->container->has(Foo::class));
         self::assertTrue($this->container->has(Bar::class));
@@ -816,7 +816,7 @@ final class ContainerTest extends TestCase
      */
     public function testContainerReset(): void
     {
-        $this->container->register(new FoobarServiceProvider());
+        $this->container->register(FoobarServiceProvider::class);
 
         self::assertTrue($this->container->has(Foo::class));
         self::assertTrue($this->container->has(Bar::class));
