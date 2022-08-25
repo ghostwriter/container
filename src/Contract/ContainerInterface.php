@@ -36,7 +36,7 @@ interface ContainerInterface extends ArrayAccess
      *     factories: array<string,callable(ContainerInterface):object>,
      *     providers: array<class-string,ServiceProviderInterface>,
      *     reflections: array<class-string,ReflectionClass>,
-     *     services: array<string,callable|null|object|scalar>,
+     *     services: array<string,callable|object|scalar>,
      *     tags: array<string,array<string>>,
      * }
      */
@@ -52,7 +52,7 @@ interface ContainerInterface extends ArrayAccess
         self::PROVIDERS    => [],
         self::REFLECTIONS => [],
         self::SERVICES     => [
-            Container::class => null,
+            Container::class => 0,
         ],
         self::TAGS         => [],
     ];
@@ -106,7 +106,7 @@ interface ContainerInterface extends ArrayAccess
      * @throws NotFoundExceptionInterface
      * @throws ContainerExceptionInterface
      */
-    public function __get(string $name);
+    public function __get(string $name): mixed;
 
     public function __isset(string $name): bool;
 
