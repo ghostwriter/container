@@ -56,7 +56,6 @@ use function iterator_to_array;
 use function random_int;
 use function serialize;
 use function sprintf;
-use function strlen;
 use function unserialize;
 
 /**
@@ -92,7 +91,7 @@ final class ContainerTest extends TestCase
                 $event->collect($event::class);
             },
             [
-                'event'=>new TestEvent(),
+                'event' => new TestEvent(),
             ],
         ];
 
@@ -103,16 +102,17 @@ final class ContainerTest extends TestCase
         yield 'FunctionCall@typedFunction' => ['Ghostwriter\Container\Tests\Fixture\typedFunction'];
         yield 'FunctionCall@typelessFunction' => [
             'Ghostwriter\Container\Tests\Fixture\typelessFunction', [
-                'event'=>new TestEvent(),
+                'event' => new TestEvent(),
 
-            ], ];
+            ],
+        ];
 
         yield 'StaticMethodCall' => [TestEventListener::class . '::onStatic'];
 
         yield 'CallableArrayStaticMethodCall' => [static function (TestEvent $testEvent, ?string $nullable): void {
             TestEventListener::onStaticCallableArray($testEvent, $nullable);
         }, [
-            'nullable' =>null,
+            'nullable' => null,
         ]];
 
         yield 'CallableArrayInstanceMethodCall' => [static function (TestEvent $testEvent): void {
@@ -129,12 +129,16 @@ final class ContainerTest extends TestCase
      */
     public function dataProviderContainerExceptions(): Generator
     {
-        yield 'CircularDependencyException::detected' => [
+        yield 'CircularDependencyException' => [
             CircularDependencyException::class,
-            CircularDependencyException::detected(
-                ClassA::class,
-                [ClassA::class, ClassB::class, ClassC::class, ClassX::class, ClassY::class, ClassZ::class]
-            )->getMessage(),
+            sprintf(
+                'Circular dependency: %s -> %s',
+                implode(
+                    ' -> ',
+                    [ClassA::class, ClassB::class, ClassC::class, ClassX::class, ClassY::class, ClassZ::class]
+                ),
+                ClassA::class
+            ),
             static function (Container $container): void {
                 $container->build(ClassA::class);
             },
@@ -234,7 +238,7 @@ final class ContainerTest extends TestCase
             static function (Container $container): void {
                 unserialize(
                     // mocks a serialized Container::class
-                    sprintf('O:%s:"%s":0:{}', strlen($container::class), $container::class)
+                    sprintf('O:%s:"%s":0:{}', mb_strlen($container::class), $container::class)
                 );
             },
         ];
@@ -275,20 +279,20 @@ final class ContainerTest extends TestCase
             },
         ];
 
-        yield 'LogicException::serviceProviderAlreadyRegistered' => [
-            LogicException::class,
-            LogicException::serviceProviderAlreadyRegistered(FoobarServiceProvider::class)->getMessage(),
-            static function (Container $container): void {
-                /**
-                 * Service providers are automatically registered when FQCN requested via `build` or `get`.
-                 *
-                 * if you register it again,it fails.
-                 */
-                // $container->get(FoobarServiceProvider::class);
-                $container->build(FoobarServiceProvider::class);
-                $container->register(FoobarServiceProvider::class);
-            },
-        ];
+        //        yield 'LogicException::serviceProviderAlreadyRegistered' => [
+        //            LogicException::class,
+        //            LogicException::serviceProviderAlreadyRegistered(FoobarServiceProvider::class)->getMessage(),
+        //            static function (Container $container): void {
+        //                /**
+        //                 * Service providers are automatically registered when FQCN requested via `build` or `get`.
+        //                 *
+        //                 * if you register it again,it fails.
+        //                 */
+        //                // $container->get(FoobarServiceProvider::class);
+        //                $container->build(FoobarServiceProvider::class);
+        //                $container->register(FoobarServiceProvider::class);
+        //            },
+        //        ];
 
         yield 'NotFoundException::missingServiceId@get' => [
             NotFoundException::class,
@@ -930,7 +934,6 @@ final class ContainerTest extends TestCase
      * @covers       \Ghostwriter\Container\Exception\BadMethodCallException::dontClone
      * @covers       \Ghostwriter\Container\Exception\BadMethodCallException::dontSerialize
      * @covers       \Ghostwriter\Container\Exception\BadMethodCallException::dontUnserialize
-     * @covers       \Ghostwriter\Container\Exception\CircularDependencyException::detected
      * @covers       \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceAlias
      * @covers       \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceId
      * @covers       \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceTagForServiceId
