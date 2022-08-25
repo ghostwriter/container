@@ -149,6 +149,7 @@ final class Container implements ContainerInterface
         }
 
         $dependencies = $this->services[self::DEPENDENCIES];
+
         if (array_key_exists($class, $dependencies)) {
             throw new CircularDependencyException(
                 sprintf('Circular dependency: %s -> %s', implode(' -> ', $dependencies), $class)
@@ -157,6 +158,7 @@ final class Container implements ContainerInterface
 
         try {
             $reflectionClass = $this->services[self::REFLECTIONS][$class] ??= new ReflectionClass($class);
+
             if (! $reflectionClass->isInstantiable()) {
                 throw NotInstantiableException::abstractClassOrInterface($class);
             }
@@ -165,6 +167,7 @@ final class Container implements ContainerInterface
         }
 
         $reflectionMethod = $reflectionClass->getConstructor();
+
         if (! $reflectionMethod instanceof ReflectionMethod) {
             $service = new $class();
 
@@ -179,6 +182,7 @@ final class Container implements ContainerInterface
 
         foreach ($reflectionMethod->getParameters() as $reflectionParameter) {
             $parameterName = $reflectionParameter->getName();
+
             if (array_key_exists($parameterName, $arguments)) {
                 continue;
             }
@@ -188,10 +192,8 @@ final class Container implements ContainerInterface
             }
 
             $parameterType = $reflectionParameter->getType();
-            if (
-                ! $parameterType instanceof ReflectionNamedType ||
-                $parameterType->isBuiltin()
-            ) {
+
+            if (! $parameterType instanceof ReflectionNamedType || $parameterType->isBuiltin()) {
                 throw NotInstantiableException::unresolvableParameter(
                     $parameterName,
                     $reflectionMethod->getDeclaringClass()
@@ -244,6 +246,7 @@ final class Container implements ContainerInterface
         }
 
         $factories = $this->services[self::FACTORIES];
+
         if (array_key_exists($id, $factories) || class_exists($id)) {
             $service = $factories[$id] ?? static fn (Container $container): object => $container->build($id);
 
@@ -279,6 +282,7 @@ final class Container implements ContainerInterface
 
         foreach ($parameters as $parameter) {
             $parameterName = $parameter->getName();
+
             if (array_key_exists($parameterName, $arguments)) {
                 continue;
             }
@@ -288,10 +292,8 @@ final class Container implements ContainerInterface
             }
 
             $parameterType = $parameter->getType();
-            if (
-                ! $parameterType instanceof ReflectionNamedType ||
-                $parameterType->isBuiltin()
-            ) {
+
+            if (! $parameterType instanceof ReflectionNamedType || $parameterType->isBuiltin()) {
                 $reflectionClass = $parameter->getDeclaringClass();
                 throw NotInstantiableException::unresolvableParameter(
                     $parameterName,
@@ -335,6 +337,7 @@ final class Container implements ContainerInterface
                 sprintf('$service MUST be an instance of %s', ServiceProviderInterface::class)
             );
         }
+
         $this->build($serviceProvider)($this);
     }
 
