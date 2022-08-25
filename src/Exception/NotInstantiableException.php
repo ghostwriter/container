@@ -22,7 +22,7 @@ final class NotInstantiableException extends PHPRuntimeException implements Cont
 
     public static function unresolvableParameter(string $parameter, string $class, string $method): self
     {
-        $isFunction = '' === $class;
+        $isFunction = $class === '';
 
         return new self(sprintf(
             'Unresolvable %s parameter "$%s" in "%s%s"; does not have a default value.',
