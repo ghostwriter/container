@@ -52,7 +52,7 @@ final class Container implements ContainerInterface
         throw BadMethodCallException::dontClone(self::class);
     }
 
-    public function __get(string $name)
+    public function __get(string $name): mixed
     {
         return $this->get($name);
     }
@@ -95,11 +95,11 @@ final class Container implements ContainerInterface
 
     public function alias(string $alias, string $id): void
     {
-        if ('' === trim($id)) {
+        if (trim($id) === '') {
             throw InvalidArgumentException::emptyServiceId();
         }
 
-        if ('' === trim($alias)) {
+        if (trim($alias) === '') {
             throw InvalidArgumentException::emptyServiceAlias();
         }
 
@@ -116,7 +116,7 @@ final class Container implements ContainerInterface
 
     public function bind(string $abstract, ?string $concrete = null, iterable $tags = []): void
     {
-        if ('' === trim($abstract)) {
+        if (trim($abstract) === '') {
             throw InvalidArgumentException::emptyServiceId();
         }
 
@@ -131,7 +131,7 @@ final class Container implements ContainerInterface
         $this->services[self::FACTORIES][$abstract] =
             static fn (ContainerInterface $container): object => $container->build($concrete ?? $abstract);
 
-        if ([] === $tags) {
+        if ($tags === []) {
             return;
         }
 
@@ -140,13 +140,19 @@ final class Container implements ContainerInterface
 
     public function build(string $class, array $arguments = []): object
     {
-        if (self::class === $class) {
+        if ($class === self::class) {
             return $this;
         }
 
-        $dependencies  = $this->services[self::DEPENDENCIES];
+        if (array_key_exists($class, $this->services[self::PROVIDERS])) {
+            return $this->services[self::SERVICES][$class];
+        }
+
+        $dependencies = $this->services[self::DEPENDENCIES];
         if (array_key_exists($class, $dependencies)) {
-            throw CircularDependencyException::detected($class, $dependencies);
+            throw new CircularDependencyException(
+                sprintf('Circular dependency: %s -> %s', implode(' -> ', $dependencies), $class)
+            );
         }
 
         try {
@@ -159,13 +165,10 @@ final class Container implements ContainerInterface
         }
 
         $reflectionMethod = $reflectionClass->getConstructor();
-        if (! $reflectionMethod  instanceof ReflectionMethod) {
-            $service =  new $class();
+        if (! $reflectionMethod instanceof ReflectionMethod) {
+            $service = new $class();
 
             if ($service instanceof ServiceProviderInterface) {
-                if (array_key_exists($class, $this->services[self::PROVIDERS])) {
-                    throw LogicException::serviceProviderAlreadyRegistered($class);
-                }
                 $this->services[self::PROVIDERS][$class] = true;
             }
 
@@ -186,7 +189,7 @@ final class Container implements ContainerInterface
 
             $parameterType = $reflectionParameter->getType();
             if (
-                ! ($parameterType) instanceof ReflectionNamedType ||
+                ! $parameterType instanceof ReflectionNamedType ||
                 $parameterType->isBuiltin()
             ) {
                 throw NotInstantiableException::unresolvableParameter(
@@ -202,12 +205,9 @@ final class Container implements ContainerInterface
 
         unset($this->services[self::DEPENDENCIES][$class]);
 
-        $service =  new $class(...$arguments);
+        $service = new $class(...$arguments);
 
         if ($service instanceof ServiceProviderInterface) {
-            if (array_key_exists($class, $this->services[self::PROVIDERS])) {
-                throw LogicException::serviceProviderAlreadyRegistered($class);
-            }
             $this->services[self::PROVIDERS][$class] = true;
         }
 
@@ -216,7 +216,7 @@ final class Container implements ContainerInterface
 
     public function extend(string $class, callable $extension): void
     {
-        if ('' === trim($class)) {
+        if (trim($class) === '') {
             throw InvalidArgumentException::emptyServiceId();
         }
 
@@ -227,17 +227,15 @@ final class Container implements ContainerInterface
         $extensions = $this->services[self::EXTENSIONS];
 
         $this->services[self::EXTENSIONS][$class] = array_key_exists($class, $extensions) ?
-            static fn (ContainerInterface $container, object $service): object =>
-            $extension($container, $extensions[$class]($container, $service)) :
-            static fn (ContainerInterface $container, object $service): object =>
-            $extension($container, $service);
+            static fn (ContainerInterface $container, object $service): object => $extension($container, $extensions[$class]($container, $service)) :
+            static fn (ContainerInterface $container, object $service): object => $extension($container, $service);
     }
 
     public function get(string $id): mixed
     {
         $id = $this->resolve($id);
 
-        if (self::class === $id) {
+        if ($id === self::class) {
             return $this;
         }
 
@@ -291,7 +289,7 @@ final class Container implements ContainerInterface
 
             $parameterType = $parameter->getType();
             if (
-                ! ($parameterType) instanceof ReflectionNamedType ||
+                ! $parameterType instanceof ReflectionNamedType ||
                 $parameterType->isBuiltin()
             ) {
                 $reflectionClass = $parameter->getDeclaringClass();
@@ -342,7 +340,7 @@ final class Container implements ContainerInterface
 
     public function remove(string $id): void
     {
-        if ('' === trim($id)) {
+        if (trim($id) === '') {
             throw InvalidArgumentException::emptyServiceId();
         }
 
@@ -365,7 +363,7 @@ final class Container implements ContainerInterface
 
     public function resolve(string $id): string
     {
-        if ('' === trim($id)) {
+        if (trim($id) === '') {
             throw InvalidArgumentException::emptyServiceId();
         }
 
@@ -378,7 +376,7 @@ final class Container implements ContainerInterface
 
     public function set(string $id, mixed $value, iterable $tags = []): void
     {
-        if ('' === trim($id)) {
+        if (trim($id) === '') {
             throw InvalidArgumentException::emptyServiceId();
         }
 
@@ -394,7 +392,7 @@ final class Container implements ContainerInterface
             self::FACTORIES :
             self::SERVICES][$id] = $value;
 
-        if ([] === $tags) {
+        if ($tags === []) {
             return;
         }
 
@@ -403,14 +401,14 @@ final class Container implements ContainerInterface
 
     public function tag(string $id, iterable $tags): void
     {
-        if ('' === trim($id)) {
+        if (trim($id) === '') {
             throw InvalidArgumentException::emptyServiceId();
         }
 
         $serviceTags = $this->services[self::TAGS];
 
         foreach ($tags as $tag) {
-            if ('' === trim($tag)) {
+            if (trim($tag) === '') {
                 throw InvalidArgumentException::emptyServiceTagForServiceId($id);
             }
 
