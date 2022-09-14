@@ -116,9 +116,6 @@ final class Container implements ContainerInterface
 
     public function bind(string $abstract, ?string $concrete = null, iterable $tags = []): void
     {
-        // resolve
-        $id = $this->resolve($abstract);
-
         if ('' === trim($abstract)) {
             throw InvalidArgumentException::emptyServiceId();
         }
@@ -131,8 +128,9 @@ final class Container implements ContainerInterface
             throw LogicException::serviceAlreadyRegistered($abstract);
         }
 
-        $this->services[self::FACTORIES][$abstract] =
-            static fn (ContainerInterface $container): object => $container->build($concrete ?? $abstract);
+        $this->services[self::FACTORIES][$abstract] = static fn (
+            ContainerInterface $container
+        ): object => $container->build($concrete ?? $abstract);
 
         if ([] === $tags) {
             return;
@@ -289,8 +287,8 @@ final class Container implements ContainerInterface
         return $callback(...array_values(array_merge(
             array_reduce(
                 iterator_to_array($this->getParametersForCallable($callback)),
-                function (array $parameters, ReflectionParameter $parameter) use ($arguments): array {
-                    $parameterName = $parameter->getName();
+                function (array $parameters, ReflectionParameter $reflectionParameter) use ($arguments): array {
+                    $parameterName = $reflectionParameter->getName();
 
                     if (array_key_exists($parameterName, $arguments)) {
                         $parameters[] = $arguments[$parameterName];
@@ -300,34 +298,34 @@ final class Container implements ContainerInterface
                         return $parameters;
                     }
 
-                    $parameterType = $parameter->getType();
+                    $reflectionType = $reflectionParameter->getType();
 
-                    if ($parameterType instanceof ReflectionNamedType && !$parameterType->isBuiltin()) {
-                        $maybeVariadicParameter = $this->get($parameterType->getName());
+                    if ($reflectionType instanceof ReflectionNamedType && !$reflectionType->isBuiltin()) {
+                        $maybeVariadicParameter = $this->get($reflectionType->getName());
 
                         return array_merge(
                             $parameters,
-                            ($parameter->isVariadic() && is_array($maybeVariadicParameter)
+                            ($reflectionParameter->isVariadic() && is_array($maybeVariadicParameter)
                                 ? $maybeVariadicParameter
                                 : [$maybeVariadicParameter]
                             )
                         );
                     }
 
-                    if ($parameter->isDefaultValueAvailable()) {
-                        $parameters[] = $parameter->getDefaultValue();
+                    if ($reflectionParameter->isDefaultValueAvailable()) {
+                        $parameters[] = $reflectionParameter->getDefaultValue();
 
                         return $parameters;
                     }
 
-                    if (!$parameter->isOptional() && [] === $arguments) {
-                        $reflectionClass = $parameter->getDeclaringClass();
+                    if (!$reflectionParameter->isOptional() && [] === $arguments) {
+                        $reflectionClass = $reflectionParameter->getDeclaringClass();
 
                         throw NotInstantiableException::unresolvableParameter(
                             $parameterName,
                             $reflectionClass instanceof ReflectionClass ?
                                 $reflectionClass->getName() : '',
-                            $parameter->getDeclaringFunction()
+                            $reflectionParameter->getDeclaringFunction()
                                 ->getName()
                         );
                     }
