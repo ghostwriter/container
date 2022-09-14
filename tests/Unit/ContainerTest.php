@@ -739,8 +739,9 @@ final class ContainerTest extends TestCase
         $testEvent = $this->container->get(TestEvent::class);
 
         self::assertSame([], $testEvent->all());
-
-        $expectedCount = $actual1 = $actual2 = random_int(10, 50);
+        $expectedCount = random_int(10, 50);
+        $actual1 = $expectedCount;
+        $actual2 = $expectedCount;
 
         while ($actual1--) {
             $this->container->call($callback, [
@@ -925,9 +926,7 @@ final class ContainerTest extends TestCase
             self::assertSame('first-tag', $serviceId);
         }
 
-        foreach ($this->container->tagged('tag-2') as $serviceId) {
-            self::assertInstanceOf(stdClass::class, $serviceId);
-        }
+        self::assertContainsOnlyInstancesOf(stdClass::class, $this->container->tagged('tag-2'));
 
         self::assertSame([$stdClass3, $stdClass4], iterator_to_array($this->container->tagged('tag-2')));
     }
