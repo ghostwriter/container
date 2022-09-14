@@ -12,6 +12,7 @@ use Ghostwriter\Container\Contract\ContainerInterface;
 use Ghostwriter\Container\Contract\Exception\NotFoundExceptionInterface;
 use Ghostwriter\Container\Contract\ServiceProviderInterface;
 use Ghostwriter\Container\Exception\CircularDependencyException;
+use Ghostwriter\Container\Exception\ClassDoseNotExistException;
 use Ghostwriter\Container\Exception\DontCloneException;
 use Ghostwriter\Container\Exception\DontSerializeException;
 use Ghostwriter\Container\Exception\DontUnserializeException;
@@ -24,6 +25,7 @@ use Ghostwriter\Container\Exception\ServiceIdMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\ServiceNotFoundException;
 use Ghostwriter\Container\Exception\ServiceProviderAlreadyRegisteredException;
 use Ghostwriter\Container\Exception\ServiceTagMustBeNonEmptyStringException;
+use Ghostwriter\Container\Exception\UnresolvableParameterException;
 use Ghostwriter\Container\Tests\Fixture\Bar;
 use Ghostwriter\Container\Tests\Fixture\Baz;
 use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassA;
@@ -237,20 +239,20 @@ final class ContainerTest extends TestCase
             static fn (Container $container) => $container->build(Throwable::class),
         ];
 
-        yield 'NotInstantiableException::classDoseNotExist' => [
-            NotInstantiableException::class,
+        yield 'ClassDoseNotExistException' => [
+            ClassDoseNotExistException::class,
             static fn (Container $container) => $container->build('dose-not-exist'),
         ];
 
-        yield 'NotInstantiableException::unresolvableParameter' => [
-            NotInstantiableException::class,
+        yield 'UnresolvableParameterException' => [
+            UnresolvableParameterException::class,
             static function (Container $container): void {
                 $container->build(UnresolvableParameter::class);
             },
         ];
 
-        yield 'NotInstantiableException::unresolvableParameter@call-function' => [
-            NotInstantiableException::class,
+        yield 'UnresolvableParameterException@call-function' => [
+            UnresolvableParameterException::class,
             static function (Container $container): void {
                 $container->call('Ghostwriter\Container\Tests\Fixture\typelessFunction');
             },
@@ -874,9 +876,6 @@ final class ContainerTest extends TestCase
      * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Container::set
      * @covers \Ghostwriter\Container\Container::tag
-     * @covers \Ghostwriter\Container\Exception\NotInstantiableException::abstractClassOrInterface
-     * @covers \Ghostwriter\Container\Exception\NotInstantiableException::classDoseNotExist
-     * @covers \Ghostwriter\Container\Exception\NotInstantiableException::unresolvableParameter
      *
      * @dataProvider dataProviderContainerExceptions
      *
