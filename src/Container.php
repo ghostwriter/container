@@ -107,7 +107,7 @@ final class Container implements ContainerInterface
             throw LogicException::serviceCannotAliasItself($id);
         }
 
-        if (!$this->has($id)) {
+        if (! $this->has($id)) {
             throw NotFoundException::notRegistered($id);
         }
 
@@ -160,7 +160,7 @@ final class Container implements ContainerInterface
         try {
             $reflectionClass = $this->services[self::REFLECTIONS][$class] ??= new ReflectionClass($class);
 
-            if (!$reflectionClass->isInstantiable()) {
+            if (! $reflectionClass->isInstantiable()) {
                 throw NotInstantiableException::abstractClassOrInterface($class);
             }
         } catch (ReflectionException) {
@@ -169,7 +169,7 @@ final class Container implements ContainerInterface
 
         $reflectionMethod = $reflectionClass->getConstructor();
 
-        if (!$reflectionMethod instanceof ReflectionMethod) {
+        if (! $reflectionMethod instanceof ReflectionMethod) {
             $service = new $class();
 
             if ($service instanceof ServiceProviderInterface) {
@@ -194,7 +194,7 @@ final class Container implements ContainerInterface
 
             $parameterType = $reflectionParameter->getType();
 
-            if (!$parameterType instanceof ReflectionNamedType || $parameterType->isBuiltin()) {
+            if (! $parameterType instanceof ReflectionNamedType || $parameterType->isBuiltin()) {
                 throw NotInstantiableException::unresolvableParameter(
                     $parameterName,
                     $reflectionMethod->getDeclaringClass()
@@ -225,9 +225,9 @@ final class Container implements ContainerInterface
         $extensions = $this->services[self::EXTENSIONS];
 
         if (
-            !array_key_exists($class, $extensions)
-            && !array_key_exists($class, $factories)
-            && !class_exists($class)
+            ! array_key_exists($class, $extensions)
+            && ! array_key_exists($class, $factories)
+            && ! class_exists($class)
         ) {
             throw NotFoundException::notRegistered($class);
         }
@@ -255,7 +255,7 @@ final class Container implements ContainerInterface
 
         $factories = $this->services[self::FACTORIES];
 
-        if (!array_key_exists($id, $factories) && !class_exists($id)) {
+        if (! array_key_exists($id, $factories) && ! class_exists($id)) {
             throw NotFoundException::notRegistered($id);
         }
 
@@ -300,12 +300,13 @@ final class Container implements ContainerInterface
 
                     $reflectionType = $reflectionParameter->getType();
 
-                    if ($reflectionType instanceof ReflectionNamedType && !$reflectionType->isBuiltin()) {
+                    if ($reflectionType instanceof ReflectionNamedType && ! $reflectionType->isBuiltin()) {
                         $maybeVariadicParameter = $this->get($reflectionType->getName());
 
                         return array_merge(
                             $parameters,
-                            ($reflectionParameter->isVariadic() && is_array($maybeVariadicParameter)
+                            (
+                                $reflectionParameter->isVariadic() && is_array($maybeVariadicParameter)
                                 ? $maybeVariadicParameter
                                 : [$maybeVariadicParameter]
                             )
@@ -318,7 +319,7 @@ final class Container implements ContainerInterface
                         return $parameters;
                     }
 
-                    if (!$reflectionParameter->isOptional() && [] === $arguments) {
+                    if (! $reflectionParameter->isOptional() && [] === $arguments) {
                         $reflectionClass = $reflectionParameter->getDeclaringClass();
 
                         throw NotInstantiableException::unresolvableParameter(
@@ -360,7 +361,7 @@ final class Container implements ContainerInterface
 
     public function register(string $serviceProvider): void
     {
-        if (!is_subclass_of($serviceProvider, ServiceProviderInterface::class)) {
+        if (! is_subclass_of($serviceProvider, ServiceProviderInterface::class)) {
             throw new InvalidArgumentException(
                 sprintf('$service MUST be an instance of %s', ServiceProviderInterface::class)
             );
@@ -373,12 +374,12 @@ final class Container implements ContainerInterface
     {
         $this->assertString($id);
 
-        if (!$this->has($id)) {
+        if (! $this->has($id)) {
             throw NotFoundException::notRegistered($id);
         }
 
         foreach ([self::ALIASES, self::EXTENSIONS, self::FACTORIES, self::SERVICES, self::TAGS] as $key) {
-            if (!array_key_exists($id, $this->services[$key])) {
+            if (! array_key_exists($id, $this->services[$key])) {
                 continue;
             }
 
