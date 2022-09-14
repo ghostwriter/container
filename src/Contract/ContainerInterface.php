@@ -10,6 +10,7 @@ use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Contract\Exception\NotFoundExceptionInterface;
 use Ghostwriter\Container\Exception\BadMethodCallException;
 use Ghostwriter\Container\Exception\CircularDependencyException;
+use Ghostwriter\Container\Exception\ClassDoseNotExistException;
 use Ghostwriter\Container\Exception\NotInstantiableException;
 use Ghostwriter\Container\Exception\ServiceAliasMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\ServiceAlreadyRegisteredException;
@@ -179,6 +180,7 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      * @throws ContainerExceptionInterface            if there is an error while retrieving the entry
      * @throws CircularDependencyException            if a circular dependency is detected
      * @throws NotInstantiableException               if $class is not instantiable; (is an interface or an abstract class)
+     * @throws ClassDoseNotExistException             if $class is not instantiable; (is an interface or an abstract class)
      *
      * @return TObject
      */
@@ -210,6 +212,7 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      * @throws ServiceNotFoundException               if $id is not registered
      * @throws CircularDependencyException            if a circular dependency is detected
      * @throws NotInstantiableException               if $class is not instantiable; (is an interface or an abstract class)
+     * @throws ClassDoseNotExistException             if $class is not instantiable; (is an interface or an abstract class)
      * @throws NotFoundExceptionInterface             if no entry was found for **this** identifier
      * @throws ContainerExceptionInterface            If error while retrieving the entry
      *
