@@ -22,8 +22,10 @@ use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
 use function array_key_exists;
+use function array_reduce;
 use function class_exists;
 use function is_callable;
+use function iterator_to_array;
 use function trim;
 
 /**
@@ -105,7 +107,7 @@ final class Container implements ContainerInterface
             throw LogicException::serviceCannotAliasItself($id);
         }
 
-        if (! $this->has($id)) {
+        if (!$this->has($id)) {
             throw NotFoundException::notRegistered($id);
         }
 
@@ -146,7 +148,7 @@ final class Container implements ContainerInterface
         }
 
         if (array_key_exists($class, $this->services[self::PROVIDERS])) {
-            return $this->services[self::SERVICES][$class];
+            throw LogicException::serviceProviderAlreadyRegistered($class);
         }
 
         $dependencies = $this->services[self::DEPENDENCIES];
@@ -160,7 +162,7 @@ final class Container implements ContainerInterface
         try {
             $reflectionClass = $this->services[self::REFLECTIONS][$class] ??= new ReflectionClass($class);
 
-            if (! $reflectionClass->isInstantiable()) {
+            if (!$reflectionClass->isInstantiable()) {
                 throw NotInstantiableException::abstractClassOrInterface($class);
             }
         } catch (ReflectionException) {
@@ -169,7 +171,7 @@ final class Container implements ContainerInterface
 
         $reflectionMethod = $reflectionClass->getConstructor();
 
-        if (! $reflectionMethod instanceof ReflectionMethod) {
+        if (!$reflectionMethod instanceof ReflectionMethod) {
             $service = new $class();
 
             if ($service instanceof ServiceProviderInterface) {
@@ -194,7 +196,7 @@ final class Container implements ContainerInterface
 
             $parameterType = $reflectionParameter->getType();
 
-            if (! $parameterType instanceof ReflectionNamedType || $parameterType->isBuiltin()) {
+            if (!$parameterType instanceof ReflectionNamedType || $parameterType->isBuiltin()) {
                 throw NotInstantiableException::unresolvableParameter(
                     $parameterName,
                     $reflectionMethod->getDeclaringClass()
@@ -219,15 +221,22 @@ final class Container implements ContainerInterface
 
     public function extend(string $class, callable $extension): void
     {
-        if ('' === trim($class)) {
-            throw InvalidArgumentException::emptyServiceId();
-        }
+        $this->assertString($class);
 
-        if (! array_key_exists($class, $this->services[self::FACTORIES])) {
+        $factories = $this->services[self::FACTORIES];
+        $extensions = $this->services[self::EXTENSIONS];
+
+        if (
+            !array_key_exists($class, $extensions)
+            && !array_key_exists($class, $factories)
+            && !class_exists($class)
+        ) {
             throw NotFoundException::notRegistered($class);
         }
 
-        $extensions = $this->services[self::EXTENSIONS];
+        $service = $extensions[$class] ??
+            $factories[$class] ??
+            static fn (Container $container): object => $container->build($class);
 
         $this->services[self::EXTENSIONS][$class] = array_key_exists($class, $extensions) ?
             static fn (ContainerInterface $container, object $service): object => $extension($container, $extensions[$class]($container, $service)) :
@@ -248,7 +257,7 @@ final class Container implements ContainerInterface
 
         $factories = $this->services[self::FACTORIES];
 
-        if (! array_key_exists($id, $factories) && ! class_exists($id)) {
+        if (!array_key_exists($id, $factories) && !class_exists($id)) {
             throw NotFoundException::notRegistered($id);
         }
 
@@ -277,59 +286,58 @@ final class Container implements ContainerInterface
 
     public function call(callable $callback, array $arguments = []): mixed
     {
-        if ([] === $arguments) {
-            return $callback();
-        }
+        return $callback(...array_values(array_merge(
+            array_reduce(
+                iterator_to_array($this->getParametersForCallable($callback)),
+                function (array $parameters, ReflectionParameter $parameter) use ($arguments): array {
+                    $parameterName = $parameter->getName();
 
-        return $callback(...$arguments);
-    }
+                    if (array_key_exists($parameterName, $arguments)) {
+                        $parameters[] = $arguments[$parameterName];
 
-    public function invoke(callable $callback, array $arguments = []): mixed
-    {
-        // if ([] === $arguments) {
-        //     return $callback(...$arguments);
-        // }
+                        unset($arguments[$parameterName]);
 
-        $parameters = $this->getParametersForCallable($callback);
+                        return $parameters;
+                    }
 
-        // \array_map(function (\ReflectionParameter $parameter): void {
-        //     # code...
-        // }, $parameters);
+                    $parameterType = $parameter->getType();
 
-        // \array_reduce([], function (\ReflectionParameter $parameter): void {
-        //     # code...
-        //     // $parameters
-        // }, []);
+                    if ($parameterType instanceof ReflectionNamedType && !$parameterType->isBuiltin()) {
+                        $maybeVariadicParameter = $this->get($parameterType->getName());
 
-        foreach ($parameters as $parameter) {
-            $parameterName = $parameter->getName();
+                        return array_merge(
+                            $parameters,
+                            ($parameter->isVariadic() && is_array($maybeVariadicParameter)
+                                ? $maybeVariadicParameter
+                                : [$maybeVariadicParameter]
+                            )
+                        );
+                    }
 
-            if (array_key_exists($parameterName, $arguments)) {
-                continue;
-            }
+                    if ($parameter->isDefaultValueAvailable()) {
+                        $parameters[] = $parameter->getDefaultValue();
 
-            if ($parameter->isOptional()) {
-                continue;
-            }
+                        return $parameters;
+                    }
 
-            $parameterType = $parameter->getType();
+                    if (!$parameter->isOptional() && [] === $arguments) {
+                        $reflectionClass = $parameter->getDeclaringClass();
 
-            if (! $parameterType instanceof ReflectionNamedType || $parameterType->isBuiltin()) {
-                $reflectionClass = $parameter->getDeclaringClass();
+                        throw NotInstantiableException::unresolvableParameter(
+                            $parameterName,
+                            $reflectionClass instanceof ReflectionClass ?
+                                $reflectionClass->getName() : '',
+                            $parameter->getDeclaringFunction()
+                                ->getName()
+                        );
+                    }
 
-                throw NotInstantiableException::unresolvableParameter(
-                    $parameterName,
-                    $reflectionClass instanceof ReflectionClass ?
-                        $reflectionClass->getName() : '',
-                    $parameter->getDeclaringFunction()
-                        ->getName()
-                );
-            }
-
-            $arguments[$parameterName] = $this->get($parameterType->getName());
-        }
-
-        return $callback(...$arguments);
+                    return $parameters;
+                },
+                []
+            ),
+            array_values($arguments)
+        )));
     }
 
     public function offsetExists(mixed $offset): bool
@@ -354,7 +362,7 @@ final class Container implements ContainerInterface
 
     public function register(string $serviceProvider): void
     {
-        if (! is_subclass_of($serviceProvider, ServiceProviderInterface::class)) {
+        if (!is_subclass_of($serviceProvider, ServiceProviderInterface::class)) {
             throw new InvalidArgumentException(
                 sprintf('$service MUST be an instance of %s', ServiceProviderInterface::class)
             );
@@ -367,12 +375,12 @@ final class Container implements ContainerInterface
     {
         $this->assertString($id);
 
-        if (! $this->has($id)) {
+        if (!$this->has($id)) {
             throw NotFoundException::notRegistered($id);
         }
 
         foreach ([self::ALIASES, self::EXTENSIONS, self::FACTORIES, self::SERVICES, self::TAGS] as $key) {
-            if (! array_key_exists($id, $this->services[$key])) {
+            if (!array_key_exists($id, $this->services[$key])) {
                 continue;
             }
 
@@ -409,11 +417,9 @@ final class Container implements ContainerInterface
             throw LogicException::serviceAlreadyRegistered($id);
         }
 
-        $this->services[
-            is_callable($value, false)
+        $this->services[is_callable($value, false)
             ? self::FACTORIES
-            : self::SERVICES
-        ][$id] = $value;
+            : self::SERVICES][$id] = $value;
 
         if ([] === $tags) {
             return;
@@ -442,11 +448,8 @@ final class Container implements ContainerInterface
     public function tagged(string $tag): Generator
     {
         /** @var class-string|string $service */
-        foreach (
-            $this->services[self::TAGS][$tag] ?? []
-        as $service
-        ) {
-            //            return $this->services[self::SERVICES][$id];
+        foreach ($this->services[self::TAGS][$tag] ?? []
+            as $service) {
             yield $this->get($service);
         }
     }
