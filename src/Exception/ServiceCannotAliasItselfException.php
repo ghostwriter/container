@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Ghostwriter\Container\Exception;
 
 use Ghostwriter\Container\Contract\ContainerExceptionInterface;
-use LogicException as PHPLogicException;
+use LogicException;
 
-final class ServiceCannotAliasItselfException extends PHPLogicException implements ContainerExceptionInterface
+final class ServiceCannotAliasItselfException extends LogicException implements ContainerExceptionInterface
 {
 }
