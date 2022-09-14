@@ -13,18 +13,18 @@ use Ghostwriter\Container\Contract\Exception\NotFoundExceptionInterface;
 use Ghostwriter\Container\Contract\ServiceProviderInterface;
 use Ghostwriter\Container\Exception\BadMethodCallException;
 use Ghostwriter\Container\Exception\CircularDependencyException;
-use Ghostwriter\Container\Exception\InvalidArgumentException;
-use Ghostwriter\Container\Exception\LogicException;
-use Ghostwriter\Container\Exception\NotFoundException;
 use Ghostwriter\Container\Exception\NotInstantiableException;
+use Ghostwriter\Container\Exception\ServiceAliasMustBeNonEmptyStringException;
+use Ghostwriter\Container\Exception\ServiceAlreadyRegisteredException;
+use Ghostwriter\Container\Exception\ServiceCannotAliasItselfException;
+use Ghostwriter\Container\Exception\ServiceExtensionAlreadyRegisteredException;
+use Ghostwriter\Container\Exception\ServiceIdMustBeNonEmptyStringException;
+use Ghostwriter\Container\Exception\ServiceNotFoundException;
+use Ghostwriter\Container\Exception\ServiceProviderAlreadyRegisteredException;
+use Ghostwriter\Container\Exception\ServiceTagMustBeNonEmptyStringException;
 use Ghostwriter\Container\Tests\Fixture\Bar;
 use Ghostwriter\Container\Tests\Fixture\Baz;
 use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassA;
-use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassB;
-use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassC;
-use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassX;
-use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassY;
-use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassZ;
 use Ghostwriter\Container\Tests\Fixture\Constructor\ArrayConstructor;
 use Ghostwriter\Container\Tests\Fixture\Constructor\BoolConstructor;
 use Ghostwriter\Container\Tests\Fixture\Constructor\CallableConstructor;
@@ -88,137 +88,98 @@ final class ContainerTest extends TestCase
     {
         yield 'CircularDependencyException' => [
             CircularDependencyException::class,
-            sprintf(
-                'Circular dependency: %s -> %s',
-                implode(
-                    ' -> ',
-                    [ClassA::class, ClassB::class, ClassC::class, ClassX::class, ClassY::class, ClassZ::class]
-                ),
-                ClassA::class
+            static fn (Container $container) => $container->build(ClassA::class),
+        ];
+
+        yield 'ServiceIdMustBeNonEmptyStringException@bind' => [
+            ServiceIdMustBeNonEmptyStringException::class,
+            static fn (Container $container) => $container->bind('', 'empty-value'),
+        ];
+
+        yield 'ServiceIdMustBeNonEmptyStringException@extend' => [
+            ServiceIdMustBeNonEmptyStringException::class,
+            static fn (Container $container) => $container->extend(
+                '',
+                static fn (Container $container): Container => $container
             ),
-            static function (Container $container): void {
-                $container->build(ClassA::class);
-            },
         ];
 
-        yield 'InvalidArgumentException::emptyServiceId@bind' => [
-            InvalidArgumentException::class,
-            InvalidArgumentException::emptyServiceId()->getMessage(),
-            static function (Container $container): void {
-                $container->bind('', 'empty-value');
-            },
+        yield 'ServiceIdMustBeNonEmptyStringException@set' => [
+            ServiceIdMustBeNonEmptyStringException::class,
+            static fn (Container $container) => $container->set('', 'empty-key'),
         ];
 
-        yield 'InvalidArgumentException::emptyServiceId@extend' => [
-            InvalidArgumentException::class,
-            InvalidArgumentException::emptyServiceId()->getMessage(),
-            static function (Container $container): void {
-                $container->extend('', static fn (Container $container): Container => $container);
-            },
+        yield 'ServiceIdMustBeNonEmptyStringException@remove' => [
+            ServiceIdMustBeNonEmptyStringException::class,
+            static fn (Container $container) => $container->remove(''),
         ];
 
-        yield 'InvalidArgumentException::emptyServiceId@set' => [
-            InvalidArgumentException::class,
-            InvalidArgumentException::emptyServiceId()->getMessage(),
-            static function (Container $container): void {
-                $container->set('', 'empty-key');
-            },
+        yield 'ServiceIdMustBeNonEmptyStringException@resolve-via-has' => [
+            ServiceIdMustBeNonEmptyStringException::class,
+            static fn (Container $container) => $container->has(''),
         ];
 
-        yield 'InvalidArgumentException::emptyServiceId@remove' => [
-            InvalidArgumentException::class,
-            InvalidArgumentException::emptyServiceId()->getMessage(),
-            static function (Container $container): void {
-                $container->remove('');
-            },
+        yield 'ServiceTagMustBeNonEmptyStringException@tag' => [
+            ServiceIdMustBeNonEmptyStringException::class,
+            static fn (Container $container) => $container->tag('', ['tag-1', 'tag-2']),
         ];
 
-        yield 'InvalidArgumentException::emptyServiceId@resolve-via-has' => [
-            InvalidArgumentException::class,
-            InvalidArgumentException::emptyServiceId()->getMessage(),
-            static function (Container $container): void {
-                $container->has('');
-            },
+        yield 'ServiceTagMustBeNonEmptyStringException@tag-with-empty-tags' => [
+            ServiceIdMustBeNonEmptyStringException::class,
+            static fn (Container $container) => $container->tag('', ['']),
         ];
 
-        yield 'InvalidArgumentException::emptyServiceId@tag' => [
-            InvalidArgumentException::class,
-            InvalidArgumentException::emptyServiceId()->getMessage(),
-            static function (Container $container): void {
-                $container->tag('', ['']);
-            },
+        yield 'ServiceAliasMustBeNonEmptyStringException' => [
+            ServiceAliasMustBeNonEmptyStringException::class,
+            static fn (Container $container) => $container->alias('empty-alias', ''),
         ];
 
-        yield 'InvalidArgumentException::emptyServiceAlias' => [
-            InvalidArgumentException::class,
-            InvalidArgumentException::emptyServiceAlias()->getMessage(),
-            static function (Container $container): void {
-                $container->alias('empty-alias', '');
-            },
-        ];
-
-        yield 'InvalidArgumentException::emptyServiceTagForServiceId' => [
-            InvalidArgumentException::class,
-            InvalidArgumentException::emptyServiceTagForServiceId(Container::class)->getMessage(),
-            static function (Container $container): void {
-                $container->tag(Container::class, ['']);
-            },
+        yield 'ServiceTagMustBeNonEmptyStringException' => [
+            ServiceTagMustBeNonEmptyStringException::class,
+            static fn (Container $container) => $container->tag(Container::class, ['']),
         ];
 
         yield 'BadMethodCallException::dontClone' => [
             BadMethodCallException::class,
-            BadMethodCallException::dontClone(Container::class)->getMessage(),
-            static function (Container $container): void {
-                $container->set('clone', clone $container);
-            },
+            static fn (Container $container) => $container->set('clone', clone $container),
         ];
 
         yield 'BadMethodCallException::dontSerialize' => [
             BadMethodCallException::class,
-            BadMethodCallException::dontSerialize(Container::class)->getMessage(),
-            static function (Container $container): void {
-                serialize($container);
-            },
+            static fn (Container $container) => serialize($container),
         ];
 
         yield 'BadMethodCallException::dontUnserialize' => [
             BadMethodCallException::class,
-            BadMethodCallException::dontUnserialize(Container::class)->getMessage(),
-            static function (Container $container): void {
-                unserialize(
-                    // mocks a serialized Container::class
-                    sprintf('O:%s:"%s":0:{}', mb_strlen($container::class), $container::class)
-                );
-            },
+            static fn (Container $container) => unserialize(
+                // mocks a serialized Container::class
+                sprintf('O:%s:"%s":0:{}', mb_strlen($container::class), $container::class)
+            ),
         ];
 
-        yield 'LogicException::serviceAlreadyRegistered' => [
-            LogicException::class,
-            LogicException::serviceAlreadyRegistered(Container::class)->getMessage(),
+        yield 'ServiceAlreadyRegisteredException@set' => [
+            ServiceAlreadyRegisteredException::class,
             static fn (Container $container) => $container->set(Container::class, $container),
         ];
 
-        yield 'LogicException::serviceAlreadyRegistered@bind' => [
-            LogicException::class,
-            LogicException::serviceAlreadyRegistered('bind')->getMessage(),
+        yield 'ServiceAlreadyRegisteredException@bind' => [
+            ServiceAlreadyRegisteredException::class,
             static function (Container $container): void {
                 $container->set('bind', 'empty-value');
                 $container->bind('bind', stdClass::class);
             },
         ];
 
-        yield 'LogicException::serviceCannotAliasItself' => [
-            LogicException::class,
-            LogicException::serviceCannotAliasItself(ServiceProviderInterface::class)->getMessage(),
+        yield 'ServiceCannotAliasItselfException@alias' => [
+            ServiceCannotAliasItselfException::class,
             static fn (Container $container) => $container->alias(
                 ServiceProviderInterface::class,
                 ServiceProviderInterface::class
             ),
         ];
 
-        yield 'LogicException::serviceExtensionAlreadyRegistered' => [
-            LogicException::class,
-            LogicException::serviceExtensionAlreadyRegistered(FoobarExtension::class)->getMessage(),
+        yield 'ServiceExtensionAlreadyRegisteredException@add' => [
+            ServiceExtensionAlreadyRegisteredException::class,
             static function (Container $container): void {
                 $container->bind(stdClass::class);
 
@@ -228,9 +189,8 @@ final class ContainerTest extends TestCase
             },
         ];
 
-        yield 'LogicException::serviceProviderAlreadyRegistered' => [
-            LogicException::class,
-            LogicException::serviceProviderAlreadyRegistered(FoobarServiceProvider::class)->getMessage(),
+        yield 'ServiceProviderAlreadyRegisteredException' => [
+            ServiceProviderAlreadyRegisteredException::class,
             static function (Container $container): void {
                 /**
                  * Service providers are automatically registered when FQCN requested via `build` or `get`.
@@ -243,69 +203,45 @@ final class ContainerTest extends TestCase
             },
         ];
 
-        yield 'NotFoundException::missingServiceId@get' => [
-            NotFoundException::class,
-            NotFoundException::notRegistered('dose-not-exist')->getMessage(),
-            static function (Container $container): void {
-                $container->get('dose-not-exist');
-            },
+        yield 'ServiceNotFoundException::missingServiceId@get' => [
+            ServiceNotFoundException::class,
+            static fn (Container $container) => $container->get('dose-not-exist'),
         ];
 
-        yield 'InvalidArgumentException::emptyServiceId@alias' => [
-            InvalidArgumentException::class,
-            InvalidArgumentException::emptyServiceId()->getMessage(),
-            static function (Container $container): void {
-                $container->alias('', 'empty-service');
-            },
+        yield 'ServiceIdMustBeNonEmptyStringException@alias' => [
+            ServiceIdMustBeNonEmptyStringException::class,
+            static fn (Container $container) => $container->alias('', 'empty-service'),
         ];
 
-        yield 'NotFoundException::missingServiceId@alias' => [
-            NotFoundException::class,
-            NotFoundException::notRegistered('dose-not-exist')->getMessage(),
-            static function (Container $container): void {
-                $container->alias('dose-not-exist', 'alias');
-            },
+        yield 'ServiceNotFoundException::missingServiceId@alias' => [
+            ServiceNotFoundException::class,
+            static fn (Container $container) => $container->alias('dose-not-exist', 'alias'),
         ];
 
-        yield 'NotFoundException::missingServiceId@extend' => [
-            NotFoundException::class,
-            NotFoundException::notRegistered('extend-missing-service')->getMessage(),
+        yield 'ServiceNotFoundException::missingServiceId@extend' => [
+            ServiceNotFoundException::class,
             static function (Container $container): void {
                 $container->extend('extend-missing-service', static fn (Container $container) => null);
             },
         ];
 
-        yield 'NotFoundException::missingServiceId@remove' => [
-            NotFoundException::class,
-            NotFoundException::notRegistered('dose-not-exist')->getMessage(),
-            static function (Container $container): void {
-                $container->remove('dose-not-exist');
-            },
+        yield 'ServiceNotFoundException::missingServiceId@remove' => [
+            ServiceNotFoundException::class,
+            static fn (Container $container) => $container->remove('dose-not-exist'),
         ];
 
         yield 'NotInstantiableException::abstractClassOrInterface' => [
             NotInstantiableException::class,
-            NotInstantiableException::abstractClassOrInterface(Throwable::class)->getMessage(),
-            static function (Container $container): void {
-                $container->build(Throwable::class);
-            },
+            static fn (Container $container) => $container->build(Throwable::class),
         ];
 
         yield 'NotInstantiableException::classDoseNotExist' => [
             NotInstantiableException::class,
-            NotInstantiableException::classDoseNotExist('dose-not-exist')->getMessage(),
-            static function (Container $container): void {
-                $container->build('dose-not-exist');
-            },
+            static fn (Container $container) => $container->build('dose-not-exist'),
         ];
 
         yield 'NotInstantiableException::unresolvableParameter' => [
             NotInstantiableException::class,
-            NotInstantiableException::unresolvableParameter(
-                'number',
-                UnresolvableParameter::class,
-                '__construct'
-            )->getMessage(),
             static function (Container $container): void {
                 $container->build(UnresolvableParameter::class);
             },
@@ -313,11 +249,6 @@ final class ContainerTest extends TestCase
 
         yield 'NotInstantiableException::unresolvableParameter@call-function' => [
             NotInstantiableException::class,
-            NotInstantiableException::unresolvableParameter(
-                'event',
-                '',
-                'Ghostwriter\Container\Tests\Fixture\typelessFunction',
-            )->getMessage(),
             static function (Container $container): void {
                 $container->call('Ghostwriter\Container\Tests\Fixture\typelessFunction');
             },
@@ -907,7 +838,6 @@ final class ContainerTest extends TestCase
      * @covers \Ghostwriter\Container\Container::set
      * @covers \Ghostwriter\Container\Container::tag
      * @covers \Ghostwriter\Container\Container::tagged
-     * @covers \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceTagForServiceId
      *
      * @throws Throwable
      */
@@ -960,14 +890,6 @@ final class ContainerTest extends TestCase
      * @covers \Ghostwriter\Container\Exception\BadMethodCallException::dontClone
      * @covers \Ghostwriter\Container\Exception\BadMethodCallException::dontSerialize
      * @covers \Ghostwriter\Container\Exception\BadMethodCallException::dontUnserialize
-     * @covers \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceAlias
-     * @covers \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceId
-     * @covers \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceTagForServiceId
-     * @covers \Ghostwriter\Container\Exception\LogicException::serviceAlreadyRegistered
-     * @covers \Ghostwriter\Container\Exception\LogicException::serviceCannotAliasItself
-     * @covers \Ghostwriter\Container\Exception\LogicException::serviceExtensionAlreadyRegistered
-     * @covers \Ghostwriter\Container\Exception\LogicException::serviceProviderAlreadyRegistered
-     * @covers \Ghostwriter\Container\Exception\NotFoundException::notRegistered
      * @covers \Ghostwriter\Container\Exception\NotInstantiableException::abstractClassOrInterface
      * @covers \Ghostwriter\Container\Exception\NotInstantiableException::classDoseNotExist
      * @covers \Ghostwriter\Container\Exception\NotInstantiableException::unresolvableParameter
@@ -979,15 +901,11 @@ final class ContainerTest extends TestCase
      * @throws ContainerExceptionInterface
      * @throws Throwable
      */
-    public function testExceptionsImplementContainerExceptionInterface(
-        string $exception,
-        string $message,
-        callable $test
-    ): void {
+    public function testExceptionsImplementContainerExceptionInterface(string $exception, callable $test): void
+    {
         self::assertTrue(is_subclass_of($exception, ContainerExceptionInterface::class));
 
         $this->expectException($exception);
-        $this->expectExceptionMessage($message);
 
         try {
             $test($this->container);
@@ -1012,7 +930,6 @@ final class ContainerTest extends TestCase
      * @covers \Ghostwriter\Container\Container::get
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::resolve
-     * @covers \Ghostwriter\Container\Exception\NotFoundException::notRegistered
      */
     public function testNotFoundExceptionImplementsContainerNotFoundExceptionInterface(): void
     {
@@ -1021,7 +938,7 @@ final class ContainerTest extends TestCase
         } catch (Throwable $throwable) {
             self::assertInstanceOf(ContainerExceptionInterface::class, $throwable);
             self::assertInstanceOf(NotFoundExceptionInterface::class, $throwable);
-            self::assertInstanceOf(NotFoundException::class, $throwable);
+            self::assertInstanceOf(ServiceNotFoundException::class, $throwable);
         }
     }
 }
