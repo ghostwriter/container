@@ -11,8 +11,10 @@ use Ghostwriter\Container\Contract\ContainerExceptionInterface;
 use Ghostwriter\Container\Contract\ContainerInterface;
 use Ghostwriter\Container\Contract\Exception\NotFoundExceptionInterface;
 use Ghostwriter\Container\Contract\ServiceProviderInterface;
-use Ghostwriter\Container\Exception\BadMethodCallException;
 use Ghostwriter\Container\Exception\CircularDependencyException;
+use Ghostwriter\Container\Exception\DontCloneException;
+use Ghostwriter\Container\Exception\DontSerializeException;
+use Ghostwriter\Container\Exception\DontUnserializeException;
 use Ghostwriter\Container\Exception\NotInstantiableException;
 use Ghostwriter\Container\Exception\ServiceAliasMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\ServiceAlreadyRegisteredException;
@@ -139,18 +141,18 @@ final class ContainerTest extends TestCase
             static fn (Container $container) => $container->tag(Container::class, ['']),
         ];
 
-        yield 'BadMethodCallException::dontClone' => [
-            BadMethodCallException::class,
+        yield 'DontCloneException' => [
+            DontCloneException::class,
             static fn (Container $container) => $container->set('clone', clone $container),
         ];
 
-        yield 'BadMethodCallException::dontSerialize' => [
-            BadMethodCallException::class,
+        yield 'DontSerializeException' => [
+            DontSerializeException::class,
             static fn (Container $container) => serialize($container),
         ];
 
-        yield 'BadMethodCallException::dontUnserialize' => [
-            BadMethodCallException::class,
+        yield 'DontUnserializeException' => [
+            DontUnserializeException::class,
             static fn (Container $container) => unserialize(
                 // mocks a serialized Container::class
                 sprintf('O:%s:"%s":0:{}', mb_strlen($container::class), $container::class)
@@ -342,7 +344,6 @@ final class ContainerTest extends TestCase
 
     /**
      * @covers \Ghostwriter\Container\Container::__destruct
-     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::add
      * @covers \Ghostwriter\Container\Container::bind
      * @covers \Ghostwriter\Container\Container::build
@@ -367,7 +368,6 @@ final class ContainerTest extends TestCase
 
     /**
      * @covers \Ghostwriter\Container\Container::__destruct
-     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Container::alias
@@ -398,7 +398,6 @@ final class ContainerTest extends TestCase
 
     /**
      * @covers \Ghostwriter\Container\Container::__destruct
-     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::bind
      * @covers \Ghostwriter\Container\Container::build
      * @covers \Ghostwriter\Container\Container::get
@@ -426,7 +425,6 @@ final class ContainerTest extends TestCase
     /**
      * @covers \Ghostwriter\Container\Container::__destruct
      * @covers \Ghostwriter\Container\Container::add
-     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::bind
      * @covers \Ghostwriter\Container\Container::build
      * @covers \Ghostwriter\Container\Container::extend
@@ -471,7 +469,6 @@ final class ContainerTest extends TestCase
     /**
      * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
-     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::bind
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::has
@@ -494,7 +491,6 @@ final class ContainerTest extends TestCase
     /**
      * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
-     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::bind
      * @covers \Ghostwriter\Container\Container::build
      * @covers \Ghostwriter\Container\Container::extend
@@ -537,7 +533,6 @@ final class ContainerTest extends TestCase
     /**
      * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
-     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::get
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::has
@@ -588,7 +583,6 @@ final class ContainerTest extends TestCase
      * @covers \Ghostwriter\Container\Container::__isset
      * @covers \Ghostwriter\Container\Container::__set
      * @covers \Ghostwriter\Container\Container::__unset
-     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::get
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::has
@@ -652,7 +646,6 @@ final class ContainerTest extends TestCase
     /**
      * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
-     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::get
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::call
@@ -698,7 +691,6 @@ final class ContainerTest extends TestCase
     /**
      * @covers \Ghostwriter\Container\Container::__destruct
      * @covers \Ghostwriter\Container\Container::add
-     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::bind
      * @covers \Ghostwriter\Container\Container::build
      * @covers \Ghostwriter\Container\Container::extend
@@ -724,7 +716,6 @@ final class ContainerTest extends TestCase
     /**
      * @covers \Ghostwriter\Container\Container::__destruct
      * @covers \Ghostwriter\Container\Container::add
-     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::bind
      * @covers \Ghostwriter\Container\Container::build
      * @covers \Ghostwriter\Container\Container::extend
@@ -757,7 +748,6 @@ final class ContainerTest extends TestCase
     /**
      * @covers \Ghostwriter\Container\Container::__destruct
      * @covers \Ghostwriter\Container\Container::add
-     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::bind
      * @covers \Ghostwriter\Container\Container::build
      * @covers \Ghostwriter\Container\Container::extend
@@ -801,7 +791,6 @@ final class ContainerTest extends TestCase
      * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
      * @covers \Ghostwriter\Container\Container::alias
-     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::get
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::has
@@ -830,7 +819,6 @@ final class ContainerTest extends TestCase
      *
      * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
-     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::get
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::resolve
@@ -873,7 +861,6 @@ final class ContainerTest extends TestCase
      * @covers \Ghostwriter\Container\Container::__unserialize
      * @covers \Ghostwriter\Container\Container::add
      * @covers \Ghostwriter\Container\Container::alias
-     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::bind
      * @covers \Ghostwriter\Container\Container::build
      * @covers \Ghostwriter\Container\Container::extend
@@ -887,9 +874,6 @@ final class ContainerTest extends TestCase
      * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Container::set
      * @covers \Ghostwriter\Container\Container::tag
-     * @covers \Ghostwriter\Container\Exception\BadMethodCallException::dontClone
-     * @covers \Ghostwriter\Container\Exception\BadMethodCallException::dontSerialize
-     * @covers \Ghostwriter\Container\Exception\BadMethodCallException::dontUnserialize
      * @covers \Ghostwriter\Container\Exception\NotInstantiableException::abstractClassOrInterface
      * @covers \Ghostwriter\Container\Exception\NotInstantiableException::classDoseNotExist
      * @covers \Ghostwriter\Container\Exception\NotInstantiableException::unresolvableParameter
@@ -926,7 +910,6 @@ final class ContainerTest extends TestCase
     /**
      * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
-     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::get
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::resolve
