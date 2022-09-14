@@ -11,10 +11,16 @@ use Ghostwriter\Container\Contract\ExtensionInterface;
 use Ghostwriter\Container\Contract\ServiceProviderInterface;
 use Ghostwriter\Container\Exception\BadMethodCallException;
 use Ghostwriter\Container\Exception\CircularDependencyException;
-use Ghostwriter\Container\Exception\InvalidArgumentException;
-use Ghostwriter\Container\Exception\LogicException;
-use Ghostwriter\Container\Exception\NotFoundException;
 use Ghostwriter\Container\Exception\NotInstantiableException;
+use Ghostwriter\Container\Exception\ServiceAliasMustBeNonEmptyStringException;
+use Ghostwriter\Container\Exception\ServiceAlreadyRegisteredException;
+use Ghostwriter\Container\Exception\ServiceCannotAliasItselfException;
+use Ghostwriter\Container\Exception\ServiceExtensionAlreadyRegisteredException;
+use Ghostwriter\Container\Exception\ServiceIdMustBeNonEmptyStringException;
+use Ghostwriter\Container\Exception\ServiceNotFoundException;
+use Ghostwriter\Container\Exception\ServiceProviderAlreadyRegisteredException;
+use Ghostwriter\Container\Exception\ServiceProviderMustBeSubclassOfServiceProviderInterfaceException;
+use Ghostwriter\Container\Exception\ServiceTagMustBeNonEmptyStringException;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionFunction;
@@ -87,7 +93,7 @@ final class Container implements ContainerInterface
     public function add(string $id, ExtensionInterface $extension): void
     {
         if (array_key_exists($extension::class, $this->services[self::EXTENSIONS][self::class])) {
-            throw LogicException::serviceExtensionAlreadyRegistered($extension::class);
+            throw new ServiceExtensionAlreadyRegisteredException($extension::class);
         }
 
         $this->extend($id, $extension);
@@ -100,15 +106,15 @@ final class Container implements ContainerInterface
         $this->assertString($id);
 
         if ('' === trim($alias)) {
-            throw InvalidArgumentException::emptyServiceAlias();
+            throw new ServiceAliasMustBeNonEmptyStringException($id);
         }
 
         if ($alias === $id) {
-            throw LogicException::serviceCannotAliasItself($id);
+            throw new ServiceCannotAliasItselfException($id);
         }
 
         if (! $this->has($id)) {
-            throw NotFoundException::notRegistered($id);
+            throw new ServiceNotFoundException($id);
         }
 
         $this->services[self::ALIASES][$alias] = $id;
@@ -117,7 +123,11 @@ final class Container implements ContainerInterface
     public function bind(string $abstract, ?string $concrete = null, iterable $tags = []): void
     {
         if ('' === trim($abstract)) {
-            throw InvalidArgumentException::emptyServiceId();
+            throw new ServiceIdMustBeNonEmptyStringException();
+        }
+
+        if (null !== $concrete && '' === trim($concrete)) {
+            throw new ServiceIdMustBeNonEmptyStringException();
         }
 
         if (
@@ -125,7 +135,7 @@ final class Container implements ContainerInterface
             array_key_exists($abstract, $this->services[self::SERVICES]) ||
             array_key_exists($abstract, $this->services[self::FACTORIES])
         ) {
-            throw LogicException::serviceAlreadyRegistered($abstract);
+            throw new ServiceAlreadyRegisteredException($abstract);
         }
 
         $this->services[self::FACTORIES][$abstract] = static fn (
@@ -141,12 +151,16 @@ final class Container implements ContainerInterface
 
     public function build(string $class, array $arguments = []): object
     {
+        if ('' === trim($class)) {
+            throw new ServiceIdMustBeNonEmptyStringException();
+        }
+
         if (self::class === $class) {
             return $this;
         }
 
         if (array_key_exists($class, $this->services[self::PROVIDERS])) {
-            throw LogicException::serviceProviderAlreadyRegistered($class);
+            throw new ServiceProviderAlreadyRegisteredException($class);
         }
 
         $dependencies = $this->services[self::DEPENDENCIES];
@@ -229,7 +243,7 @@ final class Container implements ContainerInterface
             && ! array_key_exists($class, $factories)
             && ! class_exists($class)
         ) {
-            throw NotFoundException::notRegistered($class);
+            throw new ServiceNotFoundException($class);
         }
 
         $service = $extensions[$class] ??
@@ -256,7 +270,7 @@ final class Container implements ContainerInterface
         $factories = $this->services[self::FACTORIES];
 
         if (! array_key_exists($id, $factories) && ! class_exists($id)) {
-            throw NotFoundException::notRegistered($id);
+            throw new ServiceNotFoundException($id);
         }
 
         $service = $factories[$id] ?? static fn (Container $container): object => $container->build($id);
@@ -362,8 +376,8 @@ final class Container implements ContainerInterface
     public function register(string $serviceProvider): void
     {
         if (! is_subclass_of($serviceProvider, ServiceProviderInterface::class)) {
-            throw new InvalidArgumentException(
-                sprintf('$service MUST be an instance of %s', ServiceProviderInterface::class)
+            throw new ServiceProviderMustBeSubclassOfServiceProviderInterfaceException(
+                ServiceProviderInterface::class
             );
         }
 
@@ -375,7 +389,7 @@ final class Container implements ContainerInterface
         $this->assertString($id);
 
         if (! $this->has($id)) {
-            throw NotFoundException::notRegistered($id);
+            throw new ServiceNotFoundException($id);
         }
 
         foreach ([self::ALIASES, self::EXTENSIONS, self::FACTORIES, self::SERVICES, self::TAGS] as $key) {
@@ -413,7 +427,7 @@ final class Container implements ContainerInterface
             array_key_exists($id, $this->services[self::FACTORIES]) ||
             array_key_exists($id, $this->services[self::ALIASES])
         ) {
-            throw LogicException::serviceAlreadyRegistered($id);
+            throw new ServiceAlreadyRegisteredException($id);
         }
 
         $this->services[is_callable($value, false)
@@ -435,7 +449,7 @@ final class Container implements ContainerInterface
 
         foreach ($tags as $tag) {
             if ('' === trim($tag)) {
-                throw InvalidArgumentException::emptyServiceTagForServiceId($id);
+                throw new ServiceTagMustBeNonEmptyStringException();
             }
 
             $serviceTags[$tag][$id] ??= $id;
@@ -466,7 +480,7 @@ final class Container implements ContainerInterface
     private function assertString(string $id): void
     {
         if ('' === trim($id)) {
-            throw InvalidArgumentException::emptyServiceId();
+            throw new ServiceIdMustBeNonEmptyStringException();
         }
     }
 }
