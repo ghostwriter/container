@@ -9,8 +9,10 @@ use Generator;
 use Ghostwriter\Container\Contract\ContainerInterface;
 use Ghostwriter\Container\Contract\ExtensionInterface;
 use Ghostwriter\Container\Contract\ServiceProviderInterface;
-use Ghostwriter\Container\Exception\BadMethodCallException;
 use Ghostwriter\Container\Exception\CircularDependencyException;
+use Ghostwriter\Container\Exception\DontCloneException;
+use Ghostwriter\Container\Exception\DontSerializeException;
+use Ghostwriter\Container\Exception\DontUnserializeException;
 use Ghostwriter\Container\Exception\NotInstantiableException;
 use Ghostwriter\Container\Exception\ServiceAliasMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\ServiceAlreadyRegisteredException;
@@ -57,7 +59,7 @@ final class Container implements ContainerInterface
 
     public function __clone()
     {
-        throw BadMethodCallException::dontClone(self::class);
+        throw new DontCloneException(self::class);
     }
 
     public function __get(string $name): mixed
@@ -72,7 +74,7 @@ final class Container implements ContainerInterface
 
     public function __serialize(): array
     {
-        throw BadMethodCallException::dontSerialize(self::class);
+        throw new DontSerializeException(self::class);
     }
 
     public function __set(string $name, mixed $value): void
@@ -82,7 +84,7 @@ final class Container implements ContainerInterface
 
     public function __unserialize(array $data): void
     {
-        throw BadMethodCallException::dontUnserialize(self::class);
+        throw new DontUnserializeException(self::class);
     }
 
     public function __unset(string $name): void
@@ -103,7 +105,9 @@ final class Container implements ContainerInterface
 
     public function alias(string $id, string $alias): void
     {
-        $this->assertString($id);
+        if ('' === trim($id)) {
+            throw new ServiceIdMustBeNonEmptyStringException();
+        }
 
         if ('' === trim($alias)) {
             throw new ServiceAliasMustBeNonEmptyStringException($id);
@@ -233,7 +237,9 @@ final class Container implements ContainerInterface
 
     public function extend(string $class, callable $extension): void
     {
-        $this->assertString($class);
+        if ('' === trim($class)) {
+            throw new ServiceIdMustBeNonEmptyStringException();
+        }
 
         $factories = $this->services[self::FACTORIES];
         $extensions = $this->services[self::EXTENSIONS];
@@ -386,7 +392,9 @@ final class Container implements ContainerInterface
 
     public function remove(string $id): void
     {
-        $this->assertString($id);
+        if ('' === trim($id)) {
+            throw new ServiceIdMustBeNonEmptyStringException();
+        }
 
         if (! $this->has($id)) {
             throw new ServiceNotFoundException($id);
@@ -409,7 +417,9 @@ final class Container implements ContainerInterface
 
     public function resolve(string $id): string
     {
-        $this->assertString($id);
+        if ('' === trim($id)) {
+            throw new ServiceIdMustBeNonEmptyStringException();
+        }
 
         while (array_key_exists($id, $this->services[self::ALIASES])) {
             $id = $this->services[self::ALIASES][$id];
@@ -420,7 +430,9 @@ final class Container implements ContainerInterface
 
     public function set(string $id, mixed $value, iterable $tags = []): void
     {
-        $this->assertString($id);
+        if ('' === trim($id)) {
+            throw new ServiceIdMustBeNonEmptyStringException();
+        }
 
         if (
             array_key_exists($id, $this->services[self::SERVICES]) ||
@@ -443,7 +455,9 @@ final class Container implements ContainerInterface
 
     public function tag(string $id, iterable $tags): void
     {
-        $this->assertString($id);
+        if ('' === trim($id)) {
+            throw new ServiceIdMustBeNonEmptyStringException();
+        }
 
         $serviceTags = $this->services[self::TAGS];
 
@@ -475,12 +489,5 @@ final class Container implements ContainerInterface
     private function getParametersForCallable(callable $callback): iterable
     {
         yield from (new ReflectionFunction(Closure::fromCallable($callback)))->getParameters();
-    }
-
-    private function assertString(string $id): void
-    {
-        if ('' === trim($id)) {
-            throw new ServiceIdMustBeNonEmptyStringException();
-        }
     }
 }
