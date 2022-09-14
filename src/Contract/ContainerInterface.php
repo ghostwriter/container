@@ -14,6 +14,7 @@ use Ghostwriter\Container\Exception\InvalidArgumentException;
 use Ghostwriter\Container\Exception\LogicException;
 use Ghostwriter\Container\Exception\NotFoundException;
 use Ghostwriter\Container\Exception\NotInstantiableException;
+use Psr\Container\ContainerInterface as PsrContainerInterface;
 use ReflectionClass;
 use ReflectionException;
 use Throwable;
@@ -21,7 +22,7 @@ use Throwable;
 /**
  * An extendable, closure based dependency injection container.
  */
-interface ContainerInterface extends ArrayAccess
+interface ContainerInterface extends ArrayAccess, PsrContainerInterface
 {
     /**
      * @var string
@@ -146,7 +147,7 @@ interface ContainerInterface extends ArrayAccess
      * @throws InvalidArgumentException if $alias or $id is empty
      * @throws NotFoundException        if $id has not been registered
      */
-    public function alias(string $alias, string $id): void;
+    public function alias(string $id, string $alias): void;
 
     /**
      * Bind abstract classes or interfaces to concrete implementations.
@@ -219,18 +220,20 @@ interface ContainerInterface extends ArrayAccess
     public function has(string $id): bool;
 
     /**
-     * Create an object using the given Container to resolve dependencies.
+     * Call any callable class or closure with optional arguments.
      *
+     * @template TValue
      * @template TService
      *
-     * @param array<string,mixed> $arguments optional arguments passed to $callback
+     * @param callable(TValue):TService $callback
+     * @param array<string,TValue>      $arguments optional arguments passed to $callback
      *
      * @throws ReflectionException
      * @throws Throwable
      *
      * @return TService
      */
-    public function invoke(callable $callback, array $arguments = []): mixed;
+    public function call(callable $callback, array $arguments = []): mixed;
 
     /** @param string $offset */
     public function offsetExists(mixed $offset): bool;
@@ -314,7 +317,9 @@ interface ContainerInterface extends ArrayAccess
     /**
      * Resolve services for a given tag.
      *
-     * @return Generator<class-string|string>
+     * @template TService
+     *
+     * @return Generator<TService>
      */
     public function tagged(string $tag): Generator;
 }
