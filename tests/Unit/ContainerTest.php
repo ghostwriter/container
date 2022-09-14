@@ -727,6 +727,10 @@ final class ContainerTest extends TestCase
      * @covers \Ghostwriter\Container\Container::call
      * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Container::set
+     * @covers \Ghostwriter\Container\Container::build
+     * @covers \Ghostwriter\Container\Container::getParametersForCallable
+     * @covers \Ghostwriter\Container\Container::has
+     * @covers \Ghostwriter\Container\Container::remove
      *
      * @dataProvider dataProviderContainerCallables
      *
@@ -734,7 +738,7 @@ final class ContainerTest extends TestCase
      *
      * @throws Throwable
      */
-    public function testContainerInvoke(callable $callback): void
+    public function testContainerCall(callable $callback): void
     {
         $testEvent = $this->container->get(TestEvent::class);
 
@@ -945,6 +949,7 @@ final class ContainerTest extends TestCase
      * @covers \Ghostwriter\Container\Container::extend
      * @covers \Ghostwriter\Container\Container::get
      * @covers \Ghostwriter\Container\Container::getInstance
+     * @covers \Ghostwriter\Container\Container::getParametersForCallable
      * @covers \Ghostwriter\Container\Container::has
      * @covers \Ghostwriter\Container\Container::call
      * @covers \Ghostwriter\Container\Container::register
