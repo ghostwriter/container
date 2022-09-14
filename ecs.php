@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use PHP_CodeSniffer\Standards\Generic\Sniffs\PHP\RequireStrictTypesSniff;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\VersionControl\GitMergeConflictSniff;
 use PhpCsFixer\Fixer\Alias\MbStrFunctionsFixer;
 use PhpCsFixer\Fixer\Alias\ModernizeStrposFixer;
@@ -28,6 +29,7 @@ use PhpCsFixer\Fixer\ControlStructure\YodaStyleFixer;
 use PhpCsFixer\Fixer\FunctionNotation\ReturnTypeDeclarationFixer;
 use PhpCsFixer\Fixer\FunctionNotation\StaticLambdaFixer;
 use PhpCsFixer\Fixer\FunctionNotation\UseArrowFunctionsFixer;
+
 use PhpCsFixer\Fixer\Import\FullyQualifiedStrictTypesFixer;
 use PhpCsFixer\Fixer\Import\GlobalNamespaceImportFixer;
 use PhpCsFixer\Fixer\Import\GroupImportFixer;
@@ -70,6 +72,33 @@ use PhpCsFixer\Fixer\Semicolon\SemicolonAfterInstructionFixer;
 use PhpCsFixer\Fixer\Strict\DeclareStrictTypesFixer;
 use PhpCsFixer\Fixer\Strict\StrictComparisonFixer;
 use PhpCsFixer\Fixer\Strict\StrictParamFixer;
+use SlevomatCodingStandard\Sniffs\Complexity\CognitiveSniff;
+use SlevomatCodingStandard\Sniffs\ControlStructures\AssignmentInConditionSniff;
+use SlevomatCodingStandard\Sniffs\ControlStructures\BlockControlStructureSpacingSniff;
+use SlevomatCodingStandard\Sniffs\ControlStructures\DisallowEmptySniff;
+use SlevomatCodingStandard\Sniffs\ControlStructures\EarlyExitSniff;
+use SlevomatCodingStandard\Sniffs\ControlStructures\JumpStatementsSpacingSniff;
+use SlevomatCodingStandard\Sniffs\ControlStructures\LanguageConstructWithParenthesesSniff;
+use SlevomatCodingStandard\Sniffs\ControlStructures\NewWithParenthesesSniff;
+use SlevomatCodingStandard\Sniffs\ControlStructures\RequireMultiLineConditionSniff;
+use SlevomatCodingStandard\Sniffs\ControlStructures\RequireMultiLineTernaryOperatorSniff;
+use SlevomatCodingStandard\Sniffs\ControlStructures\RequireNullCoalesceEqualOperatorSniff;
+use SlevomatCodingStandard\Sniffs\ControlStructures\RequireNullCoalesceOperatorSniff;
+use SlevomatCodingStandard\Sniffs\ControlStructures\RequireNullSafeObjectOperatorSniff;
+use SlevomatCodingStandard\Sniffs\ControlStructures\RequireShortTernaryOperatorSniff;
+use SlevomatCodingStandard\Sniffs\ControlStructures\RequireSingleLineConditionSniff;
+use SlevomatCodingStandard\Sniffs\ControlStructures\RequireTernaryOperatorSniff;
+use SlevomatCodingStandard\Sniffs\ControlStructures\RequireYodaComparisonSniff;
+use SlevomatCodingStandard\Sniffs\ControlStructures\UselessIfConditionWithReturnSniff;
+use SlevomatCodingStandard\Sniffs\ControlStructures\UselessTernaryOperatorSniff;
+use SlevomatCodingStandard\Sniffs\Operators\SpreadOperatorSpacingSniff;
+use SlevomatCodingStandard\Sniffs\PHP\ReferenceSpacingSniff;
+use SlevomatCodingStandard\Sniffs\PHP\RequireNowdocSniff;
+use SlevomatCodingStandard\Sniffs\PHP\TypeCastSniff;
+use SlevomatCodingStandard\Sniffs\PHP\UselessParenthesesSniff;
+use SlevomatCodingStandard\Sniffs\PHP\UselessSemicolonSniff;
+use SlevomatCodingStandard\Sniffs\TypeHints\DeclareStrictTypesSniff;
+use Symplify\CodingStandard\Fixer\LineLength\LineLengthFixer;
 use Symplify\EasyCodingStandard\Config\ECSConfig;
 use Symplify\EasyCodingStandard\ValueObject\Set\SetList;
 
@@ -139,43 +168,52 @@ return static function (ECSConfig $ecsConfig): void {
         StrictParamFixer::class,
         UseArrowFunctionsFixer::class,
         VisibilityRequiredFixer::class,
-        YodaStyleFixer::class,
+        // YodaStyleFixer::class,
     ]);
 
-    $ecsConfig->rule(\Symplify\CodingStandard\Fixer\LineLength\LineLengthFixer::class);
+    $ecsConfig->rule(LineLengthFixer::class);
     // $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\TypeHints\ParameterTypeHintSniff::class);
     // $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\TypeHints\ReturnTypeHintSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\PHP\ReferenceSpacingSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\PHP\TypeCastSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\PHP\RequireNowdocSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\Operators\SpreadOperatorSpacingSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\PHP\UselessParenthesesSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\PHP\UselessSemicolonSniff::class);
+    $ecsConfig->rule(ReferenceSpacingSniff::class);
+    $ecsConfig->rule(TypeCastSniff::class);
+    $ecsConfig->rule(RequireNowdocSniff::class);
+    $ecsConfig->rule(SpreadOperatorSpacingSniff::class);
+    $ecsConfig->rule(UselessParenthesesSniff::class);
+    $ecsConfig->rule(UselessSemicolonSniff::class);
 
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\AssignmentInConditionSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\BlockControlStructureSpacingSniff::class);
+    $ecsConfig->rule(AssignmentInConditionSniff::class);
+    $ecsConfig->rule(BlockControlStructureSpacingSniff::class);
     // $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\DisallowContinueWithoutIntegerOperandInSwitchSniff::class);
-    // $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\DisallowEmptySniff::class);
+    $ecsConfig->rule(DisallowEmptySniff::class);
     // $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\DisallowNullSafeObjectOperatorSniff::class);
     // $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\DisallowShortTernaryOperatorSniff::class);
     // $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\DisallowYodaComparisonSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\EarlyExitSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\JumpStatementsSpacingSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\LanguageConstructWithParenthesesSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\NewWithoutParenthesesSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\NewWithParenthesesSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\RequireMultiLineConditionSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\RequireMultiLineTernaryOperatorSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\RequireNullCoalesceEqualOperatorSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\RequireNullCoalesceOperatorSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\RequireNullSafeObjectOperatorSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\RequireShortTernaryOperatorSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\RequireSingleLineConditionSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\RequireTernaryOperatorSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\RequireYodaComparisonSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\UselessIfConditionWithReturnSniff::class);
-    $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\UselessTernaryOperatorSniff::class);
+    $ecsConfig->rule(EarlyExitSniff::class);
+    $ecsConfig->rule(JumpStatementsSpacingSniff::class);
+    $ecsConfig->rule(LanguageConstructWithParenthesesSniff::class);
+    // $ecsConfig->rule(\SlevomatCodingStandard\Sniffs\ControlStructures\NewWithoutParenthesesSniff::class);
+    $ecsConfig->rule(NewWithParenthesesSniff::class);
+    $ecsConfig->rule(RequireMultiLineConditionSniff::class);
+    $ecsConfig->rule(RequireMultiLineTernaryOperatorSniff::class);
+    $ecsConfig->rule(RequireNullCoalesceEqualOperatorSniff::class);
+    $ecsConfig->rule(RequireNullCoalesceOperatorSniff::class);
+    $ecsConfig->rule(RequireNullSafeObjectOperatorSniff::class);
+    $ecsConfig->rule(RequireShortTernaryOperatorSniff::class);
+    $ecsConfig->rule(RequireSingleLineConditionSniff::class);
+    $ecsConfig->rule(RequireTernaryOperatorSniff::class);
+    $ecsConfig->rule(RequireYodaComparisonSniff::class);
+    $ecsConfig->rule(UselessIfConditionWithReturnSniff::class);
+    $ecsConfig->rule(UselessTernaryOperatorSniff::class);
+    // $ecsConfig->rule(CognitiveSniff::class);
+    // $ecsConfig->rule(DeclareStrictTypesSniff::class);
+    // $ecsConfig->rule(RequireStrictTypesSniff::class);
+    // $ecsConfig->rule(RedundantSemicolon::class);
 
+    $ecsConfig->ruleWithConfiguration(GlobalNamespaceImportFixer::class, [
+        'import_classes' => true,
+        'import_constants' => true,
+        'import_functions' => true,
+    ]);
     $ecsConfig->ruleWithConfiguration(GlobalNamespaceImportFixer::class, [
         'import_classes' => true,
         'import_constants' => true,
@@ -183,6 +221,12 @@ return static function (ECSConfig $ecsConfig): void {
     ]);
     $ecsConfig->ruleWithConfiguration(OrderedImportsFixer::class, [
         'imports_order' => ['class', 'const', 'function'],
+    ]);
+    $ecsConfig->ruleWithConfiguration(OrderedClassElementsFixer::class, [
+        'sort_algorithm' => 'alpha',
+    ]);
+    $ecsConfig->ruleWithConfiguration(OrderedInterfacesFixer::class, [
+        'order' => 'alpha',
     ]);
     $ecsConfig->ruleWithConfiguration(PhpdocAlignFixer::class, [
         'tags' => ['method', 'param', 'property', 'return', 'throws', 'type', 'var'],
@@ -195,12 +239,6 @@ return static function (ECSConfig $ecsConfig): void {
     ]);
     $ecsConfig->ruleWithConfiguration(ConstantCaseFixer::class, [
         'case' => 'lower',
-    ]);
-    $ecsConfig->ruleWithConfiguration(OrderedClassElementsFixer::class, [
-        'sort_algorithm' => 'alpha',
-    ]);
-    $ecsConfig->ruleWithConfiguration(OrderedInterfacesFixer::class, [
-        'order' => 'alpha',
     ]);
 
     $ecsConfig->sets([
@@ -225,5 +263,6 @@ return static function (ECSConfig $ecsConfig): void {
         GeneralPhpdocAnnotationRemoveFixer::class,
         PhpdocLineSpanFixer::class,
         PhpdocTrimFixer::class,
+        YodaStyleFixer::class,
     ]);
 };
