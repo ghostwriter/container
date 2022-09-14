@@ -10,12 +10,17 @@ use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Contract\Exception\NotFoundExceptionInterface;
 use Ghostwriter\Container\Exception\BadMethodCallException;
 use Ghostwriter\Container\Exception\CircularDependencyException;
-use Ghostwriter\Container\Exception\InvalidArgumentException;
-use Ghostwriter\Container\Exception\LogicException;
-use Ghostwriter\Container\Exception\NotFoundException;
 use Ghostwriter\Container\Exception\NotInstantiableException;
+use Ghostwriter\Container\Exception\ServiceAliasMustBeNonEmptyStringException;
+use Ghostwriter\Container\Exception\ServiceAlreadyRegisteredException;
+use Ghostwriter\Container\Exception\ServiceCannotAliasItselfException;
+use Ghostwriter\Container\Exception\ServiceExtensionAlreadyRegisteredException;
+use Ghostwriter\Container\Exception\ServiceIdMustBeNonEmptyStringException;
+use Ghostwriter\Container\Exception\ServiceNotFoundException;
+use Ghostwriter\Container\Exception\ServiceProviderAlreadyRegisteredException;
+use Ghostwriter\Container\Exception\ServiceProviderMustBeSubclassOfServiceProviderInterfaceException;
+use Ghostwriter\Container\Exception\ServiceTagMustBeNonEmptyStringException;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
-use ReflectionClass;
 use ReflectionException;
 use Throwable;
 
@@ -136,16 +141,17 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     /**
      * Add a service extension.
      *
-     * @throws LogicException if $extension is already registered
+     * @throws ServiceExtensionAlreadyRegisteredException if $extension is already registered
      */
     public function add(string $id, ExtensionInterface $extension): void;
 
     /**
      * Provide an alternative name for a registered service.
      *
-     * @throws LogicException           if $alias and $id are the same
-     * @throws InvalidArgumentException if $alias or $id is empty
-     * @throws NotFoundException        if $id has not been registered
+     * @throws ServiceCannotAliasItselfException         if $alias and $id are the same
+     * @throws ServiceAliasMustBeNonEmptyStringException if $alias is empty
+     * @throws ServiceIdMustBeNonEmptyStringException    if $id is empty
+     * @throws ServiceNotFoundException                  if $id has not been registered
      */
     public function alias(string $id, string $alias): void;
 
@@ -154,8 +160,9 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      *
      * @param iterable<string> $tags
      *
-     * @throws InvalidArgumentException if $abstract is empty
-     * @throws LogicException           if $abstract is already registered
+     * @throws ServiceIdMustBeNonEmptyStringException if $concrete is empty
+     * @throws ServiceIdMustBeNonEmptyStringException if $abstract is empty
+     * @throws ServiceAlreadyRegisteredException      if $abstract is already registered
      */
     public function bind(string $abstract, ?string $concrete = null, iterable $tags = []): void;
 
@@ -167,10 +174,11 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      * @param class-string<TObject> $class     the class name
      * @param array<string,mixed>   $arguments optional constructor arguments passed to build the new class instance
      *
-     * @throws NotFoundExceptionInterface  if no entry was found for **this** identifier
-     * @throws ContainerExceptionInterface if there is an error while retrieving the entry
-     * @throws CircularDependencyException if a circular dependency is detected
-     * @throws NotInstantiableException    if $class is not instantiable; (is an interface or an abstract class)
+     * @throws ServiceIdMustBeNonEmptyStringException if $id is empty
+     * @throws NotFoundExceptionInterface             if no entry was found for **this** identifier
+     * @throws ContainerExceptionInterface            if there is an error while retrieving the entry
+     * @throws CircularDependencyException            if a circular dependency is detected
+     * @throws NotInstantiableException               if $class is not instantiable; (is an interface or an abstract class)
      *
      * @return TObject
      */
@@ -184,7 +192,7 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      * @param class-string<TObject>          $class     the class name
      * @param callable(self,TObject):TObject $extension the callable
      *
-     * @throws InvalidArgumentException if $class is empty
+     * @throws ServiceIdMustBeNonEmptyStringException if $class is empty
      */
     public function extend(string $class, callable $extension): void;
 
@@ -198,12 +206,12 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      *
      * @param class-string<TObject>|string $id
      *
-     * @throws InvalidArgumentException    if $id is empty
-     * @throws NotFoundException           if $id is not registered
-     * @throws CircularDependencyException if a circular dependency is detected
-     * @throws NotInstantiableException    if $class is not instantiable; (is an interface or an abstract class)
-     * @throws NotFoundExceptionInterface  if no entry was found for **this** identifier
-     * @throws ContainerExceptionInterface If error while retrieving the entry
+     * @throws ServiceIdMustBeNonEmptyStringException if $id is empty
+     * @throws ServiceNotFoundException               if $id is not registered
+     * @throws CircularDependencyException            if a circular dependency is detected
+     * @throws NotInstantiableException               if $class is not instantiable; (is an interface or an abstract class)
+     * @throws NotFoundExceptionInterface             if no entry was found for **this** identifier
+     * @throws ContainerExceptionInterface            If error while retrieving the entry
      *
      * @return ($id is class-string ? TObject : TService)
      */
@@ -258,7 +266,8 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      *
      * @param class-string<ServiceProviderInterface> $serviceProvider
      *
-     * @throws LogicException              if the ServiceProvider is already registered
+     * @throws ServiceProviderAlreadyRegisteredException                        if the ServiceProvider is already registered
+     * @throws ServiceProviderMustBeSubclassOfServiceProviderInterfaceException if the ServiceProvider is not a subclass of ServiceProviderInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
@@ -267,8 +276,8 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     /**
      * Remove a registered service.
      *
-     * @throws InvalidArgumentException if the service $id is empty
-     * @throws NotFoundException        if the service $id is not registered
+     * @throws ServiceIdMustBeNonEmptyStringException if the service $id is empty
+     * @throws ServiceNotFoundException               if the service $id is not registered
      */
     public function remove(string $id): void;
 
@@ -280,15 +289,15 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      * @param TService         $value
      * @param iterable<string> $tags
      *
-     * @throws InvalidArgumentException if the service $id is empty
-     * @throws LogicException           if the service $id is already registered
+     * @throws ServiceIdMustBeNonEmptyStringException if the service $id is empty
+     * @throws ServiceAlreadyRegisteredException      if the service $id is already registered
      */
     public function replace(string $id, mixed $value, iterable $tags = []): void;
 
     /**
      * Resolves an alias to the service id.
      *
-     * @throws InvalidArgumentException if the service $id is empty
+     * @throws ServiceIdMustBeNonEmptyStringException if the service $id is empty
      */
     public function resolve(string $id): string;
 
@@ -300,8 +309,8 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      * @param TService         $value
      * @param iterable<string> $tags
      *
-     * @throws InvalidArgumentException if the service $id is empty
-     * @throws LogicException           if the service $id is already registered
+     * @throws ServiceIdMustBeNonEmptyStringException if the service $id is empty
+     * @throws ServiceAlreadyRegisteredException      if the service $id is already registered
      */
     public function set(string $id, mixed $value, iterable $tags = []): void;
 
@@ -310,7 +319,8 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
      *
      * @param iterable<string> $tags
      *
-     * @throws InvalidArgumentException if the service $id or a service tag in $tags is empty
+     * @throws ServiceIdMustBeNonEmptyStringException  if the service $id is empty
+     * @throws ServiceTagMustBeNonEmptyStringException if a service tag in $tags is empty
      */
     public function tag(string $id, iterable $tags): void;
 
