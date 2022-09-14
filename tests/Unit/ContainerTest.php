@@ -82,49 +82,6 @@ final class ContainerTest extends TestCase
     /**
      * @psalm-return Generator<string,array>
      *
-     * @return Generator<string[]|string[]|class-string<TestEventListener>[]|TestEventListener[][]|array<string, TestEvent>[]|array{nullable: null}[]|Closure():void[]|TestEventListener[]>
-     */
-    public function dataProviderContainerCallables(): Generator
-    {
-        yield 'TypelessAnonymousFunctionCall' => [
-            static function ($event): void {
-                $event->collect($event::class);
-            },
-            [
-                'event' => new TestEvent(),
-            ],
-        ];
-
-        yield 'AnonymousFunctionCall' => [static function (TestEvent $testEvent): void {
-            $testEvent->collect($testEvent::class);
-        }];
-
-        yield 'FunctionCall@typedFunction' => ['Ghostwriter\Container\Tests\Fixture\typedFunction'];
-        yield 'FunctionCall@typelessFunction' => [
-            'Ghostwriter\Container\Tests\Fixture\typelessFunction', [
-                'event' => new TestEvent(),
-
-            ],
-        ];
-
-        yield 'StaticMethodCall' => [TestEventListener::class . '::onStatic'];
-
-        yield 'CallableArrayStaticMethodCall' => [static function (TestEvent $testEvent, ?string $nullable): void {
-            TestEventListener::onStaticCallableArray($testEvent, $nullable);
-        }, [
-            'nullable' => null,
-        ]];
-
-        yield 'CallableArrayInstanceMethodCall' => [static function (TestEvent $testEvent): void {
-            (new TestEventListener())->onTest($testEvent);
-        }];
-
-        yield 'Invokable' => [new TestEventListener()];
-    }
-
-    /**
-     * @psalm-return Generator<string,array>
-     *
      * @return Generator<Closure():string[]|void[]>
      */
     public function dataProviderContainerExceptions(): Generator
@@ -141,14 +98,6 @@ final class ContainerTest extends TestCase
             ),
             static function (Container $container): void {
                 $container->build(ClassA::class);
-            },
-        ];
-
-        yield 'InvalidArgumentException::emptyServiceId@alias' => [
-            InvalidArgumentException::class,
-            InvalidArgumentException::emptyServiceId()->getMessage(),
-            static function (Container $container): void {
-                $container->alias('empty-value', '');
             },
         ];
 
@@ -204,7 +153,7 @@ final class ContainerTest extends TestCase
             InvalidArgumentException::class,
             InvalidArgumentException::emptyServiceAlias()->getMessage(),
             static function (Container $container): void {
-                $container->alias('', 'empty-key');
+                $container->alias('empty-alias', '');
             },
         ];
 
@@ -279,20 +228,20 @@ final class ContainerTest extends TestCase
             },
         ];
 
-        //        yield 'LogicException::serviceProviderAlreadyRegistered' => [
-        //            LogicException::class,
-        //            LogicException::serviceProviderAlreadyRegistered(FoobarServiceProvider::class)->getMessage(),
-        //            static function (Container $container): void {
-        //                /**
-        //                 * Service providers are automatically registered when FQCN requested via `build` or `get`.
-        //                 *
-        //                 * if you register it again,it fails.
-        //                 */
-        //                // $container->get(FoobarServiceProvider::class);
-        //                $container->build(FoobarServiceProvider::class);
-        //                $container->register(FoobarServiceProvider::class);
-        //            },
-        //        ];
+        yield 'LogicException::serviceProviderAlreadyRegistered' => [
+            LogicException::class,
+            LogicException::serviceProviderAlreadyRegistered(FoobarServiceProvider::class)->getMessage(),
+            static function (Container $container): void {
+                /**
+                 * Service providers are automatically registered when FQCN requested via `build` or `get`.
+                 *
+                 * if you register it again,it fails.
+                 */
+                // $container->get(FoobarServiceProvider::class);
+                $container->build(FoobarServiceProvider::class);
+                $container->register(FoobarServiceProvider::class);
+            },
+        ];
 
         yield 'NotFoundException::missingServiceId@get' => [
             NotFoundException::class,
@@ -302,19 +251,27 @@ final class ContainerTest extends TestCase
             },
         ];
 
+        yield 'InvalidArgumentException::emptyServiceId@alias' => [
+            InvalidArgumentException::class,
+            InvalidArgumentException::emptyServiceId()->getMessage(),
+            static function (Container $container): void {
+                $container->alias('', 'empty-service');
+            },
+        ];
+
         yield 'NotFoundException::missingServiceId@alias' => [
             NotFoundException::class,
             NotFoundException::notRegistered('dose-not-exist')->getMessage(),
             static function (Container $container): void {
-                $container->alias('alias', 'dose-not-exist');
+                $container->alias('dose-not-exist', 'alias');
             },
         ];
 
         yield 'NotFoundException::missingServiceId@extend' => [
             NotFoundException::class,
-            NotFoundException::notRegistered(stdClass::class)->getMessage(),
+            NotFoundException::notRegistered('extend-missing-service')->getMessage(),
             static function (Container $container): void {
-                $container->extend(stdClass::class, static fn (Container $container) => null);
+                $container->extend('extend-missing-service', static fn (Container $container) => null);
             },
         ];
 
@@ -362,19 +319,7 @@ final class ContainerTest extends TestCase
                 'Ghostwriter\Container\Tests\Fixture\typelessFunction',
             )->getMessage(),
             static function (Container $container): void {
-                $container->invoke('Ghostwriter\Container\Tests\Fixture\typelessFunction');
-            },
-        ];
-
-        yield 'NotInstantiableException::unresolvableParameter@invoke-class' => [
-            NotInstantiableException::class,
-            NotInstantiableException::unresolvableParameter(
-                'nullable',
-                TestEventListener::class,
-                'onStaticCallableArray'
-            )->getMessage(),
-            static function (Container $container): void {
-                $container->invoke([TestEventListener::class, 'onStaticCallableArray']);
+                $container->call('Ghostwriter\Container\Tests\Fixture\typelessFunction');
             },
         ];
     }
@@ -393,38 +338,49 @@ final class ContainerTest extends TestCase
         yield ArrayConstructor::class => [ArrayConstructor::class, [
             'value' => [],
         ]];
+
         yield BoolConstructor::class => [BoolConstructor::class, [
             'value' => true,
         ]];
+
         yield CallableConstructor::class => [CallableConstructor::class, [
             'value' => static fn (Container $container) => null,
         ]];
+
         yield EmptyConstructor::class => [EmptyConstructor::class];
         yield FloatConstructor::class => [FloatConstructor::class, [
             'value' => 13.37,
         ]];
+
         yield IntConstructor::class => [IntConstructor::class, [
             'value' => 42,
         ]];
+
         yield IterableConstructor::class => [IterableConstructor::class, [
             'value' => ['iterable'],
         ]];
+
         yield MixedConstructor::class => [MixedConstructor::class, [
             'value' => 'mixed',
         ]];
+
         yield ObjectConstructor::class => [ObjectConstructor::class, [
             'value' => new stdClass(),
         ]];
+
         yield OptionalConstructor::class => [OptionalConstructor::class];
         yield StringConstructor::class => [StringConstructor::class, [
             'value' => 'string',
         ]];
+
         yield TypelessConstructor::class => [TypelessConstructor::class, [
             'value' => 'none',
         ]];
+
         yield UnionTypehintWithoutDefaultValue::class => [UnionTypehintWithoutDefaultValue::class, [
             'number' => 42,
         ]];
+
         yield UnionTypehintWithDefaultValue::class => [UnionTypehintWithDefaultValue::class];
         yield Foo::class => [Foo::class];
         yield Bar::class => [Bar::class];
@@ -441,6 +397,7 @@ final class ContainerTest extends TestCase
     {
         $object = new stdClass();
         $closure = static fn (Container $container): string => 'closure-called';
+
         yield 'object' => ['object', $object, $object];
         yield 'null' => ['null', null, null];
         yield 'int' => ['int', 42, 42];
@@ -454,6 +411,7 @@ final class ContainerTest extends TestCase
 
     /**
      * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::add
      * @covers \Ghostwriter\Container\Container::bind
      * @covers \Ghostwriter\Container\Container::build
@@ -478,6 +436,7 @@ final class ContainerTest extends TestCase
 
     /**
      * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Container::alias
@@ -499,7 +458,7 @@ final class ContainerTest extends TestCase
 
         self::assertFalse($this->container->has('class'));
 
-        $this->container->alias('class', stdClass::class);
+        $this->container->alias(stdClass::class, 'class');
 
         self::assertTrue($this->container->has('class'));
 
@@ -508,6 +467,7 @@ final class ContainerTest extends TestCase
 
     /**
      * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::bind
      * @covers \Ghostwriter\Container\Container::build
      * @covers \Ghostwriter\Container\Container::get
@@ -535,6 +495,7 @@ final class ContainerTest extends TestCase
     /**
      * @covers \Ghostwriter\Container\Container::__destruct
      * @covers \Ghostwriter\Container\Container::add
+     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::bind
      * @covers \Ghostwriter\Container\Container::build
      * @covers \Ghostwriter\Container\Container::extend
@@ -544,6 +505,7 @@ final class ContainerTest extends TestCase
      * @covers \Ghostwriter\Container\Container::register
      * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Container::set
+     *
      * @dataProvider dataProviderServiceClasses
      *
      * @param array<string, mixed> $arguments
@@ -558,9 +520,11 @@ final class ContainerTest extends TestCase
 
         self::assertSame($buildService, $getService);
 
-        if (array_key_exists('value', $arguments)) {
-            self::assertSame($arguments['value'], $this->container->get($class)->value());
+        if (! array_key_exists('value', $arguments)) {
+            return;
         }
+
+        self::assertSame($arguments['value'], $this->container->get($class)->value());
     }
 
     /**
@@ -576,6 +540,7 @@ final class ContainerTest extends TestCase
     /**
      * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::bind
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::has
@@ -598,6 +563,7 @@ final class ContainerTest extends TestCase
     /**
      * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::bind
      * @covers \Ghostwriter\Container\Container::build
      * @covers \Ghostwriter\Container\Container::extend
@@ -619,6 +585,7 @@ final class ContainerTest extends TestCase
             stdClass::class,
             static function (Container $container, object $stdClass): stdClass {
                 $stdClass->one = $container->get('extend');
+
                 return $stdClass;
             }
         );
@@ -627,6 +594,7 @@ final class ContainerTest extends TestCase
             stdClass::class,
             static function (Container $container, object $stdClass): stdClass {
                 $stdClass->two = $container->get('extend');
+
                 return $stdClass;
             }
         );
@@ -638,6 +606,7 @@ final class ContainerTest extends TestCase
     /**
      * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::get
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::has
@@ -688,12 +657,14 @@ final class ContainerTest extends TestCase
      * @covers \Ghostwriter\Container\Container::__isset
      * @covers \Ghostwriter\Container\Container::__set
      * @covers \Ghostwriter\Container\Container::__unset
+     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::get
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::has
      * @covers \Ghostwriter\Container\Container::remove
      * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Container::set
+     *
      * @dataProvider dataProviderPropertyAccessorMagicMethods
      *
      * @throws Throwable
@@ -714,39 +685,84 @@ final class ContainerTest extends TestCase
     }
 
     /**
+     * @psalm-return Generator<string,array>
+     *
+     * @return Generator<string[]|string[]|class-string<TestEventListener>[]|TestEventListener[][]|array<string, TestEvent>[]|array{nullable: null}[]|Closure():void[]|TestEventListener[]>
+     */
+    public function dataProviderContainerCallables(): Generator
+    {
+        yield 'TypelessAnonymousFunctionCall' => [
+            static function ($event): void {
+                $event->collect($event::class);
+            },
+        ];
+
+        yield 'AnonymousFunctionCall' => [static function (TestEvent $testEvent): void {
+            $testEvent->collect($testEvent::class);
+        }];
+
+        yield 'FunctionCall@typedFunction' => ['Ghostwriter\Container\Tests\Fixture\typedFunction'];
+        yield 'FunctionCall@typelessFunction' => ['Ghostwriter\Container\Tests\Fixture\typelessFunction'];
+        yield 'StaticMethodCall' => [TestEventListener::class . '::onStatic'];
+
+        yield 'CallableArrayStaticMethodCall' => [
+            static function (TestEvent $testEvent, ?string $nullable = null): void {
+                TestEventListener::onStaticCallableArray($testEvent, $nullable);
+            },
+        ];
+
+        yield 'CallableArrayInstanceMethodCall' => [static function (TestEvent $testEvent): void {
+            (new TestEventListener())->onTest($testEvent);
+        }];
+
+        yield 'Invokable' => [new TestEventListener()];
+    }
+
+    /**
      * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::get
      * @covers \Ghostwriter\Container\Container::getInstance
-     * @covers \Ghostwriter\Container\Container::invoke
+     * @covers \Ghostwriter\Container\Container::call
      * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Container::set
      *
      * @dataProvider dataProviderContainerCallables
      *
-     * @param callable():void                   $callback
-     * @param array<class-string|string, mixed> $arguments
+     * @param callable():void $callback
      *
      * @throws Throwable
      */
-    public function testContainerInvoke(callable $callback, array $arguments = []): void
+    public function testContainerInvoke(callable $callback): void
     {
-        $this->container->set(TestEvent::class, $arguments['event'] ?? new TestEvent());
-        $actual = random_int(10, 50);
+        $testEvent = $this->container->get(TestEvent::class);
 
-        $expectedCount = $actual;
+        self::assertSame([], $testEvent->all());
 
-        while ($actual) {
-            $this->container->invoke($callback, $arguments);
-            --$actual;
+        $expectedCount = $actual1 = $actual2 = random_int(10, 50);
+
+        while ($actual1--) {
+            $this->container->call($callback, [
+                'event' => $testEvent,
+            ]);
         }
 
-        self::assertCount($expectedCount, $this->container->get(TestEvent::class)->all());
+        self::assertCount($expectedCount, $testEvent->all());
+
+        while ($actual2--) {
+            $this->container->call($callback, [$testEvent]);
+        }
+
+        self::assertCount($expectedCount * 2, $testEvent->all());
+
+        $this->container->remove(TestEvent::class);
     }
 
     /**
      * @covers \Ghostwriter\Container\Container::__destruct
      * @covers \Ghostwriter\Container\Container::add
+     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::bind
      * @covers \Ghostwriter\Container\Container::build
      * @covers \Ghostwriter\Container\Container::extend
@@ -772,6 +788,7 @@ final class ContainerTest extends TestCase
     /**
      * @covers \Ghostwriter\Container\Container::__destruct
      * @covers \Ghostwriter\Container\Container::add
+     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::bind
      * @covers \Ghostwriter\Container\Container::build
      * @covers \Ghostwriter\Container\Container::extend
@@ -804,6 +821,7 @@ final class ContainerTest extends TestCase
     /**
      * @covers \Ghostwriter\Container\Container::__destruct
      * @covers \Ghostwriter\Container\Container::add
+     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::bind
      * @covers \Ghostwriter\Container\Container::build
      * @covers \Ghostwriter\Container\Container::extend
@@ -847,11 +865,13 @@ final class ContainerTest extends TestCase
      * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
      * @covers \Ghostwriter\Container\Container::alias
+     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::get
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::has
      * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Container::set
+     *
      * @dataProvider dataProviderServices
      *
      * @param bool|Closure():null|float|int|stdClass|string|string[] $value
@@ -874,6 +894,7 @@ final class ContainerTest extends TestCase
      *
      * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::get
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::resolve
@@ -889,8 +910,11 @@ final class ContainerTest extends TestCase
     {
         $this->container->set('stdclass1', static fn (Container $container): string => 'first-tag', ['tag-1']);
         $this->container->set('stdclass2', static fn (Container $container): string => 'first-tag', ['tag-1']);
-        $this->container->set('stdclass3', static fn (Container $container): stdClass => new stdClass(), ['tag-2']);
-        $this->container->set('stdclass4', static fn (Container $container): stdClass => new stdClass());
+
+        $stdClass3 = new stdClass();
+        $stdClass4 = new stdClass();
+        $this->container->set('stdclass3', static fn (Container $container): stdClass => $stdClass3, ['tag-2']);
+        $this->container->set('stdclass4', static fn (Container $container): stdClass => $stdClass4);
         $this->container->tag('stdclass4', ['tag-2']);
 
         self::assertNotNull($this->container->tagged('tag-1'));
@@ -898,53 +922,52 @@ final class ContainerTest extends TestCase
         self::assertCount(2, $this->container->tagged('tag-2'));
 
         foreach ($this->container->tagged('tag-1') as $serviceId) {
-            self::assertSame('first-tag', $this->container->get($serviceId));
+            self::assertSame('first-tag', $serviceId);
         }
 
         foreach ($this->container->tagged('tag-2') as $serviceId) {
-            self::assertInstanceOf(stdClass::class, $this->container->get($serviceId));
+            self::assertInstanceOf(stdClass::class, $serviceId);
         }
 
-        self::assertSame([
-            'stdclass3' => 'stdclass3',
-            'stdclass4' => 'stdclass4',
-        ], iterator_to_array($this->container->tagged('tag-2')));
+        self::assertSame([$stdClass3, $stdClass4], iterator_to_array($this->container->tagged('tag-2')));
     }
 
     /**
-     * @covers       \Ghostwriter\Container\Container::__clone
-     * @covers       \Ghostwriter\Container\Container::__construct
-     * @covers       \Ghostwriter\Container\Container::__destruct
-     * @covers       \Ghostwriter\Container\Container::__serialize
-     * @covers       \Ghostwriter\Container\Container::__unserialize
-     * @covers       \Ghostwriter\Container\Container::add
-     * @covers       \Ghostwriter\Container\Container::alias
-     * @covers       \Ghostwriter\Container\Container::bind
-     * @covers       \Ghostwriter\Container\Container::build
-     * @covers       \Ghostwriter\Container\Container::extend
-     * @covers       \Ghostwriter\Container\Container::get
-     * @covers       \Ghostwriter\Container\Container::getInstance
-     * @covers       \Ghostwriter\Container\Container::has
-     * @covers       \Ghostwriter\Container\Container::invoke
-     * @covers       \Ghostwriter\Container\Container::register
-     * @covers       \Ghostwriter\Container\Container::remove
-     * @covers       \Ghostwriter\Container\Container::resolve
-     * @covers       \Ghostwriter\Container\Container::set
-     * @covers       \Ghostwriter\Container\Container::tag
-     * @covers       \Ghostwriter\Container\Exception\BadMethodCallException::dontClone
-     * @covers       \Ghostwriter\Container\Exception\BadMethodCallException::dontSerialize
-     * @covers       \Ghostwriter\Container\Exception\BadMethodCallException::dontUnserialize
-     * @covers       \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceAlias
-     * @covers       \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceId
-     * @covers       \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceTagForServiceId
-     * @covers       \Ghostwriter\Container\Exception\LogicException::serviceAlreadyRegistered
-     * @covers       \Ghostwriter\Container\Exception\LogicException::serviceCannotAliasItself
-     * @covers       \Ghostwriter\Container\Exception\LogicException::serviceExtensionAlreadyRegistered
-     * @covers       \Ghostwriter\Container\Exception\LogicException::serviceProviderAlreadyRegistered
-     * @covers       \Ghostwriter\Container\Exception\NotFoundException::notRegistered
-     * @covers       \Ghostwriter\Container\Exception\NotInstantiableException::abstractClassOrInterface
-     * @covers       \Ghostwriter\Container\Exception\NotInstantiableException::classDoseNotExist
-     * @covers       \Ghostwriter\Container\Exception\NotInstantiableException::unresolvableParameter
+     * @covers \Ghostwriter\Container\Container::__clone
+     * @covers \Ghostwriter\Container\Container::__construct
+     * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::__serialize
+     * @covers \Ghostwriter\Container\Container::__unserialize
+     * @covers \Ghostwriter\Container\Container::add
+     * @covers \Ghostwriter\Container\Container::alias
+     * @covers \Ghostwriter\Container\Container::assertString
+     * @covers \Ghostwriter\Container\Container::bind
+     * @covers \Ghostwriter\Container\Container::build
+     * @covers \Ghostwriter\Container\Container::extend
+     * @covers \Ghostwriter\Container\Container::get
+     * @covers \Ghostwriter\Container\Container::getInstance
+     * @covers \Ghostwriter\Container\Container::has
+     * @covers \Ghostwriter\Container\Container::call
+     * @covers \Ghostwriter\Container\Container::register
+     * @covers \Ghostwriter\Container\Container::remove
+     * @covers \Ghostwriter\Container\Container::resolve
+     * @covers \Ghostwriter\Container\Container::set
+     * @covers \Ghostwriter\Container\Container::tag
+     * @covers \Ghostwriter\Container\Exception\BadMethodCallException::dontClone
+     * @covers \Ghostwriter\Container\Exception\BadMethodCallException::dontSerialize
+     * @covers \Ghostwriter\Container\Exception\BadMethodCallException::dontUnserialize
+     * @covers \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceAlias
+     * @covers \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceId
+     * @covers \Ghostwriter\Container\Exception\InvalidArgumentException::emptyServiceTagForServiceId
+     * @covers \Ghostwriter\Container\Exception\LogicException::serviceAlreadyRegistered
+     * @covers \Ghostwriter\Container\Exception\LogicException::serviceCannotAliasItself
+     * @covers \Ghostwriter\Container\Exception\LogicException::serviceExtensionAlreadyRegistered
+     * @covers \Ghostwriter\Container\Exception\LogicException::serviceProviderAlreadyRegistered
+     * @covers \Ghostwriter\Container\Exception\NotFoundException::notRegistered
+     * @covers \Ghostwriter\Container\Exception\NotInstantiableException::abstractClassOrInterface
+     * @covers \Ghostwriter\Container\Exception\NotInstantiableException::classDoseNotExist
+     * @covers \Ghostwriter\Container\Exception\NotInstantiableException::unresolvableParameter
+     *
      * @dataProvider dataProviderContainerExceptions
      *
      * @param callable(Container):void $test
@@ -981,6 +1004,7 @@ final class ContainerTest extends TestCase
     /**
      * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::assertString
      * @covers \Ghostwriter\Container\Container::get
      * @covers \Ghostwriter\Container\Container::getInstance
      * @covers \Ghostwriter\Container\Container::resolve
