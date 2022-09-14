@@ -10,6 +10,7 @@ use Ghostwriter\Container\Contract\ContainerInterface;
 use Ghostwriter\Container\Contract\ExtensionInterface;
 use Ghostwriter\Container\Contract\ServiceProviderInterface;
 use Ghostwriter\Container\Exception\CircularDependencyException;
+use Ghostwriter\Container\Exception\ClassDoseNotExistException;
 use Ghostwriter\Container\Exception\DontCloneException;
 use Ghostwriter\Container\Exception\DontSerializeException;
 use Ghostwriter\Container\Exception\DontUnserializeException;
@@ -23,6 +24,7 @@ use Ghostwriter\Container\Exception\ServiceNotFoundException;
 use Ghostwriter\Container\Exception\ServiceProviderAlreadyRegisteredException;
 use Ghostwriter\Container\Exception\ServiceProviderMustBeSubclassOfServiceProviderInterfaceException;
 use Ghostwriter\Container\Exception\ServiceTagMustBeNonEmptyStringException;
+use Ghostwriter\Container\Exception\UnresolvableParameterException;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionFunction;
@@ -179,10 +181,10 @@ final class Container implements ContainerInterface
             $reflectionClass = $this->services[self::REFLECTIONS][$class] ??= new ReflectionClass($class);
 
             if (! $reflectionClass->isInstantiable()) {
-                throw NotInstantiableException::abstractClassOrInterface($class);
+                throw new NotInstantiableException($class);
             }
         } catch (ReflectionException) {
-            throw NotInstantiableException::classDoseNotExist($class);
+            throw new ClassDoseNotExistException($class);
         }
 
         $reflectionMethod = $reflectionClass->getConstructor();
@@ -213,11 +215,21 @@ final class Container implements ContainerInterface
             $parameterType = $reflectionParameter->getType();
 
             if (! $parameterType instanceof ReflectionNamedType || $parameterType->isBuiltin()) {
-                throw NotInstantiableException::unresolvableParameter(
-                    $parameterName,
-                    $reflectionMethod->getDeclaringClass()
-                        ->getName(),
-                    $reflectionMethod->getName()
+                $reflectionClass = $reflectionMethod->getDeclaringClass();
+                $class = $reflectionClass instanceof ReflectionClass ?
+                    $reflectionClass->getName() : '';
+                $method =  $reflectionMethod->getName();
+
+                $isFunction = '' === $class;
+
+                throw new UnresolvableParameterException(
+                    sprintf(
+                        'Unresolvable %s parameter "$%s" in "%s%s"; does not have a default value.',
+                        $isFunction ? 'function' : 'class',
+                        $parameterName,
+                        $isFunction ? $method : $class,
+                        $isFunction ? '()' : '::' . $method
+                    )
                 );
             }
 
@@ -341,13 +353,21 @@ final class Container implements ContainerInterface
 
                     if (! $reflectionParameter->isOptional() && [] === $arguments) {
                         $reflectionClass = $reflectionParameter->getDeclaringClass();
+                        $class = $reflectionClass instanceof ReflectionClass ?
+                            $reflectionClass->getName() : '';
+                        $method =  $reflectionParameter->getDeclaringFunction()
+                            ->getName();
 
-                        throw NotInstantiableException::unresolvableParameter(
-                            $parameterName,
-                            $reflectionClass instanceof ReflectionClass ?
-                                $reflectionClass->getName() : '',
-                            $reflectionParameter->getDeclaringFunction()
-                                ->getName()
+                        $isFunction = '' === $class;
+
+                        throw new UnresolvableParameterException(
+                            sprintf(
+                                'Unresolvable %s parameter "$%s" in "%s%s"; does not have a default value.',
+                                $isFunction ? 'function' : 'class',
+                                $parameterName,
+                                $isFunction ? $method : $class,
+                                $isFunction ? '()' : '::' . $method
+                            )
                         );
                     }
 
