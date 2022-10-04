@@ -218,7 +218,7 @@ final class Container implements ContainerInterface
                 $reflectionClass = $reflectionMethod->getDeclaringClass();
                 $class = $reflectionClass instanceof ReflectionClass ?
                     $reflectionClass->getName() : '';
-                $method =  $reflectionMethod->getName();
+                $name =  $reflectionMethod->getName();
 
                 $isFunction = '' === $class;
 
@@ -227,8 +227,8 @@ final class Container implements ContainerInterface
                         'Unresolvable %s parameter "$%s" in "%s%s"; does not have a default value.',
                         $isFunction ? 'function' : 'class',
                         $parameterName,
-                        $isFunction ? $method : $class,
-                        $isFunction ? '()' : '::' . $method
+                        $isFunction ? $name : $class,
+                        $isFunction ? '()' : '::' . $name
                     )
                 );
             }
@@ -256,11 +256,7 @@ final class Container implements ContainerInterface
         $factories = $this->services[self::FACTORIES];
         $extensions = $this->services[self::EXTENSIONS];
 
-        if (
-            ! array_key_exists($class, $extensions)
-            && ! array_key_exists($class, $factories)
-            && ! class_exists($class)
-        ) {
+        if (! array_key_exists($class, $extensions) && ! array_key_exists($class, $factories) && ! class_exists($class)) {
             throw new ServiceNotFoundException($class);
         }
 
@@ -355,7 +351,7 @@ final class Container implements ContainerInterface
                         $reflectionClass = $reflectionParameter->getDeclaringClass();
                         $class = $reflectionClass instanceof ReflectionClass ?
                             $reflectionClass->getName() : '';
-                        $method =  $reflectionParameter->getDeclaringFunction()
+                        $name =  $reflectionParameter->getDeclaringFunction()
                             ->getName();
 
                         $isFunction = '' === $class;
@@ -365,8 +361,8 @@ final class Container implements ContainerInterface
                                 'Unresolvable %s parameter "$%s" in "%s%s"; does not have a default value.',
                                 $isFunction ? 'function' : 'class',
                                 $parameterName,
-                                $isFunction ? $method : $class,
-                                $isFunction ? '()' : '::' . $method
+                                $isFunction ? $name : $class,
+                                $isFunction ? '()' : '::' . $name
                             )
                         );
                     }
