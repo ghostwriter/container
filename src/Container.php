@@ -256,7 +256,11 @@ final class Container implements ContainerInterface
         $factories = $this->services[self::FACTORIES];
         $extensions = $this->services[self::EXTENSIONS];
 
-        if (! array_key_exists($class, $extensions) && ! array_key_exists($class, $factories) && ! class_exists($class)) {
+        if (
+            ! array_key_exists($class, $extensions)
+            && ! array_key_exists($class, $factories)
+            && ! class_exists($class)
+        ) {
             throw new ServiceNotFoundException($class);
         }
 
