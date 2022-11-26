@@ -877,6 +877,8 @@ final class ContainerTest extends TestCase
      * @covers \Ghostwriter\Container\Container::resolve
      * @covers \Ghostwriter\Container\Container::set
      * @covers \Ghostwriter\Container\Container::tag
+     * @covers \Ghostwriter\Container\Exception\CircularDependencyException::__construct
+     * @covers \Ghostwriter\Container\Exception\UnresolvableParameterException::__construct
      *
      * @dataProvider dataProviderContainerExceptions
      *
