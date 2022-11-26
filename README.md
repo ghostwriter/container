@@ -75,8 +75,8 @@ class TasksServiceProvider implements ServiceProviderInterface
             /** @var Tasks $tasks */
             $tasks = $container->build(Tasks::class);
 
-            foreach ($container->tagged(Task::class) as $serviceId) {
-                $tasks->addTask($container->get($serviceId));
+            foreach ($container->tagged(Task::class) as $service) {
+                $tasks->addTask($service);
             }
 
             return $tasks;
