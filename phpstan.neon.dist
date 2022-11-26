@@ -1,0 +1,10 @@
+parameters:
+	level: max
+
+	paths:
+		- %currentWorkingDirectory%/src/
+		- %currentWorkingDirectory%/tests/
+
+	excludePaths:
+		- %currentWorkingDirectory%/tests/Fixture/*
+		- %currentWorkingDirectory%/vendor/*
