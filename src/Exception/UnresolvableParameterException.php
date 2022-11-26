@@ -6,7 +6,28 @@ namespace Ghostwriter\Container\Exception;
 
 use Ghostwriter\Container\Contract\ContainerExceptionInterface;
 use RuntimeException;
+use Throwable;
 
 final class UnresolvableParameterException extends RuntimeException implements ContainerExceptionInterface
 {
+    public function __construct(
+        string $parameterName,
+        string $class,
+        string $name,
+        int $code = 0,
+        ?Throwable $previous = null
+    ) {
+        $isFunction = '' === $class;
+        parent::__construct(
+            sprintf(
+                'Unresolvable %s parameter "$%s" in "%s%s"; does not have a default value.',
+                $isFunction ? 'function' : 'class',
+                $parameterName,
+                $isFunction ? $name : $class,
+                $isFunction ? '()' : '::' . $name
+            ),
+            $code,
+            $previous
+        );
+    }
 }
