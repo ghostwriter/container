@@ -6,16 +6,15 @@ namespace Ghostwriter\Container\Exception;
 
 use Ghostwriter\Container\Contract\ContainerExceptionInterface;
 use RuntimeException as PHPRuntimeException;
-use Throwable;
 
 final class CircularDependencyException extends PHPRuntimeException implements ContainerExceptionInterface
 {
-    public function __construct(string $class, array $dependencies, int $code = 0, ?Throwable $previous = null)
+    /**
+     * @param class-string        $class
+     * @param array<class-string> $dependencies
+     */
+    public function __construct(string $class, array $dependencies)
     {
-        parent::__construct(sprintf(
-            'Circular dependency: %s -> %s',
-            implode(' -> ', $dependencies),
-            $class
-        ), $code, $previous);
+        parent::__construct(sprintf('Circular dependency: %s -> %s', implode(' -> ', $dependencies), $class));
     }
 }
