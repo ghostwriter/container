@@ -6,17 +6,11 @@ namespace Ghostwriter\Container\Exception;
 
 use Ghostwriter\Container\Contract\ContainerExceptionInterface;
 use RuntimeException;
-use Throwable;
 
 final class UnresolvableParameterException extends RuntimeException implements ContainerExceptionInterface
 {
-    public function __construct(
-        string $parameterName,
-        string $class,
-        string $name,
-        int $code = 0,
-        ?Throwable $previous = null
-    ) {
+    public function __construct(string $parameterName, string $class, string $name)
+    {
         $isFunction = '' === $class;
         parent::__construct(
             sprintf(
@@ -25,9 +19,7 @@ final class UnresolvableParameterException extends RuntimeException implements C
                 $parameterName,
                 $isFunction ? $name : $class,
                 $isFunction ? '()' : '::' . $name
-            ),
-            $code,
-            $previous
+            )
         );
     }
 }
