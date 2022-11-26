@@ -33,7 +33,6 @@ use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
-use Traversable;
 use function array_key_exists;
 use function array_reduce;
 use function class_exists;
@@ -250,13 +249,12 @@ final class Container implements ContainerInterface
         $factories = $this->services[self::FACTORIES];
         $extensions = $this->services[self::EXTENSIONS];
 
-        if (! array_key_exists($class, $extensions)
-            && ! array_key_exists($class, $factories)
-            && ! class_exists($class)
+        if (! array_key_exists($class, $extensions) &&
+            ! array_key_exists($class, $factories) &&
+            ! class_exists($class)
         ) {
             throw new ServiceNotFoundException($class);
         }
-
 
         $this->services[self::EXTENSIONS][$class] = array_key_exists($class, $extensions) ?
             static fn (
@@ -347,16 +345,20 @@ final class Container implements ContainerInterface
                         return $parameters;
                     }
 
-                    if ([] === $arguments && ! $reflectionParameter->isOptional()) {
-                        throw new UnresolvableParameterException(
-                            $parameterName,
-                            $reflectionParameter->getDeclaringClass()?->getName() ?? '',
-                            $reflectionParameter->getDeclaringFunction()
-                                ->getName()
-                        );
+                    if ([] !== $arguments) {
+                        return $parameters;
                     }
 
-                    return $parameters;
+                    if ($reflectionParameter->isOptional()) {
+                        return $parameters;
+                    }
+
+                    throw new UnresolvableParameterException(
+                        $parameterName,
+                        $reflectionParameter->getDeclaringClass()?->getName() ?? '',
+                        $reflectionParameter->getDeclaringFunction()
+                            ->getName()
+                    );
                 },
                 []
             ),
@@ -439,10 +441,15 @@ final class Container implements ContainerInterface
             throw new ServiceIdMustBeNonEmptyStringException();
         }
 
-        if (array_key_exists($id, $this->services[self::SERVICES]) ||
-            array_key_exists($id, $this->services[self::FACTORIES]) ||
-            array_key_exists($id, $this->services[self::ALIASES])
-        ) {
+        if (array_key_exists($id, $this->services[self::SERVICES])) {
+            throw new ServiceAlreadyRegisteredException($id);
+        }
+
+        if (array_key_exists($id, $this->services[self::FACTORIES])) {
+            throw new ServiceAlreadyRegisteredException($id);
+        }
+
+        if (array_key_exists($id, $this->services[self::ALIASES])) {
             throw new ServiceAlreadyRegisteredException($id);
         }
 
