@@ -333,8 +333,9 @@ interface ContainerInterface extends ArrayAccess
      * Resolve services for a given tag.
      *
      * @template TService
+     * @template TObject of object
      *
-     * @return Generator<TService>
+     * @return Generator<TObject|TService>
      */
     public function tagged(string $tag): Generator;
 }
