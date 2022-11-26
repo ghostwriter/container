@@ -75,12 +75,14 @@ final class ContainerTest extends TestCase
 
     protected function setUp(): void
     {
+        parent::setUp();
         $this->container = Container::getInstance();
     }
 
     protected function tearDown(): void
     {
         $this->container->__destruct();
+        parent::tearDown();
     }
 
     /**
