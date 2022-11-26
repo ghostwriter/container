@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ghostwriter\Container\Tests\Unit;
 
 use ArrayAccess;
+use Closure;
 use Generator;
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Contract\ContainerExceptionInterface;
@@ -71,7 +72,7 @@ use function unserialize;
  */
 final class ContainerTest extends TestCase
 {
-    private ContainerInterface $container;
+    private Container $container;
 
     protected function setUp(): void
     {
@@ -575,7 +576,6 @@ final class ContainerTest extends TestCase
     public function testContainerImplementsContainerInterface(): void
     {
         self::assertTrue(is_subclass_of(Container::class, ContainerInterface::class));
-
         self::assertInstanceOf(ContainerInterface::class, $this->container);
         self::assertInstanceOf(Container::class, $this->container);
     }
@@ -811,7 +811,7 @@ final class ContainerTest extends TestCase
      */
     public function testContainerSet(
         string $key,
-        mixed $value,
+        null|bool|float|int|stdClass|string|array|Closure $value,
         null|bool|float|int|stdClass|string|array $expected
     ): void {
         $this->container->set($key, $value);
@@ -844,7 +844,6 @@ final class ContainerTest extends TestCase
         $this->container->set('stdclass4', static fn (Container $container): stdClass => $stdClass4);
         $this->container->tag('stdclass4', ['tag-2']);
 
-        self::assertNotNull($this->container->tagged('tag-1'));
         self::assertCount(2, $this->container->tagged('tag-1'));
         self::assertCount(2, $this->container->tagged('tag-2'));
 
@@ -881,6 +880,7 @@ final class ContainerTest extends TestCase
      *
      * @dataProvider dataProviderContainerExceptions
      *
+     * @param class-string|string      $exception
      * @param callable(Container):void $test
      *
      * @throws ContainerExceptionInterface
