@@ -8,9 +8,11 @@ use ArrayAccess;
 use Generator;
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Contract\Exception\NotFoundExceptionInterface;
-use Ghostwriter\Container\Exception\BadMethodCallException;
 use Ghostwriter\Container\Exception\CircularDependencyException;
 use Ghostwriter\Container\Exception\ClassDoseNotExistException;
+use Ghostwriter\Container\Exception\DontCloneException;
+use Ghostwriter\Container\Exception\DontSerializeException;
+use Ghostwriter\Container\Exception\DontUnserializeException;
 use Ghostwriter\Container\Exception\NotInstantiableException;
 use Ghostwriter\Container\Exception\ServiceAliasMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\ServiceAlreadyRegisteredException;
@@ -21,14 +23,14 @@ use Ghostwriter\Container\Exception\ServiceNotFoundException;
 use Ghostwriter\Container\Exception\ServiceProviderAlreadyRegisteredException;
 use Ghostwriter\Container\Exception\ServiceProviderMustBeSubclassOfServiceProviderInterfaceException;
 use Ghostwriter\Container\Exception\ServiceTagMustBeNonEmptyStringException;
-use Psr\Container\ContainerInterface as PsrContainerInterface;
+use ReflectionClass;
 use ReflectionException;
 use Throwable;
 
 /**
  * An extendable, closure based dependency injection container.
  */
-interface ContainerInterface extends ArrayAccess, PsrContainerInterface
+interface ContainerInterface extends ArrayAccess
 {
     /**
      * @var string
@@ -37,14 +39,14 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
 
     /**
      * @var array{
-     *     aliases: array<string,string>,
+     *     aliases: array<class-string|string,class-string|string>,
      *     dependencies: array<class-string,bool>,
      *     extensions: array<class-string,callable(ContainerInterface, object):object>,
-     *     factories: array<string,callable(ContainerInterface):object>,
+     *     factories: array<class-string|string,callable(ContainerInterface):object>,
      *     providers: array<class-string,ServiceProviderInterface>,
      *     reflections: array<class-string,ReflectionClass>,
-     *     services: array<string,callable|object|scalar>,
-     *     tags: array<string,array<string>>,
+     *     services: array<class-string|string,callable|object|scalar>,
+     *     tags: array<class-string|string,array<class-string|string>>,
      * }
      */
     public const DEFAULT_SERVICES = [
@@ -105,7 +107,7 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     public function __destruct();
 
     /**
-     * @throws BadMethodCallException if "__clone()" method is called
+     * @throws DontCloneException if "__clone()" method is called
      */
     public function __clone();
 
@@ -118,7 +120,7 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     public function __isset(string $name): bool;
 
     /**
-     * @throws BadMethodCallException if "__serialize()" method is called
+     * @throws DontSerializeException if "__serialize()" method is called
      */
     public function __serialize(): array;
 
@@ -129,7 +131,7 @@ interface ContainerInterface extends ArrayAccess, PsrContainerInterface
     public function __set(string $name, mixed $value): void;
 
     /**
-     * @throws BadMethodCallException if "__unserialize()" method is called
+     * @throws DontUnserializeException if "__unserialize()" method is called
      */
     public function __unserialize(array $data): void;
 
