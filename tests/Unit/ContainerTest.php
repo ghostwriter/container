@@ -620,31 +620,21 @@ final class ContainerTest extends TestCase
      */
     public function dataProviderContainerCallables(): Generator
     {
+        yield 'AnonymousFunctionCall' => [static function (TestEvent $testEvent): void {
+            $testEvent->collect($testEvent::class);
+        }];
+
+        yield 'CallableArrayInstanceMethodCall' => [[new TestEventListener(), 'onTest']];
+        yield 'CallableArrayStaticMethodCall' => [[TestEventListener::class, 'onStaticCallableArray']];
+        yield 'FunctionCall@typedFunction' => ['Ghostwriter\Container\Tests\Fixture\typedFunction'];
+        yield 'FunctionCall@typelessFunction' => ['Ghostwriter\Container\Tests\Fixture\typelessFunction'];
+        yield 'Invokable' => [new TestEventListener()];
+        yield 'StaticMethodCall' => [TestEventListener::class . '::onStatic'];
         yield 'TypelessAnonymousFunctionCall' => [
             static function ($event): void {
                 $event->collect($event::class);
             },
         ];
-
-        yield 'AnonymousFunctionCall' => [static function (TestEvent $testEvent): void {
-            $testEvent->collect($testEvent::class);
-        }];
-
-        yield 'FunctionCall@typedFunction' => ['Ghostwriter\Container\Tests\Fixture\typedFunction'];
-        yield 'FunctionCall@typelessFunction' => ['Ghostwriter\Container\Tests\Fixture\typelessFunction'];
-        yield 'StaticMethodCall' => [TestEventListener::class . '::onStatic'];
-
-        yield 'CallableArrayStaticMethodCall' => [
-            static function (TestEvent $testEvent, ?string $nullable = null): void {
-                TestEventListener::onStaticCallableArray($testEvent, $nullable);
-            },
-        ];
-
-        yield 'CallableArrayInstanceMethodCall' => [static function (TestEvent $testEvent): void {
-            (new TestEventListener())->onTest($testEvent);
-        }];
-
-        yield 'Invokable' => [new TestEventListener()];
     }
 
     /**
@@ -684,7 +674,9 @@ final class ContainerTest extends TestCase
         self::assertCount($expectedCount, $testEvent->all());
 
         while ($actual2--) {
-            $this->container->call($callback, [$testEvent]);
+            $this->container->call($callback, [
+                'event' => $testEvent,
+            ]);
         }
 
         self::assertCount($expectedCount * 2, $testEvent->all());
