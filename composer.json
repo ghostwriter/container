@@ -33,7 +33,7 @@
         "rector/rector": "^0.14",
         "slevomat/coding-standard": "^8.6",
         "symplify/easy-coding-standard": "^11.1",
-        "vimeo/psalm": "^4.30"
+        "vimeo/psalm": "^5.1"
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
