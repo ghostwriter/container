@@ -310,15 +310,16 @@ final class Container implements ContainerInterface
 
     public function call(callable $callback, array $arguments = []): mixed
     {
-        return $callback(...array_values(array_merge(
-            array_reduce(
-                iterator_to_array($this->getParametersForCallable($callback)),
+        $closure = Closure::fromCallable($callback);
+
+        return $closure(
+            ...array_reduce(
+                iterator_to_array($this->getParametersForCallable($closure)),
                 function (array $parameters, ReflectionParameter $reflectionParameter) use ($arguments): array {
                     $parameterName = $reflectionParameter->getName();
 
                     if (array_key_exists($parameterName, $arguments)) {
-                        $parameters[] = $arguments[$parameterName];
-
+                        $parameters[$parameterName] = $arguments[$parameterName];
                         unset($arguments[$parameterName]);
 
                         return $parameters;
@@ -329,18 +330,13 @@ final class Container implements ContainerInterface
                     if ($reflectionType instanceof ReflectionNamedType && ! $reflectionType->isBuiltin()) {
                         $maybeVariadicParameter = $this->get($reflectionType->getName());
 
-                        return array_merge(
-                            $parameters,
-                            (
-                                $reflectionParameter->isVariadic() && is_array($maybeVariadicParameter)
-                                ? $maybeVariadicParameter
-                                : [$maybeVariadicParameter]
-                            )
-                        );
-                    }
+                        if ($reflectionParameter->isVariadic()) {
+                            $maybeVariadicParameter = is_array($maybeVariadicParameter) ?
+                                $maybeVariadicParameter :
+                                [$maybeVariadicParameter];
+                        }
 
-                    if ($reflectionParameter->isDefaultValueAvailable()) {
-                        $parameters[] = $reflectionParameter->getDefaultValue();
+                        $parameters[$parameterName] = $maybeVariadicParameter;
 
                         return $parameters;
                     }
@@ -349,21 +345,27 @@ final class Container implements ContainerInterface
                         return $parameters;
                     }
 
-                    if ($reflectionParameter->isOptional()) {
+                    $isDefaultValueAvailable = $reflectionParameter->isDefaultValueAvailable();
+
+                    if ($isDefaultValueAvailable) {
+                        $parameters[$parameterName] = $reflectionParameter->getDefaultValue();
+
                         return $parameters;
                     }
 
-                    throw new UnresolvableParameterException(
-                        $parameterName,
-                        $reflectionParameter->getDeclaringClass()?->getName() ?? '',
-                        $reflectionParameter->getDeclaringFunction()
-                            ->getName()
-                    );
+                    return match (true) {
+                        $reflectionParameter->isOptional() => $parameters,
+                        default => throw new UnresolvableParameterException(
+                            $parameterName,
+                            $reflectionParameter->getDeclaringClass()?->getName() ?? '',
+                            $reflectionParameter->getDeclaringFunction()
+                                ->getName()
+                        )
+                    };
                 },
                 []
-            ),
-            array_values($arguments)
-        )));
+            )
+        );
     }
 
     public function offsetExists(mixed $offset): bool
@@ -498,8 +500,8 @@ final class Container implements ContainerInterface
      *
      * @return Generator<ReflectionParameter>
      */
-    private function getParametersForCallable(callable $callback): Generator
+    private function getParametersForCallable(Closure $closure): Generator
     {
-        yield from (new ReflectionFunction(Closure::fromCallable($callback)))->getParameters();
+        yield from (new ReflectionFunction($closure))->getParameters();
     }
 }
