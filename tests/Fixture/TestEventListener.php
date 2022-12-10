@@ -22,7 +22,7 @@ class TestEventListener
         $event->collect(__METHOD__);
     }
 
-    public static function onStaticCallableArray(TestEvent $event, ?string $nullable): void
+    public static function onStaticCallableArray(?TestEvent $event): void
     {
         $event->collect(__METHOD__);
     }
