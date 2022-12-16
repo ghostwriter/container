@@ -45,6 +45,75 @@ use function trim;
  */
 final class Container implements ContainerInterface
 {
+    /**
+     * @var string
+     */
+    private const ALIASES = 'aliases';
+
+    /**
+     * @var array{
+     *     aliases: array<class-string|string,class-string|string>,
+     *     dependencies: array<class-string,bool>,
+     *     extensions: array<class-string,callable(ContainerInterface, object):object>,
+     *     factories: array<class-string|string,callable(ContainerInterface):object>,
+     *     providers: array<class-string,ServiceProviderInterface>,
+     *     reflections: array<class-string,ReflectionClass>,
+     *     services: array<class-string|string,callable|object|scalar>,
+     *     tags: array<class-string|string,array<class-string|string>>,
+     * }
+     */
+    private const DEFAULT_SERVICES = [
+        self::ALIASES      => [
+            ContainerInterface::class    => self::class,
+        ],
+        self::DEPENDENCIES => [],
+        self::EXTENSIONS   => [
+            self::class => [],
+        ],
+        self::FACTORIES    => [],
+        self::PROVIDERS    => [],
+        self::REFLECTIONS => [],
+        self::SERVICES     => [
+            self::class => 0,
+        ],
+        self::TAGS         => [],
+    ];
+
+    /**
+     * @var string
+     */
+    private const DEPENDENCIES = 'dependencies';
+
+    /**
+     * @var string
+     */
+    private const EXTENSIONS = 'extensions';
+
+    /**
+     * @var string
+     */
+    private const FACTORIES = 'factories';
+
+    /**
+     * @var string
+     */
+    private const PROVIDERS = 'providers';
+
+    /**
+     * @var string
+     */
+    private const REFLECTIONS = 'reflections';
+
+    /**
+     * @var string
+     */
+    private const SERVICES = 'services';
+
+    /**
+     * @var string
+     */
+    private const TAGS = 'tags';
+
     private static ?ContainerInterface $instance = null;
 
     private array $services = self::DEFAULT_SERVICES;
@@ -217,16 +286,18 @@ final class Container implements ContainerInterface
 
             $parameterType = $reflectionParameter->getType();
 
-            if (! $parameterType instanceof ReflectionNamedType || $parameterType->isBuiltin()) {
-                throw new UnresolvableParameterException(
-                    $parameterName,
-                    $reflectionMethod->getName(),
-                    $reflectionMethod->getDeclaringClass()
-                        ->getName()
-                );
+            if ($parameterType instanceof ReflectionNamedType && ! $parameterType->isBuiltin()) {
+                $arguments[$parameterName] = $this->get($parameterType->getName());
+
+                continue;
             }
 
-            $arguments[$parameterName] = $this->get($parameterType->getName());
+            throw new UnresolvableParameterException(
+                $parameterName,
+                $reflectionMethod->getName(),
+                $reflectionMethod->getDeclaringClass()
+                    ->getName()
+            );
         }
 
         unset($this->services[self::DEPENDENCIES][$class]);
