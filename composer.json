@@ -31,9 +31,9 @@
         "phpunit/phpunit": "^9.5",
         "psalm/plugin-phpunit": "^0.18",
         "rector/rector": "^0.14",
-        "slevomat/coding-standard": "^8.6",
+        "slevomat/coding-standard": "^8.7",
         "symplify/easy-coding-standard": "^11.1",
-        "vimeo/psalm": "^5.1"
+        "vimeo/psalm": "^5.2"
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
