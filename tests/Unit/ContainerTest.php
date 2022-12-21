@@ -398,6 +398,7 @@ final class ContainerTest extends TestCase
     }
 
     /**
+     * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
      * @covers \Ghostwriter\Container\Container::add
      * @covers \Ghostwriter\Container\Container::bind
