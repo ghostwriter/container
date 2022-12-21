@@ -399,15 +399,7 @@ final class Container implements ContainerInterface
                     $reflectionType = $reflectionParameter->getType();
 
                     if ($reflectionType instanceof ReflectionNamedType && ! $reflectionType->isBuiltin()) {
-                        $maybeVariadicParameter = $this->get($reflectionType->getName());
-
-                        if ($reflectionParameter->isVariadic()) {
-                            $maybeVariadicParameter = is_array($maybeVariadicParameter) ?
-                                $maybeVariadicParameter :
-                                [$maybeVariadicParameter];
-                        }
-
-                        $parameters[$parameterName] = $maybeVariadicParameter;
+                        $parameters[$parameterName] = $this->get($reflectionType->getName());
 
                         return $parameters;
                     }
