@@ -9,4 +9,11 @@ class Dummy implements DummyInterface
     public function __construct()
     {
     }
+
+    public function __invoke(
+        array $data = [],
+        string $text = 'Untitled',
+    ): string {
+        return sprintf($text, ...$data);
+    }
 }
