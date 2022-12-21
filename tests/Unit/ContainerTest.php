@@ -25,6 +25,7 @@ use Ghostwriter\Container\Exception\ServiceExtensionAlreadyRegisteredException;
 use Ghostwriter\Container\Exception\ServiceIdMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\ServiceNotFoundException;
 use Ghostwriter\Container\Exception\ServiceProviderAlreadyRegisteredException;
+use Ghostwriter\Container\Exception\ServiceProviderMustBeSubclassOfServiceProviderInterfaceException;
 use Ghostwriter\Container\Exception\ServiceTagMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\UnresolvableParameterException;
 use Ghostwriter\Container\Tests\Fixture\Bar;
@@ -42,6 +43,7 @@ use Ghostwriter\Container\Tests\Fixture\Constructor\ObjectConstructor;
 use Ghostwriter\Container\Tests\Fixture\Constructor\OptionalConstructor;
 use Ghostwriter\Container\Tests\Fixture\Constructor\StringConstructor;
 use Ghostwriter\Container\Tests\Fixture\Constructor\TypelessConstructor;
+use Ghostwriter\Container\Tests\Fixture\Dummy;
 use Ghostwriter\Container\Tests\Fixture\DummyInterface;
 use Ghostwriter\Container\Tests\Fixture\Extension\FoobarExtension;
 use Ghostwriter\Container\Tests\Fixture\Foo;
@@ -93,14 +95,29 @@ final class ContainerTest extends TestCase
      */
     public function dataProviderContainerExceptions(): Generator
     {
+        yield 'ServiceProviderMustBeSubclassOfServiceProviderInterfaceException' => [
+            ServiceProviderMustBeSubclassOfServiceProviderInterfaceException::class,
+            static fn (Container $container) => $container->register(ClassA::class),
+        ];
+
         yield 'CircularDependencyException' => [
             CircularDependencyException::class,
             static fn (Container $container) => $container->build(ClassA::class),
         ];
 
-        yield 'ServiceIdMustBeNonEmptyStringException@bind' => [
+        yield 'ServiceIdMustBeNonEmptyStringException@bind-empty-abstract' => [
             ServiceIdMustBeNonEmptyStringException::class,
-            static fn (Container $container) => $container->bind('', 'empty-value'),
+            static fn (Container $container) => $container->bind('', 'empty-abstract'),
+        ];
+
+        yield 'ServiceIdMustBeNonEmptyStringException@bind-empty-concrete' => [
+            ServiceIdMustBeNonEmptyStringException::class,
+            static fn (Container $container) => $container->bind('empty-concrete', ''),
+        ];
+
+        yield 'ServiceIdMustBeNonEmptyStringException@build' => [
+            ServiceIdMustBeNonEmptyStringException::class,
+            static fn (Container $container) => $container->build(''),
         ];
 
         yield 'ServiceIdMustBeNonEmptyStringException@extend' => [
@@ -169,7 +186,40 @@ final class ContainerTest extends TestCase
             static fn (Container $container) => $container->set(Container::class, $container),
         ];
 
-        yield 'ServiceAlreadyRegisteredException@bind' => [
+        yield 'ServiceAlreadyRegisteredException@set-existing-alias' => [
+            ServiceAlreadyRegisteredException::class,
+            static function (Container $container): void {
+                $container->alias(Container::class, 'container-alias');
+                $container->set('container-alias', stdClass::class);
+            },
+        ];
+
+        yield 'ServiceAlreadyRegisteredException@set-existing-factory' => [
+            ServiceAlreadyRegisteredException::class,
+            static function (Container $container): void {
+                $container->set('container-factory', static fn () => new stdClass());
+                $container->set('container-factory', $container);
+            },
+        ];
+
+        yield 'ServiceAlreadyRegisteredException@bind-existing-alias' => [
+            ServiceAlreadyRegisteredException::class,
+            static function (Container $container): void {
+                $container->set('service', stdClass::class);
+                $container->alias('service', 'alias');
+                $container->bind('alias', stdClass::class);
+            },
+        ];
+
+        yield 'ServiceAlreadyRegisteredException@bind-existing-factory' => [
+            ServiceAlreadyRegisteredException::class,
+            static function (Container $container): void {
+                $container->set('bind', static fn (Container $container) => $container->build(stdClass::class));
+                $container->bind('bind', stdClass::class);
+            },
+        ];
+
+        yield 'ServiceAlreadyRegisteredException@bind-existing-service' => [
             ServiceAlreadyRegisteredException::class,
             static function (Container $container): void {
                 $container->set('bind', 'empty-value');
@@ -625,6 +675,7 @@ final class ContainerTest extends TestCase
         }];
 
         yield 'CallableArrayInstanceMethodCall' => [[new TestEventListener(), 'onTest']];
+        yield 'CallableArrayInstanceMethodCallOnVariadic' => [[new TestEventListener(), 'onVariadicTest']];
         yield 'CallableArrayStaticMethodCall' => [[TestEventListener::class, 'onStaticCallableArray']];
         yield 'FunctionCall@typedFunction' => ['Ghostwriter\Container\Tests\Fixture\typedFunction'];
         yield 'FunctionCall@typelessFunction' => ['Ghostwriter\Container\Tests\Fixture\typelessFunction'];
@@ -682,6 +733,27 @@ final class ContainerTest extends TestCase
         self::assertCount($expectedCount * 2, $testEvent->all());
 
         $this->container->remove(TestEvent::class);
+    }
+
+    /**
+     * @covers \Ghostwriter\Container\Container::__construct
+     * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::call
+     * @covers \Ghostwriter\Container\Container::getInstance
+     * @covers \Ghostwriter\Container\Container::getParametersForCallable
+     *
+     * @throws Throwable
+     */
+    public function testContainerCallDefaultValueAvailable(): void
+    {
+        $iter = $this->container->call([new Dummy(), '__invoke']);
+        self::assertSame('Untitled', $iter);
+
+        $iter = $this->container->call([new Dummy(), '__invoke'], [
+            'data'=>[],
+            'text'=>'#BlackLivesMatter',
+        ]);
+        self::assertSame('#BlackLivesMatter', $iter);
     }
 
     /**
