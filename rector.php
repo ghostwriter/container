@@ -11,7 +11,6 @@ use Rector\Core\ValueObject\PhpVersion;
 use Rector\DeadCode\Rector\ClassMethod\RemoveEmptyClassMethodRector;
 use Rector\Php55\Rector\String_\StringClassNameToClassConstantRector;
 use Rector\Php74\Rector\Property\RestoreDefaultNullToNullableTypePropertyRector;
-use Rector\Php74\Rector\Property\TypedPropertyRector;
 use Rector\PHPUnit\Rector\Class_\AddSeeTestAnnotationRector;
 use Rector\PHPUnit\Rector\Class_\ConstructClassMethodToSetUpTestCaseRector;
 use Rector\PHPUnit\Rector\Class_\RemoveDataProviderTestPrefixRector;
@@ -72,7 +71,6 @@ return static function (RectorConfig $rectorConfig): void {
         SetList::PRIVATIZATION,
         SetList::PSR_4,
         SetList::TYPE_DECLARATION,
-        SetList::TYPE_DECLARATION_STRICT,
         SetList::EARLY_RETURN,
         SetList::PHP_81,
         // SetList::RECTOR_CONFIG,
@@ -84,12 +82,11 @@ return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->ruleWithConfiguration(
         PreferThisOrSelfMethodCallRector::class,
         [
-            TestCase::class => PreferenceSelfThis::PREFER_SELF(),
+            TestCase::class => PreferenceSelfThis::PREFER_SELF,
         ]
     );
 
     // register single rule
-    $rectorConfig->rule(TypedPropertyRector::class);
     $rectorConfig->ruleWithConfiguration(
         RenameMethodRector::class,
         [
@@ -113,7 +110,6 @@ return static function (RectorConfig $rectorConfig): void {
         AddDoesNotPerformAssertionToNonAssertingTestRector::class,
     ]);
     // register single rule
-    $rectorConfig->rule(TypedPropertyRector::class);
     $rectorConfig->rule(RestoreDefaultNullToNullableTypePropertyRector::class);
     $rectorConfig->rule(AddSeeTestAnnotationRector::class);
     $rectorConfig->rule(AssertCompareToSpecificMethodRector::class);
