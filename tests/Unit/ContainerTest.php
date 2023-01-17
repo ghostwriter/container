@@ -91,6 +91,31 @@ final class ContainerTest extends TestCase
     /**
      * @psalm-return Generator<string,array>
      *
+     * @return Generator<string[]|string[]|class-string<TestEventListener>[]|TestEventListener[][]|array<string, TestEvent>[]|array{nullable: null}[]|Closure():void[]|TestEventListener[]>
+     */
+    public function dataProviderContainerCallables(): Generator
+    {
+        yield 'AnonymousFunctionCall' => [static function (TestEvent $testEvent): void {
+            $testEvent->collect($testEvent::class);
+        }];
+
+        yield 'CallableArrayInstanceMethodCall' => [[new TestEventListener(), 'onTest']];
+        yield 'CallableArrayInstanceMethodCallOnVariadic' => [[new TestEventListener(), 'onVariadicTest']];
+        yield 'CallableArrayStaticMethodCall' => [[TestEventListener::class, 'onStaticCallableArray']];
+        yield 'FunctionCall@typedFunction' => ['Ghostwriter\Container\Tests\Fixture\typedFunction'];
+        yield 'FunctionCall@typelessFunction' => ['Ghostwriter\Container\Tests\Fixture\typelessFunction'];
+        yield 'Invokable' => [new TestEventListener()];
+        yield 'StaticMethodCall' => [TestEventListener::class . '::onStatic'];
+        yield 'TypelessAnonymousFunctionCall' => [
+            static function ($event): void {
+                $event->collect($event::class);
+            },
+        ];
+    }
+
+    /**
+     * @psalm-return Generator<string,array>
+     *
      * @return Generator<Closure():string[]|void[]>
      */
     public function dataProviderContainerExceptions(): Generator
@@ -323,51 +348,62 @@ final class ContainerTest extends TestCase
     /** @return iterable<string,array> */
     public function dataProviderServiceClasses(): iterable
     {
-        yield ArrayConstructor::class => [ArrayConstructor::class, [
-            'value' => [],
-        ]];
+        yield ArrayConstructor::class => [ArrayConstructor::class,
+            [
+                'value' => [],
+            ]];
 
-        yield BoolConstructor::class => [BoolConstructor::class, [
-            'value' => true,
-        ]];
+        yield BoolConstructor::class => [BoolConstructor::class,
+            [
+                'value' => true,
+            ]];
 
-        yield CallableConstructor::class => [CallableConstructor::class, [
-            'value' => static fn (Container $container) => null,
-        ]];
+        yield CallableConstructor::class => [CallableConstructor::class,
+            [
+                'value' => static fn (Container $container) => null,
+            ]];
 
         yield EmptyConstructor::class => [EmptyConstructor::class];
-        yield FloatConstructor::class => [FloatConstructor::class, [
-            'value' => 13.37,
-        ]];
+        yield FloatConstructor::class => [FloatConstructor::class,
+            [
+                'value' => 13.37,
+            ]];
 
-        yield IntConstructor::class => [IntConstructor::class, [
-            'value' => 42,
-        ]];
+        yield IntConstructor::class => [IntConstructor::class,
+            [
+                'value' => 42,
+            ]];
 
-        yield IterableConstructor::class => [IterableConstructor::class, [
-            'value' => ['iterable'],
-        ]];
+        yield IterableConstructor::class => [IterableConstructor::class,
+            [
+                'value' => ['iterable'],
+            ]];
 
-        yield MixedConstructor::class => [MixedConstructor::class, [
-            'value' => 'mixed',
-        ]];
+        yield MixedConstructor::class => [MixedConstructor::class,
+            [
+                'value' => 'mixed',
+            ]];
 
-        yield ObjectConstructor::class => [ObjectConstructor::class, [
-            'value' => new stdClass(),
-        ]];
+        yield ObjectConstructor::class => [ObjectConstructor::class,
+            [
+                'value' => new stdClass(),
+            ]];
 
         yield OptionalConstructor::class => [OptionalConstructor::class];
-        yield StringConstructor::class => [StringConstructor::class, [
-            'value' => 'string',
-        ]];
+        yield StringConstructor::class => [StringConstructor::class,
+            [
+                'value' => 'string',
+            ]];
 
-        yield TypelessConstructor::class => [TypelessConstructor::class, [
-            'value' => 'none',
-        ]];
+        yield TypelessConstructor::class => [TypelessConstructor::class,
+            [
+                'value' => 'none',
+            ]];
 
-        yield UnionTypehintWithoutDefaultValue::class => [UnionTypehintWithoutDefaultValue::class, [
-            'number' => 42,
-        ]];
+        yield UnionTypehintWithoutDefaultValue::class => [UnionTypehintWithoutDefaultValue::class,
+            [
+                'number' => 42,
+            ]];
 
         yield UnionTypehintWithDefaultValue::class => [UnionTypehintWithDefaultValue::class];
         yield Foo::class => [Foo::class];
@@ -453,6 +489,7 @@ final class ContainerTest extends TestCase
     }
 
     /**
+     * @covers \Ghostwriter\Container\Container::__construct
      * @covers \Ghostwriter\Container\Container::__destruct
      * @covers \Ghostwriter\Container\Container::bind
      * @covers \Ghostwriter\Container\Container::build
@@ -510,6 +547,74 @@ final class ContainerTest extends TestCase
         }
 
         self::assertSame($arguments['value'], $this->container->get($class)->value());
+    }
+
+    /**
+     * @covers \Ghostwriter\Container\Container::__construct
+     * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::get
+     * @covers \Ghostwriter\Container\Container::getInstance
+     * @covers \Ghostwriter\Container\Container::call
+     * @covers \Ghostwriter\Container\Container::resolve
+     * @covers \Ghostwriter\Container\Container::set
+     * @covers \Ghostwriter\Container\Container::build
+     * @covers \Ghostwriter\Container\Container::getParametersForCallable
+     * @covers \Ghostwriter\Container\Container::has
+     * @covers \Ghostwriter\Container\Container::remove
+     *
+     * @dataProvider dataProviderContainerCallables
+     *
+     * @param callable():void $callback
+     *
+     * @throws Throwable
+     */
+    public function testContainerCall(callable $callback): void
+    {
+        $testEvent = $this->container->get(TestEvent::class);
+
+        self::assertSame([], $testEvent->all());
+        $expectedCount = random_int(10, 50);
+        $actual1 = $expectedCount;
+        $actual2 = $expectedCount;
+
+        while ($actual1--) {
+            $this->container->call($callback, [
+                'event' => $testEvent,
+            ]);
+        }
+
+        self::assertCount($expectedCount, $testEvent->all());
+
+        while ($actual2--) {
+            $this->container->call($callback, [
+                'event' => $testEvent,
+            ]);
+        }
+
+        self::assertCount($expectedCount * 2, $testEvent->all());
+
+        $this->container->remove(TestEvent::class);
+    }
+
+    /**
+     * @covers \Ghostwriter\Container\Container::__construct
+     * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::call
+     * @covers \Ghostwriter\Container\Container::getInstance
+     * @covers \Ghostwriter\Container\Container::getParametersForCallable
+     *
+     * @throws Throwable
+     */
+    public function testContainerCallDefaultValueAvailable(): void
+    {
+        $iter = $this->container->call([new Dummy(), '__invoke']);
+        self::assertSame('Untitled', $iter);
+
+        $iter = $this->container->call([new Dummy(), '__invoke'], [
+            'data'=>[],
+            'text'=>'#BlackLivesMatter',
+        ]);
+        self::assertSame('#BlackLivesMatter', $iter);
     }
 
     /**
@@ -662,99 +767,6 @@ final class ContainerTest extends TestCase
         unset($this->container->{$method});
 
         self::assertFalse(isset($this->container->{$method}));
-    }
-
-    /**
-     * @psalm-return Generator<string,array>
-     *
-     * @return Generator<string[]|string[]|class-string<TestEventListener>[]|TestEventListener[][]|array<string, TestEvent>[]|array{nullable: null}[]|Closure():void[]|TestEventListener[]>
-     */
-    public function dataProviderContainerCallables(): Generator
-    {
-        yield 'AnonymousFunctionCall' => [static function (TestEvent $testEvent): void {
-            $testEvent->collect($testEvent::class);
-        }];
-
-        yield 'CallableArrayInstanceMethodCall' => [[new TestEventListener(), 'onTest']];
-        yield 'CallableArrayInstanceMethodCallOnVariadic' => [[new TestEventListener(), 'onVariadicTest']];
-        yield 'CallableArrayStaticMethodCall' => [[TestEventListener::class, 'onStaticCallableArray']];
-        yield 'FunctionCall@typedFunction' => ['Ghostwriter\Container\Tests\Fixture\typedFunction'];
-        yield 'FunctionCall@typelessFunction' => ['Ghostwriter\Container\Tests\Fixture\typelessFunction'];
-        yield 'Invokable' => [new TestEventListener()];
-        yield 'StaticMethodCall' => [TestEventListener::class . '::onStatic'];
-        yield 'TypelessAnonymousFunctionCall' => [
-            static function ($event): void {
-                $event->collect($event::class);
-            },
-        ];
-    }
-
-    /**
-     * @covers \Ghostwriter\Container\Container::__construct
-     * @covers \Ghostwriter\Container\Container::__destruct
-     * @covers \Ghostwriter\Container\Container::get
-     * @covers \Ghostwriter\Container\Container::getInstance
-     * @covers \Ghostwriter\Container\Container::call
-     * @covers \Ghostwriter\Container\Container::resolve
-     * @covers \Ghostwriter\Container\Container::set
-     * @covers \Ghostwriter\Container\Container::build
-     * @covers \Ghostwriter\Container\Container::getParametersForCallable
-     * @covers \Ghostwriter\Container\Container::has
-     * @covers \Ghostwriter\Container\Container::remove
-     *
-     * @dataProvider dataProviderContainerCallables
-     *
-     * @param callable():void $callback
-     *
-     * @throws Throwable
-     */
-    public function testContainerCall(callable $callback): void
-    {
-        $testEvent = $this->container->get(TestEvent::class);
-
-        self::assertSame([], $testEvent->all());
-        $expectedCount = random_int(10, 50);
-        $actual1 = $expectedCount;
-        $actual2 = $expectedCount;
-
-        while ($actual1--) {
-            $this->container->call($callback, [
-                'event' => $testEvent,
-            ]);
-        }
-
-        self::assertCount($expectedCount, $testEvent->all());
-
-        while ($actual2--) {
-            $this->container->call($callback, [
-                'event' => $testEvent,
-            ]);
-        }
-
-        self::assertCount($expectedCount * 2, $testEvent->all());
-
-        $this->container->remove(TestEvent::class);
-    }
-
-    /**
-     * @covers \Ghostwriter\Container\Container::__construct
-     * @covers \Ghostwriter\Container\Container::__destruct
-     * @covers \Ghostwriter\Container\Container::call
-     * @covers \Ghostwriter\Container\Container::getInstance
-     * @covers \Ghostwriter\Container\Container::getParametersForCallable
-     *
-     * @throws Throwable
-     */
-    public function testContainerCallDefaultValueAvailable(): void
-    {
-        $iter = $this->container->call([new Dummy(), '__invoke']);
-        self::assertSame('Untitled', $iter);
-
-        $iter = $this->container->call([new Dummy(), '__invoke'], [
-            'data'=>[],
-            'text'=>'#BlackLivesMatter',
-        ]);
-        self::assertSame('#BlackLivesMatter', $iter);
     }
 
     /**
