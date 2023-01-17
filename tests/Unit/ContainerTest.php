@@ -773,6 +773,31 @@ final class ContainerTest extends TestCase
     }
 
     /**
+     * @covers \Ghostwriter\Container\Container::__construct
+     * @covers \Ghostwriter\Container\Container::__destruct
+     * @covers \Ghostwriter\Container\Container::call
+     * @covers \Ghostwriter\Container\Container::invoke
+     * @covers \Ghostwriter\Container\Container::resolve
+     * @covers \Ghostwriter\Container\Container::get
+     * @covers \Ghostwriter\Container\Container::build
+     * @covers \Ghostwriter\Container\Container::getInstance
+     * @covers \Ghostwriter\Container\Container::getParametersForCallable
+     *
+     * @throws Throwable
+     */
+    public function testContainerInvoke(): void
+    {
+        $iter = $this->container->invoke(Dummy::class);
+        self::assertSame('Untitled', $iter);
+
+        $iter = $this->container->invoke(Dummy::class, [
+            'data'=>[],
+            'text'=>'#BlackLivesMatter',
+        ]);
+        self::assertSame('#BlackLivesMatter', $iter);
+    }
+
+    /**
      * @covers \Ghostwriter\Container\Container::__destruct
      * @covers \Ghostwriter\Container\Container::add
      * @covers \Ghostwriter\Container\Container::bind
