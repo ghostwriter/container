@@ -93,7 +93,7 @@ final class ContainerTest extends TestCase
      *
      * @return Generator<string[]|string[]|class-string<TestEventListener>[]|TestEventListener[][]|array<string, TestEvent>[]|array{nullable: null}[]|Closure():void[]|TestEventListener[]>
      */
-    public function dataProviderContainerCallables(): Generator
+    public static function dataProviderContainerCallables(): Generator
     {
         yield 'AnonymousFunctionCall' => [static function (TestEvent $testEvent): void {
             $testEvent->collect($testEvent::class);
@@ -118,7 +118,7 @@ final class ContainerTest extends TestCase
      *
      * @return Generator<Closure():string[]|void[]>
      */
-    public function dataProviderContainerExceptions(): Generator
+    public static function dataProviderContainerExceptions(): Generator
     {
         yield 'ServiceProviderMustBeSubclassOfServiceProviderInterfaceException' => [
             ServiceProviderMustBeSubclassOfServiceProviderInterfaceException::class,
@@ -127,7 +127,7 @@ final class ContainerTest extends TestCase
 
         yield 'CircularDependencyException' => [
             CircularDependencyException::class,
-            static fn (Container $container) => $container->build(ClassA::class),
+            static fn (Container $container): ClassA => $container->build(ClassA::class),
         ];
 
         yield 'ServiceIdMustBeNonEmptyStringException@bind-empty-abstract' => [
@@ -165,7 +165,7 @@ final class ContainerTest extends TestCase
 
         yield 'ServiceIdMustBeNonEmptyStringException@resolve-via-has' => [
             ServiceIdMustBeNonEmptyStringException::class,
-            static fn (Container $container) => $container->has(''),
+            static fn (Container $container): bool => $container->has(''),
         ];
 
         yield 'ServiceTagMustBeNonEmptyStringException@tag' => [
@@ -195,12 +195,12 @@ final class ContainerTest extends TestCase
 
         yield 'DontSerializeException' => [
             DontSerializeException::class,
-            static fn (Container $container) => serialize($container),
+            static fn (Container $container): string => serialize($container),
         ];
 
         yield 'DontUnserializeException' => [
             DontUnserializeException::class,
-            static fn (Container $container) => unserialize(
+            static fn (Container $container): mixed => unserialize(
                 // mocks a serialized Container::class
                 sprintf('O:%s:"%s":0:{}', mb_strlen($container::class), $container::class)
             ),
@@ -222,7 +222,7 @@ final class ContainerTest extends TestCase
         yield 'ServiceAlreadyRegisteredException@set-existing-factory' => [
             ServiceAlreadyRegisteredException::class,
             static function (Container $container): void {
-                $container->set('container-factory', static fn () => new stdClass());
+                $container->set('container-factory', static fn (): stdClass => new stdClass());
                 $container->set('container-factory', $container);
             },
         ];
@@ -239,7 +239,10 @@ final class ContainerTest extends TestCase
         yield 'ServiceAlreadyRegisteredException@bind-existing-factory' => [
             ServiceAlreadyRegisteredException::class,
             static function (Container $container): void {
-                $container->set('bind', static fn (Container $container) => $container->build(stdClass::class));
+                $container->set(
+                    'bind',
+                    static fn (Container $container): stdClass => $container->build(stdClass::class)
+                );
                 $container->bind('bind', stdClass::class);
             },
         ];
@@ -287,7 +290,7 @@ final class ContainerTest extends TestCase
 
         yield 'ServiceNotFoundException::missingServiceId@get' => [
             ServiceNotFoundException::class,
-            static fn (Container $container) => $container->get('dose-not-exist'),
+            static fn (Container $container): string => $container->get('dose-not-exist'),
         ];
 
         yield 'ServiceIdMustBeNonEmptyStringException@alias' => [
@@ -314,7 +317,7 @@ final class ContainerTest extends TestCase
 
         yield 'NotInstantiableException::abstractClassOrInterface' => [
             NotInstantiableException::class,
-            static fn (Container $container) => $container->build(Throwable::class),
+            static fn (Container $container): Throwable => $container->build(Throwable::class),
         ];
 
         yield 'ClassDoseNotExistException' => [
@@ -337,16 +340,16 @@ final class ContainerTest extends TestCase
         ];
     }
 
-    /** @return iterable<string,array> */
-    public function dataProviderPropertyAccessorMagicMethods(): iterable
+    /** @return Generator<string,array> */
+    public static function dataProviderPropertyAccessorMagicMethods(): Generator
     {
         foreach (['__get', '__isset', '__set', '__unset'] as $method) {
             yield $method => [$method];
         }
     }
 
-    /** @return iterable<string,array> */
-    public function dataProviderServiceClasses(): iterable
+    /** @return Generator<string,array> */
+    public static function dataProviderServiceClasses(): Generator
     {
         yield ArrayConstructor::class => [ArrayConstructor::class,
             [
@@ -416,8 +419,8 @@ final class ContainerTest extends TestCase
         yield self::class => [self::class];
     }
 
-    /** @return iterable<string,array> */
-    public function dataProviderServices(): iterable
+    /** @return Generator<string,array> */
+    public static function dataProviderServices(): Generator
     {
         $object = new stdClass();
         $closure = static fn (Container $container): string => 'closure-called';
@@ -880,8 +883,8 @@ final class ContainerTest extends TestCase
      *
      * @dataProvider dataProviderServices
      *
-     * @param bool|Closure():null|float|int|stdClass|string|string[] $value
-     * @param null|bool|float|int|stdClass|string|string[]           $expected
+     * @param null|bool|Closure():null|float|int|stdClass|string|string[] $value
+     * @param null|bool|float|int|stdClass|string|string[]                $expected
      *
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
@@ -996,12 +999,10 @@ final class ContainerTest extends TestCase
      */
     public function testNotFoundExceptionImplementsContainerNotFoundExceptionInterface(): void
     {
-        try {
-            $this->container->get('not-found');
-        } catch (Throwable $throwable) {
-            self::assertInstanceOf(ContainerExceptionInterface::class, $throwable);
-            self::assertInstanceOf(NotFoundExceptionInterface::class, $throwable);
-            self::assertInstanceOf(ServiceNotFoundException::class, $throwable);
-        }
+        $this->expectException(ServiceNotFoundException::class);
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(NotFoundExceptionInterface::class);
+
+        $this->container->get('not-found');
     }
 }
