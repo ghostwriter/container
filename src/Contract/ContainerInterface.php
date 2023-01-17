@@ -119,6 +119,22 @@ interface ContainerInterface extends ArrayAccess
     public function build(string $class, array $arguments = []): object;
 
     /**
+     * Call any callable class or closure with optional arguments.
+     *
+     * @template TValue
+     * @template TService
+     *
+     * @param callable(TValue):TService $callback
+     * @param array<string,TValue>      $arguments optional arguments passed to $callback
+     *
+     * @throws ReflectionException
+     * @throws Throwable
+     *
+     * @return TService
+     */
+    public function call(callable $callback, array $arguments = []): mixed;
+
+    /**
      * "Extend" a service object in the container.
      *
      * @template TObject of object
@@ -163,20 +179,18 @@ interface ContainerInterface extends ArrayAccess
     public function has(string $id): bool;
 
     /**
-     * Call any callable class or closure with optional arguments.
+     * Invoke an invokable class with optional arguments.
      *
+     * @template TInvokable of object
+     * @template TInvokableReturn
      * @template TValue
-     * @template TService
      *
-     * @param callable(TValue):TService $callback
-     * @param array<string,TValue>      $arguments optional arguments passed to $callback
+     * @param class-string<TInvokable> $invokable
+     * @param array<string,TValue>     $arguments optional arguments passed to $invokable
      *
-     * @throws ReflectionException
-     * @throws Throwable
-     *
-     * @return TService
+     * @return TInvokableReturn
      */
-    public function call(callable $callback, array $arguments = []): mixed;
+    public function invoke(string $invokable, array $arguments = []): mixed;
 
     /** @param string $offset */
     public function offsetExists(mixed $offset): bool;
