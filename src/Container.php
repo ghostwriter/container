@@ -311,6 +311,58 @@ final class Container implements ContainerInterface
         return $this->services[self::SERVICES][$class] = $service;
     }
 
+    public function call(callable $callback, array $arguments = []): mixed
+    {
+        $closure = Closure::fromCallable($callback);
+
+        return $closure(
+            ...array_reduce(
+                iterator_to_array($this->getParametersForCallable($closure)),
+                function (array $parameters, ReflectionParameter $reflectionParameter) use ($arguments): array {
+                    $parameterName = $reflectionParameter->getName();
+
+                    if (array_key_exists($parameterName, $arguments)) {
+                        $parameters[$parameterName] = $arguments[$parameterName];
+                        unset($arguments[$parameterName]);
+
+                        return $parameters;
+                    }
+
+                    $reflectionType = $reflectionParameter->getType();
+
+                    if ($reflectionType instanceof ReflectionNamedType && ! $reflectionType->isBuiltin()) {
+                        $parameters[$parameterName] = $this->get($reflectionType->getName());
+
+                        return $parameters;
+                    }
+
+                    if ([] !== $arguments) {
+                        return $parameters;
+                    }
+
+                    $isDefaultValueAvailable = $reflectionParameter->isDefaultValueAvailable();
+
+                    if ($isDefaultValueAvailable) {
+                        $parameters[$parameterName] = $reflectionParameter->getDefaultValue();
+
+                        return $parameters;
+                    }
+
+                    return match (true) {
+                        $reflectionParameter->isOptional() => $parameters,
+                        default => throw new UnresolvableParameterException(
+                            $parameterName,
+                            $reflectionParameter->getDeclaringClass()?->getName() ?? '',
+                            $reflectionParameter->getDeclaringFunction()
+                                ->getName()
+                        )
+                    };
+                },
+                []
+            )
+        );
+    }
+
     public function extend(string $class, callable $extension): void
     {
         if ('' === trim($class)) {
@@ -379,56 +431,12 @@ final class Container implements ContainerInterface
             array_key_exists($id, $this->services[self::ALIASES]);
     }
 
-    public function call(callable $callback, array $arguments = []): mixed
+    public function invoke(string $invokable, array $arguments = []): mixed
     {
-        $closure = Closure::fromCallable($callback);
+        /** @var callable $callable */
+        $callable = $this->get($invokable);
 
-        return $closure(
-            ...array_reduce(
-                iterator_to_array($this->getParametersForCallable($closure)),
-                function (array $parameters, ReflectionParameter $reflectionParameter) use ($arguments): array {
-                    $parameterName = $reflectionParameter->getName();
-
-                    if (array_key_exists($parameterName, $arguments)) {
-                        $parameters[$parameterName] = $arguments[$parameterName];
-                        unset($arguments[$parameterName]);
-
-                        return $parameters;
-                    }
-
-                    $reflectionType = $reflectionParameter->getType();
-
-                    if ($reflectionType instanceof ReflectionNamedType && ! $reflectionType->isBuiltin()) {
-                        $parameters[$parameterName] = $this->get($reflectionType->getName());
-
-                        return $parameters;
-                    }
-
-                    if ([] !== $arguments) {
-                        return $parameters;
-                    }
-
-                    $isDefaultValueAvailable = $reflectionParameter->isDefaultValueAvailable();
-
-                    if ($isDefaultValueAvailable) {
-                        $parameters[$parameterName] = $reflectionParameter->getDefaultValue();
-
-                        return $parameters;
-                    }
-
-                    return match (true) {
-                        $reflectionParameter->isOptional() => $parameters,
-                        default => throw new UnresolvableParameterException(
-                            $parameterName,
-                            $reflectionParameter->getDeclaringClass()?->getName() ?? '',
-                            $reflectionParameter->getDeclaringFunction()
-                                ->getName()
-                        )
-                    };
-                },
-                []
-            )
-        );
+        return $this->call($callable, $arguments);
     }
 
     public function offsetExists(mixed $offset): bool
