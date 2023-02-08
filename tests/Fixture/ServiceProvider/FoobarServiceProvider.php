@@ -24,6 +24,5 @@ class FoobarServiceProvider implements ServiceProviderInterface
         $container->bind(Foo::class);
         $container->bind(Bar::class);
         $container->bind(Baz::class);
-        $container->add('foobar', $container->get(FoobarExtension::class));
     }
 }
