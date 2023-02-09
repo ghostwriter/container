@@ -4,32 +4,16 @@ declare(strict_types=1);
 
 namespace Ghostwriter\Container\Contract;
 
-use ArrayAccess;
+use Closure;
 use Generator;
-use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Contract\Exception\NotFoundExceptionInterface;
-use Ghostwriter\Container\Exception\CircularDependencyException;
-use Ghostwriter\Container\Exception\ClassDoseNotExistException;
-use Ghostwriter\Container\Exception\DontCloneException;
-use Ghostwriter\Container\Exception\DontSerializeException;
-use Ghostwriter\Container\Exception\DontUnserializeException;
-use Ghostwriter\Container\Exception\NotInstantiableException;
-use Ghostwriter\Container\Exception\ServiceAliasMustBeNonEmptyStringException;
-use Ghostwriter\Container\Exception\ServiceAlreadyRegisteredException;
-use Ghostwriter\Container\Exception\ServiceCannotAliasItselfException;
-use Ghostwriter\Container\Exception\ServiceExtensionAlreadyRegisteredException;
-use Ghostwriter\Container\Exception\ServiceIdMustBeNonEmptyStringException;
-use Ghostwriter\Container\Exception\ServiceNotFoundException;
-use Ghostwriter\Container\Exception\ServiceProviderAlreadyRegisteredException;
-use Ghostwriter\Container\Exception\ServiceProviderMustBeSubclassOfServiceProviderInterfaceException;
-use Ghostwriter\Container\Exception\ServiceTagMustBeNonEmptyStringException;
 use ReflectionException;
 use Throwable;
 
 /**
  * An extendable, closure based dependency injection container.
  */
-interface ContainerInterface extends ArrayAccess
+interface ContainerInterface
 {
     /**
      * Remove all registered services from this container and reset the default services.
@@ -37,112 +21,79 @@ interface ContainerInterface extends ArrayAccess
     public function __destruct();
 
     /**
-     * @throws DontCloneException if "__clone()" method is called
+     * @throws ContainerExceptionInterface if "__clone()" method is called
      */
     public function __clone();
 
     /**
-     * @throws NotFoundExceptionInterface
-     * @throws ContainerExceptionInterface
-     */
-    public function __get(string $name): mixed;
-
-    public function __isset(string $name): bool;
-
-    /**
-     * @throws DontSerializeException if "__serialize()" method is called
+     * @throws ContainerExceptionInterface if "__serialize()" method is called
      */
     public function __serialize(): array;
 
     /**
-     * @throws NotFoundExceptionInterface
-     * @throws ContainerExceptionInterface
-     */
-    public function __set(string $name, mixed $value): void;
-
-    /**
-     * @throws DontUnserializeException if "__unserialize()" method is called
+     * @throws ContainerExceptionInterface if "__unserialize()" method is called
      */
     public function __unserialize(array $data): void;
 
     /**
+     * Provide an alternative name for a registered service.
+     *
      * @throws NotFoundExceptionInterface
      * @throws ContainerExceptionInterface
      */
-    public function __unset(string $name): void;
-
-    /**
-     * Add a service extension.
-     *
-     * @throws ServiceExtensionAlreadyRegisteredException if $extension is already registered
-     */
-    public function add(string $id, ExtensionInterface $extension): void;
-
-    /**
-     * Provide an alternative name for a registered service.
-     *
-     * @throws ServiceCannotAliasItselfException         if $alias and $id are the same
-     * @throws ServiceAliasMustBeNonEmptyStringException if $alias is empty
-     * @throws ServiceIdMustBeNonEmptyStringException    if $id is empty
-     * @throws ServiceNotFoundException                  if $id has not been registered
-     */
-    public function alias(string $id, string $alias): void;
+    public function alias(string $abstract, string $concrete): void;
 
     /**
      * Bind abstract classes or interfaces to concrete implementations.
      *
-     * @param iterable<string> $tags
+     * @param array<string> $tags
      *
-     * @throws ServiceIdMustBeNonEmptyStringException if $concrete is empty
-     * @throws ServiceIdMustBeNonEmptyStringException if $abstract is empty
-     * @throws ServiceAlreadyRegisteredException      if $abstract is already registered
+     * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
      */
-    public function bind(string $abstract, ?string $concrete = null, iterable $tags = []): void;
+    public function bind(string $abstract, ?string $concrete = null, array $tags = []): void;
 
     /**
      * Create an object using the given Container to resolve dependencies.
      *
      * @template TObject of object
      *
-     * @param class-string<TObject> $class     the class name
-     * @param array<string,mixed>   $arguments optional constructor arguments passed to build the new class instance
+     * @param class-string<TObject> $class the class name
+     * @param array<string,mixed> $arguments optional constructor arguments passed to build the new class instance
      *
-     * @throws ServiceIdMustBeNonEmptyStringException if $id is empty
-     * @throws NotFoundExceptionInterface             if no entry was found for **this** identifier
-     * @throws ContainerExceptionInterface            if there is an error while retrieving the entry
-     * @throws CircularDependencyException            if a circular dependency is detected
-     * @throws NotInstantiableException               if $class is not instantiable; (is an interface or an abstract class)
-     * @throws ClassDoseNotExistException             if $class is not instantiable; (is an interface or an abstract class)
+     * @throws NotFoundExceptionInterface if no entry was found for **this** identifier
+     * @throws ContainerExceptionInterface if there is an error while retrieving the entry
      *
      * @return TObject
      */
     public function build(string $class, array $arguments = []): object;
 
     /**
-     * Call any callable class or closure with optional arguments.
+     * Call an invokable class or closure with optional arguments.
      *
      * @template TValue
-     * @template TService
+     * @template TReturn
      *
-     * @param callable(TValue):TService $callback
-     * @param array<string,TValue>      $arguments optional arguments passed to $callback
+     * @param callable(array<string,TValue>):class-string<Closure(array<string,TValue>):TReturn>|TReturn $invokable
+     * @param array<string,TValue> $arguments optional arguments passed to $callback
      *
      * @throws ReflectionException
      * @throws Throwable
      *
-     * @return TService
+     * @return TReturn
      */
-    public function call(callable $callback, array $arguments = []): mixed;
+    public function call(callable|string $invokable, array $arguments = []): mixed;
 
     /**
      * "Extend" a service object in the container.
      *
      * @template TObject of object
      *
-     * @param class-string<TObject>          $class     the class name
+     * @param class-string<TObject> $class the class name
      * @param callable(self,TObject):TObject $extension the callable
      *
-     * @throws ServiceIdMustBeNonEmptyStringException if $class is empty
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function extend(string $class, callable $extension): void;
 
@@ -156,13 +107,8 @@ interface ContainerInterface extends ArrayAccess
      *
      * @param class-string<TObject>|string $id
      *
-     * @throws ServiceIdMustBeNonEmptyStringException if $id is empty
-     * @throws ServiceNotFoundException               if $id is not registered
-     * @throws CircularDependencyException            if a circular dependency is detected
-     * @throws NotInstantiableException               if $class is not instantiable; (is an interface or an abstract class)
-     * @throws ClassDoseNotExistException             if $class is not instantiable; (is an interface or an abstract class)
-     * @throws NotFoundExceptionInterface             if no entry was found for **this** identifier
-     * @throws ContainerExceptionInterface            If error while retrieving the entry
+     * @throws NotFoundExceptionInterface if no entry was found for the given identifier
+     * @throws ContainerExceptionInterface If error while retrieving the entry
      *
      * @return ($id is class-string ? TObject : TService)
      */
@@ -179,44 +125,12 @@ interface ContainerInterface extends ArrayAccess
     public function has(string $id): bool;
 
     /**
-     * Invoke an invokable class with optional arguments.
-     *
-     * @template TInvokable of object
-     * @template TInvokableReturn
-     * @template TValue
-     *
-     * @param class-string<TInvokable> $invokable
-     * @param array<string,TValue>     $arguments optional arguments passed to $invokable
-     *
-     * @return TInvokableReturn
-     */
-    public function invoke(string $invokable, array $arguments = []): mixed;
-
-    /** @param string $offset */
-    public function offsetExists(mixed $offset): bool;
-
-    /**
-     * @param string $offset
-     *
-     * @throws Throwable
-     */
-    public function offsetGet(mixed $offset): mixed;
-
-    /** @param string $offset */
-    public function offsetSet(mixed $offset, mixed $value): void;
-
-    /** @param string $offset */
-    public function offsetUnset(mixed $offset): void;
-
-    /**
      * Register a ServiceProvider class.
      *
      * Note: Service providers are automatically registered via `build` or `get` method.
      *
      * @param class-string<ServiceProviderInterface> $serviceProvider
      *
-     * @throws ServiceProviderAlreadyRegisteredException                        if the ServiceProvider is already registered
-     * @throws ServiceProviderMustBeSubclassOfServiceProviderInterfaceException if the ServiceProvider is not a subclass of ServiceProviderInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
@@ -225,8 +139,8 @@ interface ContainerInterface extends ArrayAccess
     /**
      * Remove a registered service.
      *
-     * @throws ServiceIdMustBeNonEmptyStringException if the service $id is empty
-     * @throws ServiceNotFoundException               if the service $id is not registered
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function remove(string $id): void;
 
@@ -235,18 +149,16 @@ interface ContainerInterface extends ArrayAccess
      *
      * @template TService
      *
-     * @param TService         $value
-     * @param iterable<string> $tags
-     *
-     * @throws ServiceIdMustBeNonEmptyStringException if the service $id is empty
-     * @throws ServiceAlreadyRegisteredException      if the service $id is already registered
+     * @param TService $value
+     * @param array<string> $tags
      */
-    public function replace(string $id, mixed $value, iterable $tags = []): void;
+    public function replace(string $id, mixed $value, array $tags = []): void;
 
     /**
      * Resolves an alias to the service id.
      *
-     * @throws ServiceIdMustBeNonEmptyStringException if the service $id is empty
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function resolve(string $id): string;
 
@@ -255,31 +167,26 @@ interface ContainerInterface extends ArrayAccess
      *
      * @template TService
      *
-     * @param TService         $value
-     * @param iterable<string> $tags
-     *
-     * @throws ServiceIdMustBeNonEmptyStringException if the service $id is empty
-     * @throws ServiceAlreadyRegisteredException      if the service $id is already registered
+     * @param TService $value
+     * @param array<string> $tags
      */
-    public function set(string $id, mixed $value, iterable $tags = []): void;
+    public function set(string $id, mixed $value, array $tags = []): void;
 
     /**
      * Assign a set of tags to a given service id.
      *
-     * @param iterable<string> $tags
-     *
-     * @throws ServiceIdMustBeNonEmptyStringException  if the service $id is empty
-     * @throws ServiceTagMustBeNonEmptyStringException if a service tag in $tags is empty
+     * @param array<string> $tags
      */
-    public function tag(string $id, iterable $tags): void;
+    public function tag(string $id, array $tags): void;
 
     /**
      * Resolve services for a given tag.
      *
-     * @template TService
      * @template TObject of object
      *
-     * @return Generator<TObject|TService>
+     * @param class-string<TObject> $tag
+     *
+     * @return Generator<TObject>
      */
     public function tagged(string $tag): Generator;
 }
