@@ -6,5 +6,4 @@ namespace Ghostwriter\Container\Tests\Fixture;
 
 interface DummyInterface
 {
-    public function __construct();
 }
