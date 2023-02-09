@@ -6,14 +6,14 @@ namespace Ghostwriter\Container\Tests\Fixture;
 
 class Dummy implements DummyInterface
 {
-    public function __construct()
+    public function __construct(private DummyFactory $dummyFactory)
     {
     }
 
     public function __invoke(
-        array $data = [],
-        string $text = 'Untitled',
+        array $data = ['Text'],
+        string $text = 'Untitled %s',
     ): string {
-        return sprintf($text, ...$data);
+        return sprintf($text, ...array_values($data));
     }
 }
