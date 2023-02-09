@@ -29,7 +29,7 @@
     "require-dev": {
         "ghostwriter/coding-standard": "dev-main"
     },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
