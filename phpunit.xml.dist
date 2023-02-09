@@ -1,32 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
-         bootstrap="vendor/autoload.php"
-         cacheResultFile=".cache/phpunit/test-results"
-         executionOrder="depends,defects"
-         forceCoversAnnotation="true"
-         beStrictAboutCoversAnnotation="true"
-         beStrictAboutOutputDuringTests="true"
-         beStrictAboutTodoAnnotatedTests="true"
-         failOnRisky="true"
-         failOnWarning="true"
-         colors="true"
-         stopOnFailure="true"
-         testdox="true"
-         verbose="true">
-    <testsuites>
-        <testsuite name="Unit">
-            <directory>tests/Unit</directory>
-        </testsuite>
-    </testsuites>
-    <coverage cacheDirectory=".cache/phpunit/code-coverage"
-              processUncoveredFiles="true">
-        <include>
-            <directory suffix=".php">src</directory>
-        </include>
-        <report>
-            <html outputDirectory=".cache/phpunit/coverage-html"/>
-            <clover outputFile=".cache/phpunit/coverage.xml"/>
-        </report>
-    </coverage>
+<phpunit
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.0/phpunit.xsd"
+    beStrictAboutTestsThatDoNotTestAnything="true"
+    beStrictAboutCoverageMetadata="true"
+    beStrictAboutOutputDuringTests="true"
+    bootstrap="vendor/autoload.php"
+    cacheDirectory=".cache/phpunit"
+    cacheResult="false"
+    cacheResultFile=".cache/phpunit/test-results"
+    displayDetailsOnTestsThatTriggerDeprecations="true"
+    displayDetailsOnIncompleteTests="true"
+    displayDetailsOnSkippedTests="true"
+    displayDetailsOnTestsThatTriggerErrors="true"
+    displayDetailsOnTestsThatTriggerNotices="true"
+    displayDetailsOnTestsThatTriggerWarnings="true"
+    colors="true"
+    executionOrder="depends,defects"
+    failOnEmptyTestSuite="true"
+    failOnRisky="true"
+    failOnWarning="true"
+    requireCoverageMetadata="true"
+    stopOnFailure="true"
+    stopOnRisky="true"
+    stopOnDefect="true"
+    testdox="true"
+    >
+  <testsuites>
+    <testsuite name="Unit">
+      <directory>tests/Unit</directory>
+    </testsuite>
+  </testsuites>
+  <coverage cacheDirectory=".cache/phpunit/code-coverage" includeUncoveredFiles="true">
+    <include>
+      <directory suffix=".php">src</directory>
+    </include>
+    <report>
+      <html outputDirectory=".cache/phpunit/coverage-html"/>
+      <clover outputFile=".cache/phpunit/coverage.xml"/>
+      <text outputFile=".cache/phpunit/coverage.txt"/>
+    </report>
+  </coverage>
 </phpunit>
