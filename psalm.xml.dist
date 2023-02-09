@@ -1,14 +1,19 @@
 <?xml version="1.0"?>
 <psalm
+    addParamDefaultToDocblockType="true"
+    allowStringToStandInForClass="true"
+    cacheDirectory=".cache/psalm"
     checkForThrowsDocblock="true"
     checkForThrowsInGlobalScope="true"
-    errorLevel="1"
-    errorBaseline="psalm-baseline.xml"
     ensureArrayIntOffsetsExist="true"
     ensureArrayStringOffsetsExist="true"
+    errorBaseline="psalm-baseline.xml"
+    errorLevel="1"
+    findUnusedBaselineEntry="true"
+    findUnusedCode="true"
     findUnusedPsalmSuppress="true"
     findUnusedVariablesAndParams="true"
-    findUnusedCode="true"
+    phpVersion="8.1"
     runTaintAnalysis="true"
     strictBinaryOperands="true"
     throwExceptionOnError="true"
@@ -19,8 +24,8 @@
 >
     <projectFiles>
         <directory name="src"/>
-        <directory name="tests"/>
         <ignoreFiles>
+            <directory name="tests"/>
             <directory name="tests/Fixture"/>
             <directory name="vendor"/>
         </ignoreFiles>
