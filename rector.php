@@ -60,7 +60,7 @@ return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->importShortClasses();
     $rectorConfig->parallel();
     $rectorConfig->sets([
-        PHPUnitLevelSetList::UP_TO_PHPUNIT_90,
+        PHPUnitLevelSetList::UP_TO_PHPUNIT_100,
         LevelSetList::UP_TO_PHP_81,
         DowngradeLevelSetList::DOWN_TO_PHP_81,
         DowngradeSetList::PHP_81,
@@ -75,7 +75,7 @@ return static function (RectorConfig $rectorConfig): void {
         SetList::PHP_81,
     ]);
     $rectorConfig->paths([__DIR__ . '/src', __DIR__ . '/tests', __DIR__ . '/ecs.php', __DIR__ . '/rector.php']);
-    $rectorConfig->phpVersion(PhpVersion::PHP_80);
+    $rectorConfig->phpVersion(PhpVersion::PHP_81);
 
     // prefer self:: over $this for phpunit
     $rectorConfig->ruleWithConfiguration(
