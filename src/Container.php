@@ -31,50 +31,34 @@ use function trim;
  */
 final class Container implements ContainerInterface
 {
-    private const DEFAULT_ALIASES = [
-        ContainerInterface::class => self::class,
+    private const DEFAULT = [
+        'aliases' => [
+            ContainerInterface::class => self::class,
+        ],
+        'dependencies' => [],
+        'extensions' => [],
+        'factories' => [],
+        'providers' => [],
+        'services' => [
+            self::class => 0,
+        ],
+        'tags' => [],
     ];
-
-    private const DEFAULT_SERVICES = [
-        self::class => 0,
-    ];
-
-    /**
-     * @var array<class-string|string,class-string|string>
-     */
-    private array $aliases = self::DEFAULT_ALIASES;
-
-    /**
-     * @var array<class-string|string,bool>
-     */
-    private array $dependencies = [];
-
-    /**
-     * @var array<class-string,array<array-key,callable(ContainerInterface,object):object>>
-     */
-    private array $extensions = [];
-
-    /**
-     * @var array<class-string|string,callable(ContainerInterface):object>
-     */
-    private array $factories = [];
 
     private static ?self $instance = null;
 
     /**
-     * @var array<class-string,ServiceProviderInterface>
+     * @var array{
+     *     aliases:array<class-string|string,class-string|string>,
+     *     dependencies:array<class-string|string,bool>,
+     *     extensions:array<class-string,array<array-key,callable(ContainerInterface,object):object>>,
+     *     factories:array<class-string|string,callable(ContainerInterface):object>,
+     *     providers:array<class-string,ServiceProviderInterface>,
+     *     services:array<class-string|string,callable|object|scalar>,
+     *     tags:array<class-string|string,array<class-string|string>>,
+     * }
      */
-    private array $providers = [];
-
-    /**
-     * @var array<class-string|string,callable|object|scalar>
-     */
-    private array $services = self::DEFAULT_SERVICES;
-
-    /**
-     * @var array<class-string|string,array<class-string|string>>
-     */
-    private array $tags = [];
+    private array $vault = self::DEFAULT;
 
     private function __construct()
     {
@@ -83,13 +67,7 @@ final class Container implements ContainerInterface
 
     public function __destruct()
     {
-        $this->aliases = self::DEFAULT_ALIASES;
-        $this->dependencies = [];
-        $this->extensions = [];
-        $this->factories = [];
-        $this->providers = [];
-        $this->services = self::DEFAULT_SERVICES;
-        $this->tags = [];
+        $this->vault = self::DEFAULT;
     }
 
     public function __clone()
@@ -125,7 +103,7 @@ final class Container implements ContainerInterface
             throw $this->throwNotFoundException('Service "%s" was not found.', $concrete);
         }
 
-        $this->aliases[$abstract] = $concrete;
+        $this->vault['aliases'][$abstract] = $concrete;
     }
 
     public function bind(string $abstract, ?string $concrete = null, array $tags = []): void
@@ -139,19 +117,19 @@ final class Container implements ContainerInterface
             throw $this->throwServiceIdMustBeNonEmptyString();
         }
 
-        if (array_key_exists($abstract, $this->aliases)) {
+        if (array_key_exists($abstract, $this->vault['aliases'])) {
             throw $this->throwInvalidArgument('Service AlreadyRegisteredException %s', $abstract);
         }
 
-        if (array_key_exists($abstract, $this->services)) {
+        if (array_key_exists($abstract, $this->vault['services'])) {
             throw $this->throwInvalidArgument('Service AlreadyRegisteredException %s', $abstract);
         }
 
-        if (array_key_exists($abstract, $this->factories)) {
+        if (array_key_exists($abstract, $this->vault['factories'])) {
             throw $this->throwInvalidArgument('Service AlreadyRegisteredException %s', $abstract);
         }
 
-        $this->factories[$abstract] =
+        $this->vault['factories'][$abstract] =
             static fn (ContainerInterface $container): object => $container->build($concrete);
 
         if ([] === $tags) {
@@ -171,11 +149,11 @@ final class Container implements ContainerInterface
             return $this;
         }
 
-        if (array_key_exists($class, $this->providers)) {
+        if (array_key_exists($class, $this->vault['providers'])) {
             throw $this->throwInvalidArgument('ServiceProvider "%s" is already registered.', $class);
         }
 
-        $dependencies = $this->dependencies;
+        $dependencies = $this->vault['dependencies'];
 
         if (array_key_exists($class, $dependencies)) {
             throw $this->throwNotFoundException(
@@ -201,25 +179,25 @@ final class Container implements ContainerInterface
             $service = new $class();
 
             if ($service instanceof ServiceProviderInterface) {
-                $this->providers[$class] = true;
+                $this->vault['providers'][$class] = true;
             }
 
-            return $this->services[$class] = $service;
+            return $this->vault['services'][$class] = $service;
         }
 
-        $this->dependencies[$class] = $class;
+        $this->vault['dependencies'][$class] = $class;
 
         $parameters = $this->buildParameters($reflectionMethod->getParameters(), $arguments);
 
-        unset($this->dependencies[$class]);
+        unset($this->vault['dependencies'][$class]);
 
         $service = new $class(...$parameters);
 
         if ($service instanceof ServiceProviderInterface) {
-            $this->providers[$class] = true;
+            $this->vault['providers'][$class] = true;
         }
 
-        return $this->services[$class] = $service;
+        return $this->vault['services'][$class] = $service;
     }
 
     public function call(callable|string $invokable, array $arguments = []): mixed
@@ -242,8 +220,8 @@ final class Container implements ContainerInterface
             throw $this->throwServiceIdMustBeNonEmptyString();
         }
 
-        $factories = $this->factories;
-        $extensions = $this->extensions;
+        $factories = $this->vault['factories'];
+        $extensions = $this->vault['extensions'];
 
         if (! array_key_exists($class, $extensions) &&
             ! array_key_exists($class, $factories) &&
@@ -252,7 +230,7 @@ final class Container implements ContainerInterface
             throw $this->throwNotFoundException('Service "%s" was not found.', $class);
         }
 
-        $this->extensions[$class] = array_key_exists($class, $extensions) ?
+        $this->vault['extensions'][$class] = array_key_exists($class, $extensions) ?
             static fn (
                 ContainerInterface $container,
                 object $service
@@ -271,11 +249,15 @@ final class Container implements ContainerInterface
             return $this;
         }
 
-        if (array_key_exists($id, $this->services)) {
-            return $this->services[$id];
+        if (array_key_exists($id, $this->vault)) {
+            return $this->vault[$id];
         }
 
-        $factories = $this->factories;
+        if (array_key_exists($id, $this->vault['services'])) {
+            return $this->vault['services'][$id];
+        }
+
+        $factories = $this->vault['factories'];
 
         if (! array_key_exists($id, $factories) && ! class_exists($id)) {
             throw $this->throwNotFoundException('Service "%s" was not found.', $id);
@@ -283,9 +265,9 @@ final class Container implements ContainerInterface
 
         $serviceFactory = $factories[$id] ?? static fn (Container $container): object => $container->build($id);
 
-        $extensions = $this->extensions;
+        $extensions = $this->vault['extensions'];
 
-        return $this->services[$id] = array_key_exists($id, $extensions) ?
+        return $this->vault['services'][$id] = array_key_exists($id, $extensions) ?
             $extensions[$id]($this, $serviceFactory($this)) :
             $serviceFactory($this);
     }
@@ -299,9 +281,9 @@ final class Container implements ContainerInterface
     {
         $id = $this->resolve($id);
 
-        return array_key_exists($id, $this->services) ||
-            array_key_exists($id, $this->factories) ||
-            array_key_exists($id, $this->aliases);
+        return array_key_exists($id, $this->vault['services']) ||
+            array_key_exists($id, $this->vault['factories']) ||
+            array_key_exists($id, $this->vault['aliases']);
     }
 
     public function register(string $serviceProvider): void
@@ -328,11 +310,11 @@ final class Container implements ContainerInterface
         }
 
         unset(
-            $this->aliases[$id],
-            $this->extensions[$id],
-            $this->factories[$id],
-            $this->services[$id],
-            $this->tags[$id]
+            $this->vault['aliases'][$id],
+            $this->vault['extensions'][$id],
+            $this->vault['factories'][$id],
+            $this->vault['services'][$id],
+            $this->vault['tags'][$id]
         );
     }
 
@@ -348,8 +330,9 @@ final class Container implements ContainerInterface
             throw $this->throwServiceIdMustBeNonEmptyString();
         }
 
-        while (array_key_exists($id, $this->aliases)) {
-            $id = $this->aliases[$id];
+        $aliases = $this->vault['aliases'];
+        while (array_key_exists($id, $aliases)) {
+            $id = $aliases[$id];
         }
 
         return $id;
@@ -361,25 +344,23 @@ final class Container implements ContainerInterface
             throw $this->throwServiceIdMustBeNonEmptyString();
         }
 
-        if (array_key_exists($id, $this->services)) {
+        if (array_key_exists($id, $this->vault['services'])) {
             throw $this->throwServiceAlreadyRegisteredException($id);
         }
 
-        if (array_key_exists($id, $this->factories)) {
+        if (array_key_exists($id, $this->vault['factories'])) {
             throw $this->throwServiceAlreadyRegisteredException($id);
         }
 
-        if (array_key_exists($id, $this->aliases)) {
+        if (array_key_exists($id, $this->vault['aliases'])) {
             throw $this->throwServiceAlreadyRegisteredException($id);
         }
 
-        /** @var array<string> $factoryOrService */
-        $factoryOrService = &$this->services;
         if (is_callable($value)) {
-            $factoryOrService = &$this->factories;
+            $this->vault['factories'][$id] = $value;
+        } else {
+            $this->vault['services'][$id] = $value;
         }
-
-        $factoryOrService[$id] = $value;
 
         if ([] === $tags) {
             return;
@@ -394,7 +375,7 @@ final class Container implements ContainerInterface
             throw $this->throwServiceIdMustBeNonEmptyString();
         }
 
-        $serviceTags = $this->tags;
+        $serviceTags = $this->vault['tags'];
 
         foreach ($tags as $tag) {
             if ('' === trim($tag)) {
@@ -404,13 +385,16 @@ final class Container implements ContainerInterface
             $serviceTags[$tag][$id] ??= $id;
         }
 
-        $this->tags = $serviceTags;
+        $this->vault['tags'] = $serviceTags;
     }
 
+    /**
+     * @return Generator<int, object, mixed, void>
+     */
     public function tagged(string $tag): Generator
     {
         /** @var class-string|string $service */
-        foreach ($this->tags[$tag] ?? [] as $service) {
+        foreach ($this->vault['tags'][$tag] ?? [] as $service) {
             yield $this->get($service);
         }
     }
@@ -457,14 +441,14 @@ final class Container implements ContainerInterface
     /**
      * @throws ReflectionException
      *
-     * @return Generator<ReflectionParameter>
+     * @return Generator<int<0, max>, ReflectionParameter, mixed, void>
      */
     private function getParametersForCallable(Closure $closure): Generator
     {
         yield from (new ReflectionFunction($closure))->getParameters();
     }
 
-    private function throwContainerException(string $message, mixed ...$values): ContainerExceptionInterface
+    private function throwContainerException(string $message, string ...$values): ContainerExceptionInterface
     {
         return new class(sprintf(
             $message,
@@ -473,7 +457,7 @@ final class Container implements ContainerInterface
         };
     }
 
-    private function throwInvalidArgument(string $message, mixed ...$values): ContainerExceptionInterface
+    private function throwInvalidArgument(string $message, string ...$values): ContainerExceptionInterface
     {
         return new class(sprintf(
             $message,
@@ -482,7 +466,7 @@ final class Container implements ContainerInterface
         };
     }
 
-    private function throwNotFoundException(string $message, mixed ...$values): NotFoundExceptionInterface
+    private function throwNotFoundException(string $message, string ...$values): NotFoundExceptionInterface
     {
         return new class(sprintf($message, ...$values)) extends RuntimeException implements NotFoundExceptionInterface {
         };
