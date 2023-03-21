@@ -301,7 +301,7 @@ final class ContainerTest extends TestCase
         ];
     }
 
-    public function dataProviderServiceNotFoundException(): Generator
+    public static function dataProviderServiceNotFoundException(): Generator
     {
         yield 'ServiceNotFoundException::missingServiceId@get' => [
             static fn (Container $container): string => $container->get('dose-not-exist'),
@@ -341,7 +341,7 @@ final class ContainerTest extends TestCase
         yield 'callable' => ['closure', $closure, 'closure-called'];
     }
 
-    public function dataProviderServiceTagMustBeNonEmptyStringException(): Generator
+    public static function dataProviderServiceTagMustBeNonEmptyStringException(): Generator
     {
         yield 'ServiceTagMustBeNonEmptyStringException@empty' => [
             static fn (Container $container) => $container->tag(Container::class, ['']),
