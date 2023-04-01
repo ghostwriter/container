@@ -11,6 +11,7 @@ use Ghostwriter\Container\Contract\ContainerExceptionInterface;
 use Ghostwriter\Container\Contract\ContainerInterface;
 use Ghostwriter\Container\Contract\Exception\NotFoundExceptionInterface;
 use Ghostwriter\Container\Contract\ServiceProviderInterface;
+use Ghostwriter\Container\Reflector;
 use Ghostwriter\Container\Tests\Fixture\Bar;
 use Ghostwriter\Container\Tests\Fixture\Baz;
 use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassA;
@@ -46,6 +47,7 @@ use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Small;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 use Throwable;
@@ -58,6 +60,7 @@ use function sprintf;
 use function unserialize;
 
 #[CoversClass(Container::class)]
+#[UsesClass(Reflector::class)]
 #[Small]
 /**
  * @internal
