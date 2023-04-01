@@ -11,7 +11,6 @@ use Ghostwriter\Container\Contract\ContainerInterface;
 use Ghostwriter\Container\Contract\Exception\NotFoundExceptionInterface;
 use Ghostwriter\Container\Contract\ServiceProviderInterface;
 use InvalidArgumentException;
-use ReflectionClass;
 use ReflectionException;
 use ReflectionFunction;
 use ReflectionMethod;
@@ -31,43 +30,58 @@ use function trim;
  */
 final class Container implements ContainerInterface
 {
+    private const ALIASES = 0;
+
     private const DEFAULT = [
-        'aliases' => [
+        self::ALIASES => [
             ContainerInterface::class => self::class,
         ],
-        'dependencies' => [],
-        'extensions' => [],
-        'factories' => [],
-        'providers' => [],
-        'services' => [
+        self::DEPENDENCIES => [],
+        self::EXTENSIONS => [],
+        self::FACTORIES => [],
+        self::PROVIDERS => [],
+        self::SERVICES => [
             self::class => 0,
         ],
-        'tags' => [],
+        self::TAGS => [],
     ];
 
-    private static ?self $instance = null;
+    private const DEPENDENCIES = 1;
+
+    private const EXTENSIONS = 2;
+
+    private const FACTORIES = 3;
+
+    private const PROVIDERS = 4;
+
+    private const SERVICES = 5;
+
+    private const TAGS = 6;
 
     /**
      * @var array{
-     *     aliases:array<class-string|string,class-string|string>,
-     *     dependencies:array<class-string|string,bool>,
-     *     extensions:array<class-string,array<array-key,callable(ContainerInterface,object):object>>,
-     *     factories:array<class-string|string,callable(ContainerInterface):object>,
-     *     providers:array<class-string,ServiceProviderInterface>,
-     *     services:array<class-string|string,callable|object|scalar>,
-     *     tags:array<class-string|string,array<class-string|string>>,
+     *     0:array<class-string|string,class-string|string>,
+     *     1:array<class-string|string,bool>,
+     *     2:array<class-string,array<array-key,callable(ContainerInterface,object):object>>,
+     *     3:array<class-string|string,callable(ContainerInterface):object>,
+     *     4:array<class-string,ServiceProviderInterface>,
+     *     5:array<class-string|string,callable|object|scalar>,
+     *     6:array<class-string|string,array<class-string|string>>,
      * }
      */
-    private array $vault = self::DEFAULT;
+    private array $cache = self::DEFAULT;
 
-    private function __construct()
-    {
+    private static ?self $instance = null;
+
+    private function __construct(
+        private readonly Reflector $reflector = new Reflector()
+    ) {
         // singleton
     }
 
     public function __destruct()
     {
-        $this->vault = self::DEFAULT;
+        $this->cache = self::DEFAULT;
     }
 
     public function __clone()
@@ -103,7 +117,7 @@ final class Container implements ContainerInterface
             throw $this->throwNotFoundException('Service "%s" was not found.', $concrete);
         }
 
-        $this->vault['aliases'][$abstract] = $concrete;
+        $this->cache[self::ALIASES][$abstract] = $concrete;
     }
 
     public function bind(string $abstract, ?string $concrete = null, array $tags = []): void
@@ -117,19 +131,19 @@ final class Container implements ContainerInterface
             throw $this->throwServiceIdMustBeNonEmptyString();
         }
 
-        if (array_key_exists($abstract, $this->vault['aliases'])) {
+        if (array_key_exists($abstract, $this->cache[self::ALIASES])) {
             throw $this->throwInvalidArgument('Service AlreadyRegisteredException %s', $abstract);
         }
 
-        if (array_key_exists($abstract, $this->vault['services'])) {
+        if (array_key_exists($abstract, $this->cache[self::SERVICES])) {
             throw $this->throwInvalidArgument('Service AlreadyRegisteredException %s', $abstract);
         }
 
-        if (array_key_exists($abstract, $this->vault['factories'])) {
+        if (array_key_exists($abstract, $this->cache[self::FACTORIES])) {
             throw $this->throwInvalidArgument('Service AlreadyRegisteredException %s', $abstract);
         }
 
-        $this->vault['factories'][$abstract] =
+        $this->cache[self::FACTORIES][$abstract] =
             static fn (ContainerInterface $container): object => $container->build($concrete);
 
         if ([] === $tags) {
@@ -149,11 +163,11 @@ final class Container implements ContainerInterface
             return $this;
         }
 
-        if (array_key_exists($class, $this->vault['providers'])) {
+        if (array_key_exists($class, $this->cache[self::PROVIDERS])) {
             throw $this->throwInvalidArgument('ServiceProvider "%s" is already registered.', $class);
         }
 
-        $dependencies = $this->vault['dependencies'];
+        $dependencies = $this->cache[self::DEPENDENCIES];
 
         if (array_key_exists($class, $dependencies)) {
             throw $this->throwNotFoundException(
@@ -163,15 +177,7 @@ final class Container implements ContainerInterface
             );
         }
 
-        try {
-            $reflectionClass = new ReflectionClass($class);
-
-            if (! $reflectionClass->isInstantiable()) {
-                throw $this->throwContainerException('Class "%s" is not instantiable.', $class);
-            }
-        } catch (ReflectionException) {
-            throw $this->throwNotFoundException('Class "%s" does not exist.', $class);
-        }
+        $reflectionClass = $this->reflector->reflect($class);
 
         $reflectionMethod = $reflectionClass->getConstructor();
 
@@ -179,25 +185,25 @@ final class Container implements ContainerInterface
             $service = new $class();
 
             if ($service instanceof ServiceProviderInterface) {
-                $this->vault['providers'][$class] = true;
+                $this->cache[self::PROVIDERS][$class] = true;
             }
 
-            return $this->vault['services'][$class] = $service;
+            return $this->cache[self::SERVICES][$class] = $service;
         }
 
-        $this->vault['dependencies'][$class] = $class;
+        $this->cache[self::DEPENDENCIES][$class] = $class;
 
         $parameters = $this->buildParameters($reflectionMethod->getParameters(), $arguments);
 
-        unset($this->vault['dependencies'][$class]);
+        unset($this->cache[self::DEPENDENCIES][$class]);
 
         $service = new $class(...$parameters);
 
         if ($service instanceof ServiceProviderInterface) {
-            $this->vault['providers'][$class] = true;
+            $this->cache[self::PROVIDERS][$class] = true;
         }
 
-        return $this->vault['services'][$class] = $service;
+        return $this->cache[self::SERVICES][$class] = $service;
     }
 
     public function call(callable|string $invokable, array $arguments = []): mixed
@@ -207,7 +213,7 @@ final class Container implements ContainerInterface
             $this->get($invokable) :
             $invokable;
 
-        $closure = Closure::fromCallable($callable);
+        $closure = $callable(...);
 
         return $closure(
             ...$this->buildParameters(iterator_to_array($this->getParametersForCallable($closure)), $arguments)
@@ -220,8 +226,8 @@ final class Container implements ContainerInterface
             throw $this->throwServiceIdMustBeNonEmptyString();
         }
 
-        $factories = $this->vault['factories'];
-        $extensions = $this->vault['extensions'];
+        $factories = $this->cache[self::FACTORIES];
+        $extensions = $this->cache[self::EXTENSIONS];
 
         if (! array_key_exists($class, $extensions) &&
             ! array_key_exists($class, $factories) &&
@@ -230,7 +236,7 @@ final class Container implements ContainerInterface
             throw $this->throwNotFoundException('Service "%s" was not found.', $class);
         }
 
-        $this->vault['extensions'][$class] = array_key_exists($class, $extensions) ?
+        $this->cache[self::EXTENSIONS][$class] = array_key_exists($class, $extensions) ?
             static fn (
                 ContainerInterface $container,
                 object $service
@@ -249,15 +255,15 @@ final class Container implements ContainerInterface
             return $this;
         }
 
-        if (array_key_exists($id, $this->vault)) {
-            return $this->vault[$id];
+        if (array_key_exists($id, $this->cache)) {
+            return $this->cache[$id];
         }
 
-        if (array_key_exists($id, $this->vault['services'])) {
-            return $this->vault['services'][$id];
+        if (array_key_exists($id, $this->cache[self::SERVICES])) {
+            return $this->cache[self::SERVICES][$id];
         }
 
-        $factories = $this->vault['factories'];
+        $factories = $this->cache[self::FACTORIES];
 
         if (! array_key_exists($id, $factories) && ! class_exists($id)) {
             throw $this->throwNotFoundException('Service "%s" was not found.', $id);
@@ -265,9 +271,9 @@ final class Container implements ContainerInterface
 
         $serviceFactory = $factories[$id] ?? static fn (Container $container): object => $container->build($id);
 
-        $extensions = $this->vault['extensions'];
+        $extensions = $this->cache[self::EXTENSIONS];
 
-        return $this->vault['services'][$id] = array_key_exists($id, $extensions) ?
+        return $this->cache[self::SERVICES][$id] = array_key_exists($id, $extensions) ?
             $extensions[$id]($this, $serviceFactory($this)) :
             $serviceFactory($this);
     }
@@ -281,9 +287,9 @@ final class Container implements ContainerInterface
     {
         $id = $this->resolve($id);
 
-        return array_key_exists($id, $this->vault['services']) ||
-            array_key_exists($id, $this->vault['factories']) ||
-            array_key_exists($id, $this->vault['aliases']);
+        return array_key_exists($id, $this->cache[self::SERVICES]) ||
+            array_key_exists($id, $this->cache[self::FACTORIES]) ||
+            array_key_exists($id, $this->cache[self::ALIASES]);
     }
 
     public function register(string $serviceProvider): void
@@ -310,11 +316,11 @@ final class Container implements ContainerInterface
         }
 
         unset(
-            $this->vault['aliases'][$id],
-            $this->vault['extensions'][$id],
-            $this->vault['factories'][$id],
-            $this->vault['services'][$id],
-            $this->vault['tags'][$id]
+            $this->cache[self::ALIASES][$id],
+            $this->cache[self::EXTENSIONS][$id],
+            $this->cache[self::FACTORIES][$id],
+            $this->cache[self::SERVICES][$id],
+            $this->cache[self::TAGS][$id]
         );
     }
 
@@ -330,7 +336,7 @@ final class Container implements ContainerInterface
             throw $this->throwServiceIdMustBeNonEmptyString();
         }
 
-        $aliases = $this->vault['aliases'];
+        $aliases = $this->cache[self::ALIASES];
         while (array_key_exists($id, $aliases)) {
             $id = $aliases[$id];
         }
@@ -344,22 +350,22 @@ final class Container implements ContainerInterface
             throw $this->throwServiceIdMustBeNonEmptyString();
         }
 
-        if (array_key_exists($id, $this->vault['services'])) {
+        if (array_key_exists($id, $this->cache[self::SERVICES])) {
             throw $this->throwServiceAlreadyRegisteredException($id);
         }
 
-        if (array_key_exists($id, $this->vault['factories'])) {
+        if (array_key_exists($id, $this->cache[self::FACTORIES])) {
             throw $this->throwServiceAlreadyRegisteredException($id);
         }
 
-        if (array_key_exists($id, $this->vault['aliases'])) {
+        if (array_key_exists($id, $this->cache[self::ALIASES])) {
             throw $this->throwServiceAlreadyRegisteredException($id);
         }
 
         if (is_callable($value)) {
-            $this->vault['factories'][$id] = $value;
+            $this->cache[self::FACTORIES][$id] = $value;
         } else {
-            $this->vault['services'][$id] = $value;
+            $this->cache[self::SERVICES][$id] = $value;
         }
 
         if ([] === $tags) {
@@ -369,13 +375,16 @@ final class Container implements ContainerInterface
         $this->tag($id, $tags);
     }
 
+    /**
+     * @throws ContainerExceptionInterface
+     */
     public function tag(string $id, array $tags): void
     {
         if ('' === trim($id)) {
             throw $this->throwServiceIdMustBeNonEmptyString();
         }
 
-        $serviceTags = $this->vault['tags'];
+        $serviceTags = $this->cache[self::TAGS];
 
         foreach ($tags as $tag) {
             if ('' === trim($tag)) {
@@ -385,57 +394,67 @@ final class Container implements ContainerInterface
             $serviceTags[$tag][$id] ??= $id;
         }
 
-        $this->vault['tags'] = $serviceTags;
+        $this->cache[self::TAGS] = $serviceTags;
     }
 
     /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     *
      * @return Generator<int, object, mixed, void>
      */
     public function tagged(string $tag): Generator
     {
         /** @var class-string|string $service */
-        foreach ($this->vault['tags'][$tag] ?? [] as $service) {
+        foreach ($this->cache[self::TAGS][$tag] ?? [] as $service) {
             yield $this->get($service);
         }
     }
 
     private function buildParameters(array $reflectionParameters, array $arguments): array
     {
-        return array_map(function (ReflectionParameter $reflectionParameter) use (&$arguments) {
-            $parameterName = $reflectionParameter->getName();
-            if ([] !== $arguments) {
-                $parameterKey =  array_key_exists($parameterName, $arguments) ?
-                    $parameterName :
-                    array_key_first($arguments);
+        return array_map(
+            /**
+             * @throws ContainerExceptionInterface
+             * @throws NotFoundExceptionInterface
+             */
+            function (ReflectionParameter $reflectionParameter) use (&$arguments) {
+                $parameterName = $reflectionParameter->getName();
+                if ([] !== $arguments) {
+                    $parameterKey =  array_key_exists($parameterName, $arguments) ?
+                        $parameterName :
+                        array_key_first($arguments);
 
-                $parameter = $arguments[$parameterKey];
+                    $parameter = $arguments[$parameterKey];
 
-                unset($arguments[$parameterKey]);
+                    unset($arguments[$parameterKey]);
 
-                return $parameter;
-            }
+                    return $parameter;
+                }
 
-            if ($reflectionParameter->isDefaultValueAvailable()) {
-                return $reflectionParameter->getDefaultValue();
-            }
+                if ($reflectionParameter->isDefaultValueAvailable()) {
+                    return $reflectionParameter->getDefaultValue();
+                }
 
-            $reflectionType = $reflectionParameter->getType();
-            if ($reflectionType instanceof ReflectionNamedType && ! $reflectionType->isBuiltin()) {
-                return $this->get($reflectionType->getName());
-            }
+                $reflectionType = $reflectionParameter->getType();
+                if ($reflectionType instanceof ReflectionNamedType && ! $reflectionType->isBuiltin()) {
+                    return $this->get($reflectionType->getName());
+                }
 
-            $name  = $reflectionParameter->getDeclaringFunction()
-                ->getName();
-            $isFunction = is_callable($name);
+                $name  = $reflectionParameter->getDeclaringFunction()
+                    ->getName();
+                $isFunction = is_callable($name);
 
-            throw $this->throwNotFoundException(
-                'Unresolvable %s parameter "$%s" in "%s%s()"; does not have a default value.',
-                $isFunction ? 'function' : 'class',
-                $parameterName,
-                $isFunction ? $name : $reflectionParameter->getDeclaringClass()?->getName(),
-                $isFunction ? '' : '::' . $name
-            );
-        }, $reflectionParameters);
+                throw $this->throwNotFoundException(
+                    'Unresolvable %s parameter "$%s" in "%s%s()"; does not have a default value.',
+                    $isFunction ? 'function' : 'class',
+                    $parameterName,
+                    $isFunction ? $name : $reflectionParameter->getDeclaringClass()?->getName(),
+                    $isFunction ? '' : '::' . $name
+                );
+            },
+            $reflectionParameters
+        );
     }
 
     /**
