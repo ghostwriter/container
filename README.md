@@ -94,7 +94,7 @@ Registering a service extension on the container.
 ```php
 $container->bind(GitHubClient::class);
 $container->extend(GitHubClient::class, function (Container $container, object $client) {
-    $client->setEnterpriseUrl($client->get(GitHubClient::GITHUB_HOST));
+    $client->setEnterpriseUrl($container->get(GitHubClient::GITHUB_HOST));
 });
 
 // or
