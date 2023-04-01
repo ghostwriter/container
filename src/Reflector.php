@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Ghostwriter\Container;
 
 use Ghostwriter\Container\Contract\ContainerExceptionInterface;
-use Ghostwriter\Container\Contract\ContainerInterface;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionParameter;
@@ -15,9 +14,11 @@ final class Reflector
 {
     /**
      * @template TObject of object
+     *
      * @var array<class-string<TObject>,ReflectionClass<TObject>>
      */
     private array $cache = [];
+
     public function reflect(string $class): ReflectionClass
     {
         try {
