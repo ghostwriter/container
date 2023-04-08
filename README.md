@@ -67,8 +67,6 @@ class TasksServiceProvider implements ServiceProviderInterface
 {
     public function __invoke(ContainerInterface $container)
     {
-        $container->bind(Task::class);
-
         $container->alias(TaskInterface::class, Task::class);
 
         $container->set(Tasks::class, function (Container $container) {
@@ -92,8 +90,9 @@ $container->register(TasksServiceProvider::class);
 Registering a service extension on the container.
 
 ```php
-$container->bind(GitHubClient::class);
-$container->extend(GitHubClient::class, function (Container $container, object $client) {
+$container->alias(GitHubClientInterface::class, GitHubClient::class);
+
+$container->extend(GitHubClientInterface::class, function (Container $container, object $client) {
     $client->setEnterpriseUrl($container->get(GitHubClient::GITHUB_HOST));
 });
 
@@ -111,8 +110,8 @@ class GitHubExtension implements ExtensionInterface
     }
 }
 
-$container->bind(GitHubClient::class);
-$container->add(GitHubClient::class, $container->get(GitHubExtention::class));
+$container->alias(GitHubClientInterface::class, GitHubClient::class);
+$container->extend(GitHubClientInterface::class, $container->get(GitHubExtention::class));
 ```
 
 ### Testing
