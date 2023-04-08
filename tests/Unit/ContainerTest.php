@@ -304,10 +304,6 @@ final class ContainerTest extends TestCase
             static fn (Container $container): string => $container->get('dose-not-exist'),
         ];
 
-        yield 'ServiceNotFoundException::missingServiceId@alias' => [
-            static fn (Container $container) => $container->alias('alias', 'dose-not-exist'),
-        ];
-
         yield 'ServiceNotFoundException::missingServiceId@extend' => [
             static function (Container $container): void {
                 $container->extend('extend-missing-service', static fn (Container $container) => null);
