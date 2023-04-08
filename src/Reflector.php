@@ -4,30 +4,26 @@ declare(strict_types=1);
 
 namespace Ghostwriter\Container;
 
+use Ghostwriter\Container\Tests\Unit\ReflectorTest;
 use ReflectionClass;
-use ReflectionException;
+use Throwable;
 
+/** @see ReflectorTest */
 final class Reflector
 {
     /**
-     * @template TObject of object
+     * @template TClass of object
      *
-     * @var array<class-string<TObject>,ReflectionClass<TObject>>
+     * @param class-string<TClass> $class
+     *
+     * @return ReflectionClass<TClass>
      */
-    private array $cache = [];
-
-    public function reflect(string $class): ReflectionClass
+    public static function getReflectionClass(string $class): ReflectionClass
     {
         try {
-            $reflectionClass = $this->cache[$class] ??= new ReflectionClass($class);
-
-            if (! $reflectionClass->isInstantiable()) {
-                throw new ReflectorException(sprintf('Class "%s" is not instantiable.', $class));
-            }
-        } catch (ReflectionException) {
-            throw new ReflectorException(sprintf('Class "%s" does not exist.', $class));
+            return new ReflectionClass($class);
+        } catch (Throwable $throwable) {
+            throw new ReflectorException($throwable->getMessage());
         }
-
-        return $reflectionClass;
     }
 }
