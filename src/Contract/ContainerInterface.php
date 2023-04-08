@@ -51,7 +51,7 @@ interface ContainerInterface
      * @throws NotFoundExceptionInterface
      * @throws ContainerExceptionInterface
      */
-    public function bind(string $abstract, ?string $concrete = null, array $tags = []): void;
+    public function bind(string $abstract, string|null $concrete = null, array $tags = []): void;
 
     /**
      * Create an object using the given Container to resolve dependencies.
