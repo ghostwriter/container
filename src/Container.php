@@ -100,20 +100,12 @@ final class Container implements ContainerInterface
 
     public function alias(string $abstract, string $concrete): void
     {
-        if (trim($abstract) === '') {
-            throw $this->throwServiceIdMustBeNonEmptyString();
-        }
-
-        if (trim($concrete) === '') {
+        if (trim($abstract) === '' || trim($concrete) === '') {
             throw $this->throwServiceIdMustBeNonEmptyString();
         }
 
         if ($abstract === $concrete) {
             throw $this->throwInvalidArgument('Service "%s" can not use an alias with the same name.', $concrete);
-        }
-
-        if (! $this->has($concrete)) {
-            throw $this->throwNotFoundException('Service "%s" was not found.', $concrete);
         }
 
         self::$instance->cache[self::ALIASES][$abstract] = $concrete;
@@ -216,9 +208,7 @@ final class Container implements ContainerInterface
 
     public function extend(string $class, callable $extension): void
     {
-        if (trim($class) === '') {
-            throw $this->throwServiceIdMustBeNonEmptyString();
-        }
+        $class = $this->resolve($class);
 
         $factories = self::$instance->cache[self::FACTORIES];
         $extensions = self::$instance->cache[self::EXTENSIONS];
@@ -262,7 +252,7 @@ final class Container implements ContainerInterface
             throw $this->throwNotFoundException('Service "%s" was not found.', $id);
         }
 
-        $serviceFactory = $factories[$id] ?? static fn (Container $container): object => $container->build($id);
+        $serviceFactory = $factories[$id] ?? static fn (self $container): object => $container->build($id);
 
         $extensions = self::$instance->cache[self::EXTENSIONS];
 
@@ -276,13 +266,15 @@ final class Container implements ContainerInterface
         return self::$instance ??= new self();
     }
 
+    /**
+     * @throws ContainerExceptionInterface
+     */
     public function has(string $id): bool
     {
         $id = $this->resolve($id);
 
-        return array_key_exists($id, self::$instance->cache[self::SERVICES]) ||
-            array_key_exists($id, self::$instance->cache[self::FACTORIES]) ||
-            array_key_exists($id, self::$instance->cache[self::ALIASES]);
+        return array_key_exists($id, self::$instance->cache[self::SERVICES])
+            || array_key_exists($id, self::$instance->cache[self::FACTORIES]);
     }
 
     public function register(string $serviceProvider): void
@@ -317,6 +309,9 @@ final class Container implements ContainerInterface
         );
     }
 
+    /**
+     * @throws ContainerExceptionInterface
+     */
     public function replace(string $id, mixed $value, array $tags = []): void
     {
         $this->remove($id);
@@ -337,21 +332,19 @@ final class Container implements ContainerInterface
         return $id;
     }
 
+    /**
+     * @throws ContainerExceptionInterface
+     */
     public function set(string $id, mixed $value, array $tags = []): void
     {
         if (trim($id) === '') {
             throw $this->throwServiceIdMustBeNonEmptyString();
         }
 
-        if (array_key_exists($id, self::$instance->cache[self::SERVICES])) {
-            throw $this->throwServiceAlreadyRegisteredException($id);
-        }
-
-        if (array_key_exists($id, self::$instance->cache[self::FACTORIES])) {
-            throw $this->throwServiceAlreadyRegisteredException($id);
-        }
-
-        if (array_key_exists($id, self::$instance->cache[self::ALIASES])) {
+        if (array_key_exists($id, self::$instance->cache[self::SERVICES]) ||
+            array_key_exists($id, self::$instance->cache[self::FACTORIES]) ||
+            array_key_exists($id, self::$instance->cache[self::ALIASES])
+        ) {
             throw $this->throwServiceAlreadyRegisteredException($id);
         }
 
@@ -391,10 +384,15 @@ final class Container implements ContainerInterface
     }
 
     /**
+     * @template TObject of object
+     * @template TMixed
+     *
+     * @param class-string<TObject> $tag
+     *
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      *
-     * @return Generator<int, object, mixed, void>
+     * @return Generator<int, TObject, TMixed, void>
      */
     public function tagged(string $tag): Generator
     {
@@ -410,6 +408,7 @@ final class Container implements ContainerInterface
             /**
              * @throws ContainerExceptionInterface
              * @throws NotFoundExceptionInterface
+             * @throws ReflectionException
              */
             function (ReflectionParameter $reflectionParameter) use (&$arguments) {
                 $parameterName = $reflectionParameter->getName();
@@ -425,13 +424,13 @@ final class Container implements ContainerInterface
                     return $parameter;
                 }
 
-                if ($reflectionParameter->isDefaultValueAvailable()) {
-                    return $reflectionParameter->getDefaultValue();
-                }
-
                 $reflectionType = $reflectionParameter->getType();
                 if ($reflectionType instanceof ReflectionNamedType && ! $reflectionType->isBuiltin()) {
                     return $this->get($reflectionType->getName());
+                }
+
+                if ($reflectionParameter->isDefaultValueAvailable()) {
+                    return $reflectionParameter->getDefaultValue();
                 }
 
                 $name  = $reflectionParameter->getDeclaringFunction()
