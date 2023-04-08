@@ -12,6 +12,7 @@ use Ghostwriter\Container\Contract\ContainerInterface;
 use Ghostwriter\Container\Contract\Exception\NotFoundExceptionInterface;
 use Ghostwriter\Container\Contract\ServiceProviderInterface;
 use Ghostwriter\Container\Reflector;
+use Ghostwriter\Container\ReflectorException;
 use Ghostwriter\Container\Tests\Fixture\Bar;
 use Ghostwriter\Container\Tests\Fixture\Baz;
 use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassA;
@@ -62,13 +63,6 @@ use function unserialize;
 #[CoversClass(Container::class)]
 #[UsesClass(Reflector::class)]
 #[Small]
-/**
- * @internal
- *
- * @small
- *
- * @coversNothing
- */
 final class ContainerTest extends TestCase
 {
     private Container $container;
@@ -389,7 +383,8 @@ final class ContainerTest extends TestCase
     public function testClassDoseNotExistException(): void
     {
         $this->expectException(ContainerExceptionInterface::class);
-        $this->expectExceptionMessage('Class "dose-not-exist" does not exist.');
+        $this->expectException(ReflectorException::class);
+        $this->expectExceptionMessage('Class "dose-not-exist" does not exist');
 
         $this->container->build('dose-not-exist');
     }

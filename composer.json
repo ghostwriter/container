@@ -82,7 +82,7 @@
         "missing-returntypes": "psalm --alter --issues=MissingReturnType",
         "normalizer": "@composer normalize --no-check-lock",
         "phpstan": "vendor/bin/phpstan --ansi --verbose --xdebug",
-        "phpunit": "phpunit --colors=always --testdox --stop-on-failure",
+        "phpunit": "vendor/bin/phpunit",
         "psalm": "@psalm:shepherd",
         "psalm:baseline": "psalm --set-baseline=psalm-baseline.xml",
         "psalm:dry-run": "psalm --alter --issues=all --dry-run",
