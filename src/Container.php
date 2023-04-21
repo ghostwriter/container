@@ -11,8 +11,6 @@ use Ghostwriter\Container\Contract\ContainerInterface;
 use Ghostwriter\Container\Contract\Exception\NotFoundExceptionInterface;
 use Ghostwriter\Container\Contract\ServiceProviderInterface;
 use InvalidArgumentException;
-use ReflectionException;
-use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
@@ -235,10 +233,6 @@ final class Container implements ContainerInterface
     {
         $id = $this->resolve($id);
 
-        if (array_key_exists($id, self::$instance->cache)) {
-            return self::$instance->cache[$id];
-        }
-
         if (array_key_exists($id, self::$instance->cache[self::SERVICES])) {
             return match (true) {
                 $id === self::class => $this,
@@ -408,7 +402,6 @@ final class Container implements ContainerInterface
             /**
              * @throws ContainerExceptionInterface
              * @throws NotFoundExceptionInterface
-             * @throws ReflectionException
              */
             function (ReflectionParameter $reflectionParameter) use (&$arguments) {
                 $parameterName = $reflectionParameter->getName();
@@ -450,13 +443,13 @@ final class Container implements ContainerInterface
     }
 
     /**
-     * @throws ReflectionException
+     * @throws ReflectorException
      *
-     * @return Generator<int<0, max>, ReflectionParameter, mixed, void>
+     * @return Generator<int, ReflectionParameter, mixed, void>
      */
     private function getParametersForCallable(Closure $closure): Generator
     {
-        yield from (new ReflectionFunction($closure))->getParameters();
+        yield from Reflector::getReflectionFunction($closure)->getParameters();
     }
 
     private function throwContainerException(string $message, string ...$values): ContainerExceptionInterface
