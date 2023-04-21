@@ -11,6 +11,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use ReflectionFunction;
 
 #[CoversClass(Reflector::class)]
 #[UsesClass(ReflectorException::class)]
@@ -28,5 +29,19 @@ final class ReflectorTest extends TestCase
         $this->expectExceptionMessage('Class "dose-not-exist" does not exist');
 
         self::assertInstanceOf(ReflectionClass::class, Reflector::getReflectionClass('dose-not-exist'));
+    }
+
+    public function testGetReflectionFunction(): void
+    {
+        self::assertInstanceOf(ReflectionFunction::class, Reflector::getReflectionFunction(static fn () => null));
+    }
+
+    public function testGetReflectionFunctionEx(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ReflectorException::class);
+        $this->expectExceptionMessage('Function dose-not-exist() does not exist');
+
+        self::assertInstanceOf(ReflectionFunction::class, Reflector::getReflectionFunction('dose-not-exist'));
     }
 }
