@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container\Contract;
+namespace Ghostwriter\Container;
 
 interface ServiceProviderInterface
 {
