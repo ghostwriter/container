@@ -87,6 +87,38 @@ class TasksServiceProvider implements ServiceProviderInterface
 $container->register(TasksServiceProvider::class);
 ```
 
+### Contextual Bindings
+
+Registering a Contextual Bindings on the container.
+
+```php
+interface ClientInterface { }
+
+class RestClient implements ClientInterface {
+}
+
+class GraphQLClient implements ClientInterface {
+}
+
+final class GitHub
+{
+    public function __construct(
+        private readonly ClientInterface $client
+    ) {
+    }
+    public function getClient(): ClientInterface
+    {
+        return $this->client;
+    }
+}
+
+// When GitHub::class asks for ClientInterface::class, it should receive GraphQLClient::class.
+$container->provide(GitHub::class, ClientInterface::class, GraphQLClient::class);
+
+// When any service asks for ClientInterface::class, it should receive RestClient::class.
+$container->alias(ClientInterface::class, RestClient::class);
+```
+
 ### Service Extensions
 
 Registering a service extension on the container.
