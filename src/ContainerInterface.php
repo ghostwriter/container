@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container\Contract;
+namespace Ghostwriter\Container;
 
 use Closure;
 use Generator;
-use Ghostwriter\Container\Contract\Exception\NotFoundExceptionInterface;
+use Ghostwriter\Container\Exception\NotFoundExceptionInterface;
 use ReflectionException;
 use Throwable;
 
@@ -16,30 +16,10 @@ use Throwable;
 interface ContainerInterface
 {
     /**
-     * Remove all registered services from this container and reset the default services.
-     */
-    public function __destruct();
-
-    /**
-     * @throws ContainerExceptionInterface if "__clone()" method is called
-     */
-    public function __clone();
-
-    /**
-     * @throws ContainerExceptionInterface if "__serialize()" method is called
-     */
-    public function __serialize(): array;
-
-    /**
-     * @throws ContainerExceptionInterface if "__unserialize()" method is called
-     */
-    public function __unserialize(array $data): void;
-
-    /**
      * Provide an alternative name for a registered service.
      *
      * @throws NotFoundExceptionInterface
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      */
     public function alias(string $abstract, string $concrete): void;
 
@@ -49,7 +29,7 @@ interface ContainerInterface
      * @param array<string> $tags
      *
      * @throws NotFoundExceptionInterface
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      */
     public function bind(string $abstract, string|null $concrete = null, array $tags = []): void;
 
@@ -62,7 +42,7 @@ interface ContainerInterface
      * @param array<string,mixed> $arguments optional constructor arguments passed to build the new class instance
      *
      * @throws NotFoundExceptionInterface if no entry was found for **this** identifier
-     * @throws ContainerExceptionInterface if there is an error while retrieving the entry
+     * @throws ExceptionInterface if there is an error while retrieving the entry
      *
      * @return TObject
      */
@@ -74,8 +54,8 @@ interface ContainerInterface
      * @template TValue
      * @template TReturn
      *
-     * @param callable(array<string,TValue>):class-string<Closure(array<string,TValue>):TReturn>|TReturn $invokable
-     * @param array<string,TValue> $arguments optional arguments passed to $callback
+     * @param callable(array<string,TValue>):TReturn|callable-string<Closure(array<string,TValue>):TReturn> $invokable
+     * @param array<array-key,TValue> $arguments optional arguments passed to $callback
      *
      * @throws ReflectionException
      * @throws Throwable
@@ -92,7 +72,7 @@ interface ContainerInterface
      * @param class-string<TObject> $class the class name
      * @param callable(self,TObject):TObject $extension the callable
      *
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      * @throws NotFoundExceptionInterface
      */
     public function extend(string $class, callable $extension): void;
@@ -108,7 +88,7 @@ interface ContainerInterface
      * @param class-string<TObject>|string $id
      *
      * @throws NotFoundExceptionInterface if no entry was found for the given identifier
-     * @throws ContainerExceptionInterface If error while retrieving the entry
+     * @throws ExceptionInterface If error while retrieving the entry
      *
      * @return ($id is class-string ? TObject : TService)
      */
@@ -125,13 +105,23 @@ interface ContainerInterface
     public function has(string $id): bool;
 
     /**
+     * Provide contextual binding for the given concrete class.
+     *
+     * $container->provide(GitHub::class, ClientInterface::class, GitHubClient::class);
+     *
+     * @throws NotFoundExceptionInterface
+     * @throws ExceptionInterface
+     */
+    public function provide(string $concrete, string $abstract, string $implementation): void;
+
+    /**
      * Register a ServiceProvider class.
      *
      * Note: Service providers are automatically registered via `build` or `get` method.
      *
      * @param class-string<ServiceProviderInterface> $serviceProvider
      *
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      * @throws NotFoundExceptionInterface
      */
     public function register(string $serviceProvider): void;
@@ -139,7 +129,7 @@ interface ContainerInterface
     /**
      * Remove a registered service.
      *
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      * @throws NotFoundExceptionInterface
      */
     public function remove(string $id): void;
@@ -157,7 +147,7 @@ interface ContainerInterface
     /**
      * Resolves an alias to the service id.
      *
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      * @throws NotFoundExceptionInterface
      */
     public function resolve(string $id): string;

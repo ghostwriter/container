@@ -6,10 +6,7 @@ namespace Ghostwriter\Container;
 
 use Closure;
 use Generator;
-use Ghostwriter\Container\Contract\ContainerExceptionInterface;
-use Ghostwriter\Container\Contract\ContainerInterface;
-use Ghostwriter\Container\Contract\Exception\NotFoundExceptionInterface;
-use Ghostwriter\Container\Contract\ServiceProviderInterface;
+use Ghostwriter\Container\Exception\NotFoundExceptionInterface;
 use InvalidArgumentException;
 use ReflectionMethod;
 use ReflectionNamedType;
@@ -30,10 +27,13 @@ final class Container implements ContainerInterface
 {
     private const ALIASES = 0;
 
+    private const CONTEXTUAL_BINDINGS = 7;
+
     private const DEFAULT = [
         self::ALIASES => [
             ContainerInterface::class => self::class,
         ],
+        self::CONTEXTUAL_BINDINGS => [],
         self::DEPENDENCIES => [],
         self::EXTENSIONS => [],
         self::FACTORIES => [],
@@ -57,6 +57,10 @@ final class Container implements ContainerInterface
     private const TAGS = 6;
 
     /**
+     * @template TConcrete of object
+     * @template TAbstract of object
+     * @template TImplementation of object
+     *
      * @var array{
      *     0:array<class-string|string,class-string|string>,
      *     1:array<class-string|string,bool>,
@@ -65,32 +69,46 @@ final class Container implements ContainerInterface
      *     4:array<class-string,ServiceProviderInterface>,
      *     5:array<class-string|string,callable|object|scalar>,
      *     6:array<class-string|string,array<class-string|string>>,
+     *     7:array<class-string<TConcrete>,array<class-string<TAbstract>,class-string<TImplementation>>>,
      * }
      */
     private array $cache = self::DEFAULT;
 
-    private static self|null $instance = null;
+    private static ?self $instance = null;
 
-    private function __construct()
-    {
+    private function __construct(
+        private readonly Reflector $reflector = new Reflector()
+    ) {
         // singleton
     }
 
+    /**
+     * Remove all registered services from this container and reset the default services.
+     */
     public function __destruct()
     {
         self::$instance->cache = self::DEFAULT;
     }
 
+    /**
+     * @throws ExceptionInterface if "__clone()" method is called
+     */
     public function __clone()
     {
         throw $this->throwContainerException(sprintf('Dont clone "%s".', self::class));
     }
 
+    /**
+     * @throws ExceptionInterface if "__serialize()" method is called
+     */
     public function __serialize(): array
     {
         throw $this->throwContainerException(sprintf('Dont serialize "%s".', self::class));
     }
 
+    /**
+     * @throws ExceptionInterface if "__unserialize()" method is called
+     */
     public function __unserialize(array $data): void
     {
         throw $this->throwContainerException(sprintf('Dont unserialize "%s".', self::class));
@@ -157,7 +175,7 @@ final class Container implements ContainerInterface
             );
         }
 
-        $reflectionClass = Reflector::getReflectionClass($class);
+        $reflectionClass = $this->reflector->getReflectionClass($class);
 
         if (! $reflectionClass->isInstantiable()) {
             throw $this->throwInvalidArgument('Class "%s" is not instantiable.', $class);
@@ -261,7 +279,7 @@ final class Container implements ContainerInterface
     }
 
     /**
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      */
     public function has(string $id): bool
     {
@@ -269,6 +287,20 @@ final class Container implements ContainerInterface
 
         return array_key_exists($id, self::$instance->cache[self::SERVICES])
             || array_key_exists($id, self::$instance->cache[self::FACTORIES]);
+    }
+
+    /**
+     * @template TConcreteClass of object
+     * @template TAbstractClass of object
+     * @template TImplementationClass of object
+     *
+     * @param class-string<TConcreteClass> $concrete
+     * @param class-string<TAbstractClass> $abstract
+     * @param class-string<TImplementationClass> $implementation
+     */
+    public function provide(string $concrete, string $abstract, string $implementation): void
+    {
+        self::$instance->cache[self::CONTEXTUAL_BINDINGS][$concrete][$abstract] = $implementation;
     }
 
     public function register(string $serviceProvider): void
@@ -299,12 +331,13 @@ final class Container implements ContainerInterface
             self::$instance->cache[self::EXTENSIONS][$id],
             self::$instance->cache[self::FACTORIES][$id],
             self::$instance->cache[self::SERVICES][$id],
-            self::$instance->cache[self::TAGS][$id]
+            self::$instance->cache[self::TAGS][$id],
+            self::$instance->cache[self::CONTEXTUAL_BINDINGS][$id],
         );
     }
 
     /**
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      */
     public function replace(string $id, mixed $value, array $tags = []): void
     {
@@ -323,11 +356,21 @@ final class Container implements ContainerInterface
             $id = $aliases[$id];
         }
 
-        return $id;
+        $contextualBindings = self::$instance->cache[self::CONTEXTUAL_BINDINGS];
+        if ($contextualBindings === []) {
+            return $id;
+        }
+
+        $dependencies = self::$instance->cache[self::DEPENDENCIES];
+        if ($dependencies === []) {
+            return $id;
+        }
+
+        return $contextualBindings[array_key_last($dependencies)][$id] ?? $id;
     }
 
     /**
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      */
     public function set(string $id, mixed $value, array $tags = []): void
     {
@@ -356,7 +399,7 @@ final class Container implements ContainerInterface
     }
 
     /**
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      */
     public function tag(string $id, array $tags): void
     {
@@ -383,7 +426,7 @@ final class Container implements ContainerInterface
      *
      * @param class-string<TObject> $tag
      *
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      * @throws NotFoundExceptionInterface
      *
      * @return Generator<int, TObject, TMixed, void>
@@ -400,7 +443,7 @@ final class Container implements ContainerInterface
     {
         return array_map(
             /**
-             * @throws ContainerExceptionInterface
+             * @throws ExceptionInterface
              * @throws NotFoundExceptionInterface
              */
             function (ReflectionParameter $reflectionParameter) use (&$arguments) {
@@ -449,24 +492,18 @@ final class Container implements ContainerInterface
      */
     private function getParametersForCallable(Closure $closure): Generator
     {
-        yield from Reflector::getReflectionFunction($closure)->getParameters();
+        yield from $this->reflector->getReflectionFunction($closure)->getParameters();
     }
 
-    private function throwContainerException(string $message, string ...$values): ContainerExceptionInterface
+    private function throwContainerException(string $message, string ...$values): ExceptionInterface
     {
-        return new class(sprintf(
-            $message,
-            ...$values
-        )) extends RuntimeException implements ContainerExceptionInterface {
+        return new class(sprintf($message, ...$values)) extends RuntimeException implements ExceptionInterface {
         };
     }
 
-    private function throwInvalidArgument(string $message, string ...$values): ContainerExceptionInterface
+    private function throwInvalidArgument(string $message, string ...$values): ExceptionInterface
     {
-        return new class(sprintf(
-            $message,
-            ...$values
-        )) extends InvalidArgumentException implements ContainerExceptionInterface {
+        return new class(sprintf($message, ...$values)) extends InvalidArgumentException implements ExceptionInterface {
         };
     }
 
@@ -476,12 +513,12 @@ final class Container implements ContainerInterface
         };
     }
 
-    private function throwServiceAlreadyRegisteredException(string $id): ContainerExceptionInterface
+    private function throwServiceAlreadyRegisteredException(string $id): ExceptionInterface
     {
         return $this->throwInvalidArgument('Service "%s" is already registered, user replace() instead.', $id);
     }
 
-    private function throwServiceIdMustBeNonEmptyString(): ContainerExceptionInterface
+    private function throwServiceIdMustBeNonEmptyString(): ExceptionInterface
     {
         return $this->throwInvalidArgument('Service Id MUST be a non-empty-string.');
     }
