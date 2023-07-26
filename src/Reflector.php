@@ -21,7 +21,7 @@ final class Reflector
      *
      * @return ReflectionClass<TClass>
      */
-    public static function getReflectionClass(string $class): ReflectionClass
+    public function getReflectionClass(string $class): ReflectionClass
     {
         try {
             return new ReflectionClass($class);
@@ -35,7 +35,7 @@ final class Reflector
      *
      * @throws ReflectorException
      */
-    public static function getReflectionFunction(callable|string $function): ReflectionFunction
+    public function getReflectionFunction(callable|string $function): ReflectionFunction
     {
         try {
             return new ReflectionFunction($function);
