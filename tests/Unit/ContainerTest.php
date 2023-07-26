@@ -7,12 +7,12 @@ namespace Ghostwriter\Container\Tests\Unit;
 use Closure;
 use Generator;
 use Ghostwriter\Container\Container;
-use Ghostwriter\Container\Contract\ContainerExceptionInterface;
-use Ghostwriter\Container\Contract\ContainerInterface;
-use Ghostwriter\Container\Contract\Exception\NotFoundExceptionInterface;
-use Ghostwriter\Container\Contract\ServiceProviderInterface;
+use Ghostwriter\Container\ContainerInterface;
+use Ghostwriter\Container\Exception\NotFoundExceptionInterface;
+use Ghostwriter\Container\ExceptionInterface;
 use Ghostwriter\Container\Reflector;
 use Ghostwriter\Container\ReflectorException;
+use Ghostwriter\Container\ServiceProviderInterface;
 use Ghostwriter\Container\Tests\Fixture\Bar;
 use Ghostwriter\Container\Tests\Fixture\Baz;
 use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassA;
@@ -21,6 +21,7 @@ use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassC;
 use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassX;
 use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassY;
 use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassZ;
+use Ghostwriter\Container\Tests\Fixture\ClientInterface;
 use Ghostwriter\Container\Tests\Fixture\Constructor\ArrayConstructor;
 use Ghostwriter\Container\Tests\Fixture\Constructor\BoolConstructor;
 use Ghostwriter\Container\Tests\Fixture\Constructor\CallableConstructor;
@@ -37,6 +38,8 @@ use Ghostwriter\Container\Tests\Fixture\Dummy;
 use Ghostwriter\Container\Tests\Fixture\DummyInterface;
 use Ghostwriter\Container\Tests\Fixture\Extension\FoobarExtension;
 use Ghostwriter\Container\Tests\Fixture\Foo;
+use Ghostwriter\Container\Tests\Fixture\GitHub;
+use Ghostwriter\Container\Tests\Fixture\GitHubClient;
 use Ghostwriter\Container\Tests\Fixture\ServiceProvider\FoobarServiceProvider;
 use Ghostwriter\Container\Tests\Fixture\ServiceProvider\FoobarWithDependencyServiceProvider;
 use Ghostwriter\Container\Tests\Fixture\TestEvent;
@@ -349,13 +352,13 @@ final class ContainerTest extends TestCase
     }
 
     /**
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      * @throws NotFoundExceptionInterface
      * @throws Throwable
      */
     public function testCircularDependencyException(): void
     {
-        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ExceptionInterface::class);
         $this->expectException(NotFoundExceptionInterface::class);
         $this->expectExceptionMessage(sprintf(
             'Circular dependency: %s',
@@ -378,7 +381,7 @@ final class ContainerTest extends TestCase
 
     public function testClassDoseNotExistException(): void
     {
-        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ExceptionInterface::class);
         $this->expectException(ReflectorException::class);
         $this->expectExceptionMessage('Class "dose-not-exist" does not exist');
 
@@ -557,6 +560,25 @@ final class ContainerTest extends TestCase
     /**
      * @throws Throwable
      */
+    public function testContainerProvide(): void
+    {
+        self::assertFalse($this->container->has(GitHub::class));
+        self::assertFalse($this->container->has(ClientInterface::class));
+        self::assertFalse($this->container->has(GitHubClient::class));
+
+        // When GitHub::class asks for ClientInterface::class, it should receive GitHubClient::class.
+        $this->container->provide(GitHub::class, ClientInterface::class, GitHubClient::class);
+
+        self::assertInstanceOf(GitHub::class, $this->container->get(GitHub::class));
+        self::assertInstanceOf(ClientInterface::class, $this->container->get(GitHub::class)->getClient());
+
+        self::assertTrue($this->container->has(GitHubClient::class));
+        self::assertTrue($this->container->has(GitHub::class));
+    }
+
+    /**
+     * @throws Throwable
+     */
     public function testContainerRegister(): void
     {
         $this->container->register(FoobarServiceProvider::class);
@@ -620,7 +642,7 @@ final class ContainerTest extends TestCase
      * @param null|bool|Closure():null|float|int|stdClass|string|string[] $value
      * @param null|bool|float|int|stdClass|string|string[] $expected
      *
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      * @throws NotFoundExceptionInterface
      */
     #[DataProvider('dataProviderServices')]
@@ -663,7 +685,7 @@ final class ContainerTest extends TestCase
 
     public function testDontCloneException(): void
     {
-        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ExceptionInterface::class);
         $this->expectExceptionMessage('Dont clone "Ghostwriter\Container\Container".');
 
         $this->container->set('clone', clone $this->container);
@@ -671,7 +693,7 @@ final class ContainerTest extends TestCase
 
     public function testDontSerializeException(): void
     {
-        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ExceptionInterface::class);
         $this->expectExceptionMessage('Dont serialize "Ghostwriter\Container\Container".');
 
         self::assertNull(serialize($this->container));
@@ -679,7 +701,7 @@ final class ContainerTest extends TestCase
 
     public function testDontUnserializeException(): void
     {
-        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ExceptionInterface::class);
         $this->expectExceptionMessage('Dont unserialize "Ghostwriter\Container\Container".');
         self::assertNull(
             unserialize(
@@ -691,7 +713,7 @@ final class ContainerTest extends TestCase
 
     public function testNotFoundExceptionImplementsContainerNotFoundExceptionInterface(): void
     {
-        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ExceptionInterface::class);
         $this->expectException(NotFoundExceptionInterface::class);
         $this->expectExceptionMessage('Service "not-found" was not found.');
 
@@ -700,7 +722,7 @@ final class ContainerTest extends TestCase
 
     public function testNotInstantiableException(): void
     {
-        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ExceptionInterface::class);
         $this->expectExceptionMessage('Class "Throwable" is not instantiable.');
 
         $this->container->build(Throwable::class);
@@ -709,13 +731,13 @@ final class ContainerTest extends TestCase
     /**
      * @param callable(Container):void $test
      *
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      */
     #[DataProvider('dataProviderServiceAliasMustBeNonEmptyStringException')]
     public function testServiceAliasMustBeNonEmptyStringException(callable $test): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ExceptionInterface::class);
 
         $test($this->container);
     }
@@ -723,23 +745,23 @@ final class ContainerTest extends TestCase
     /**
      * @param callable(Container):void $test
      *
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      */
     #[DataProvider('dataProviderServiceAlreadyRegisteredException')]
     public function testServiceAlreadyRegisteredException(callable $test): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ExceptionInterface::class);
 
         $test($this->container);
     }
 
     public function testServiceCannotAliasItselfException(): void
     {
-        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ExceptionInterface::class);
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage(
-            'Service "Ghostwriter\Container\Contract\ServiceProviderInterface" can not use an alias with the same name.'
+            'Service "Ghostwriter\Container\ServiceProviderInterface" can not use an alias with the same name.'
         );
 
         $this->container->alias(ServiceProviderInterface::class, ServiceProviderInterface::class);
@@ -748,13 +770,13 @@ final class ContainerTest extends TestCase
     /**
      * @param callable(Container):void $test
      *
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      */
     #[DataProvider('dataProviderServiceIdMustBeNonEmptyString')]
     public function testServiceIdMustBeNonEmptyStringException(callable $test): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ExceptionInterface::class);
         $this->expectExceptionMessage('Service Id MUST be a non-empty-string.');
 
         $test($this->container);
@@ -763,7 +785,7 @@ final class ContainerTest extends TestCase
     #[DataProvider('dataProviderServiceNotFoundException')]
     public function testServiceNotFoundException(callable $test): void
     {
-        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ExceptionInterface::class);
         $this->expectException(NotFoundExceptionInterface::class);
         $this->expectExceptionMessageMatches(
             '#Service "(alias|extend-missing-service|dose-not-exist)" was not found.#'
@@ -775,7 +797,7 @@ final class ContainerTest extends TestCase
     public function testServiceProviderAlreadyRegisteredException(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ExceptionInterface::class);
         $this->expectExceptionMessage(
             sprintf('ServiceProvider "%s" is already registered.', FoobarServiceProvider::class)
         );
@@ -786,7 +808,7 @@ final class ContainerTest extends TestCase
 
     public function testServiceProvidersMustImplementServiceProviderInterfaceException(): void
     {
-        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ExceptionInterface::class);
         $this->expectException(InvalidArgumentException::class);
 
         $this->expectExceptionMessage(
@@ -804,21 +826,21 @@ final class ContainerTest extends TestCase
     public function testServiceTagMustBeNonEmptyStringException(callable $test): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ExceptionInterface::class);
         $this->expectExceptionMessage('Service Id MUST be a non-empty-string.');
 
         $test($this->container);
     }
 
     /**
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      * @throws NotFoundExceptionInterface
      * @throws Throwable
      */
     public function testUnresolvableParameterExceptionBuild(): void
     {
         $this->expectException(NotFoundExceptionInterface::class);
-        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ExceptionInterface::class);
         $this->expectExceptionMessage(sprintf(
             'Unresolvable class parameter "$number" in "%s::%s"; does not have a default value.',
             UnresolvableParameter::class,
@@ -829,13 +851,13 @@ final class ContainerTest extends TestCase
     }
 
     /**
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      * @throws NotFoundExceptionInterface
      * @throws Throwable
      */
     public function testUnresolvableParameterExceptionCall(): void
     {
-        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ExceptionInterface::class);
         $this->expectException(NotFoundExceptionInterface::class);
         $this->expectExceptionMessage(sprintf(
             'Unresolvable function parameter "%s" in "%s"; does not have a default value.',
