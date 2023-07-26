@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Ghostwriter\Container\Tests\Fixture\ServiceProvider;
 
-use Ghostwriter\Container\Contract\ContainerInterface;
-use Ghostwriter\Container\Contract\ServiceProviderInterface;
+use Ghostwriter\Container\ContainerInterface;
+use Ghostwriter\Container\ServiceProviderInterface;
 use Ghostwriter\Container\Tests\Fixture\Bar;
 use Ghostwriter\Container\Tests\Fixture\Baz;
 use Ghostwriter\Container\Tests\Fixture\Dummy;
