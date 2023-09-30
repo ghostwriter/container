@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Ghostwriter\Container\Tests\Fixture\Extension;
 
-use Ghostwriter\Container\ContainerInterface;
-use Ghostwriter\Container\ExtensionInterface;
+use Ghostwriter\Container\Interface\ContainerInterface;
+use Ghostwriter\Container\Interface\ExtensionInterface;
 use Ghostwriter\Container\Tests\Fixture\Bar;
 use Ghostwriter\Container\Tests\Fixture\Foo;
 
