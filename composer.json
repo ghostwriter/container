@@ -23,10 +23,12 @@
         }
     ],
     "require": {
-        "php": ">=8.1,<8.4"
+        "php": ">=8.1"
     },
     "require-dev": {
-        "ghostwriter/coding-standard": "dev-main"
+        "ghostwriter/coding-standard": "dev-main",
+        "ghostwriter/psalm-plugin": "^0 || ^0.3 || ^1.0",
+        "vimeo/psalm": "^5.15"
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
@@ -44,16 +46,10 @@
         ]
     },
     "config": {
-        "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true,
-            "infection/extension-installer": true
-        },
-        "classmap-authoritative": true,
         "discard-changes": true,
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "prepend-autoloader": true,
-        "process-timeout": 5000,
         "sort-packages": true
     },
     "scripts": {
