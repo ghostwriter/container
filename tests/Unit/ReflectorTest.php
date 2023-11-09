@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Ghostwriter\Container\Tests\Unit;
 
 use Ghostwriter\Container\Exception\ReflectorException;
-use Ghostwriter\Container\Interface\ExceptionInterface;
+use Ghostwriter\Container\Interface\ContainerExceptionInterface;
 use Ghostwriter\Container\Reflector;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -34,7 +34,7 @@ final class ReflectorTest extends AbstractTestCase
 
     public function testReflectClassThrowsReflectorException(): void
     {
-        $this->expectException(ExceptionInterface::class);
+        $this->expectException(ContainerExceptionInterface::class);
         $this->expectException(ReflectorException::class);
         $this->expectExceptionMessage('Class "dose-not-exist" does not exist');
 
@@ -50,7 +50,7 @@ final class ReflectorTest extends AbstractTestCase
 
     public function testReflectFunctionThrowsReflectorException(): void
     {
-        $this->expectException(ExceptionInterface::class);
+        $this->expectException(ContainerExceptionInterface::class);
         $this->expectException(ReflectorException::class);
         $this->expectExceptionMessage('Function dose-not-exist() does not exist');
 
