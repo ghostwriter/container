@@ -7,30 +7,67 @@ namespace Ghostwriter\Container;
 use Ghostwriter\Container\Exception\ClassNotInstantiableException;
 use Ghostwriter\Container\Exception\InstantiatorException;
 use Ghostwriter\Container\Interface\ContainerInterface;
-use ReflectionClass;
 use Throwable;
 
 final readonly class Instantiator
 {
+    public function __construct(
+        private Reflector $reflector,
+        private ParameterBuilder $parameterBuilder,
+    ) {}
+
     /**
      * @template TService of object
      * @template TArgument
      *
-     * @param ReflectionClass<TService> $class
+     * @param class-string<TService> $class
+     * @param array<TArgument> $arguments
+     *
+     * @return TService
+     */
+    public function buildParameters(
+        ContainerInterface $container,
+        \Closure $function,
+        array $arguments = []
+    ): array {
+        $parameters = $this->reflector
+            ->reflectFunction($function)->getParameters();
+
+        return $this->parameterBuilder->build(
+            $container,
+            $parameters,
+            $arguments
+        );
+    }
+
+    /**
+     * @template TService of object
+     * @template TArgument
+     *
+     * @param class-string<TService> $class
      * @param array<TArgument> $arguments
      *
      * @return TService
      */
     public function instantiate(
-        ReflectionClass $class,
+        Container $container,
+        string $class,
         array $arguments = []
     ): object {
-        if (!$class->isInstantiable()) {
-            throw new ClassNotInstantiableException($class->getName());
+        $classReflection = $this->reflector->reflectClass($class);
+
+        if (!$classReflection->isInstantiable()) {
+            throw new ClassNotInstantiableException($class);
         }
 
+        $parameters = $this->parameterBuilder->build(
+            $container,
+            $classReflection->getConstructor()?->getParameters() ?? [],
+            $arguments
+        );
+
         try {
-            return $class->newInstance(...$arguments);
+            return $classReflection->newInstance(...$parameters);
         } catch (Throwable $throwable) {
             throw new InstantiatorException($throwable->getMessage());
         }
