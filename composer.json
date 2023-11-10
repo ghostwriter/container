@@ -27,7 +27,7 @@
     },
     "require-dev": {
         "ghostwriter/coding-standard": "dev-main",
-        "ghostwriter/psalm-plugin": "^0 || ^0.2 || ^1.0"
+        "ghostwriter/psalm-plugin": "^0 || ^0.3 || ^1.0"
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
@@ -49,7 +49,6 @@
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "prepend-autoloader": true,
-        "process-timeout": 5000,
         "sort-packages": true
     },
     "scripts": {
