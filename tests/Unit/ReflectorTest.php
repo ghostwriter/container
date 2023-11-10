@@ -9,9 +9,6 @@ use Ghostwriter\Container\Interface\ContainerExceptionInterface;
 use Ghostwriter\Container\Reflector;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
-use PHPUnit\Framework\TestCase;
-use ReflectionClass;
-use ReflectionFunction;
 
 #[CoversClass(Reflector::class)]
 #[UsesClass(ReflectorException::class)]
@@ -44,7 +41,7 @@ final class ReflectorTest extends AbstractTestCase
     public function testReflectFunction(): void
     {
         self::assertTrue(
-            $this->reflector->reflectFunction(static fn () => null)->isStatic()
+            $this->reflector->reflectFunction(static fn (): null => null)->isStatic()
         );
     }
 
