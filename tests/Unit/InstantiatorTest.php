@@ -27,10 +27,7 @@ final class InstantiatorTest extends AbstractTestCase
 
     protected function setUp(): void
     {
-        $this->instantiator = new Instantiator(
-            new Reflector(),
-            new ParameterBuilder()
-        );
+        $this->instantiator = new Instantiator();
     }
 
     public function testBuildParameters(): void
