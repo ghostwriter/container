@@ -13,6 +13,7 @@ use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\Exception\NotFoundExceptionInterface;
 use Ghostwriter\Container\ParameterBuilder;
 use Ghostwriter\Container\Reflector;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -107,7 +108,6 @@ final class ParameterBuilderTest extends AbstractTestCase
         );
     }
 
-    /** @throws Throwable */
     public function testParameterBuilderBuildThrowsUnresolvableParameterException(): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -121,8 +121,7 @@ final class ParameterBuilderTest extends AbstractTestCase
                     static fn ($foo) => $foo,
                     'foo'
                 ),
-            ],
-            []
+            ]
         );
     }
 }
