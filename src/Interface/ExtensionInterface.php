@@ -14,7 +14,6 @@ interface ExtensionInterface
     /**
      * Extend a service on the given container.
      *
-     * @param ContainerInterface $container
      * @param TService $service
      *
      * @return TService
