@@ -26,6 +26,8 @@ final class InstantiatorTest extends AbstractTestCase
 
     protected function setUp(): void
     {
+        parent::setUp();
+
         $this->instantiator = new Instantiator();
     }
 
