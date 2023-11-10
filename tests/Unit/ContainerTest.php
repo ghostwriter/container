@@ -6,8 +6,8 @@ namespace Ghostwriter\Container\Tests\Unit;
 
 use Generator;
 use Ghostwriter\Container\Container;
-use Ghostwriter\Container\Exception\AliasNameMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\AliasNameAndServiceNameCannotBeTheSameException;
+use Ghostwriter\Container\Exception\AliasNameMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\CircularDependencyException;
 use Ghostwriter\Container\Exception\ClassNotInstantiableException;
 use Ghostwriter\Container\Exception\DontCloneContainerException;
@@ -18,8 +18,8 @@ use Ghostwriter\Container\Exception\ServiceAlreadyRegisteredException;
 use Ghostwriter\Container\Exception\ServiceExtensionAlreadyRegisteredException;
 use Ghostwriter\Container\Exception\ServiceExtensionMustBeAnInstanceOfExtensionInterfaceException;
 use Ghostwriter\Container\Exception\ServiceFactoryAlreadyRegisteredException;
-use Ghostwriter\Container\Exception\ServiceNameMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\ServiceMustBeNonEmptyStringException;
+use Ghostwriter\Container\Exception\ServiceNameMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\ServiceNotFoundException;
 use Ghostwriter\Container\Exception\ServiceProviderAlreadyRegisteredException;
 use Ghostwriter\Container\Exception\ServiceProviderMustBeAnInstanceOfServiceProviderInterfaceException;
@@ -27,9 +27,9 @@ use Ghostwriter\Container\Exception\ServiceTagMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\ServiceTagNotFoundException;
 use Ghostwriter\Container\Exception\UnresolvableParameterException;
 use Ghostwriter\Container\Instantiator;
+use Ghostwriter\Container\Interface\ContainerExceptionInterface;
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\Exception\NotFoundExceptionInterface;
-use Ghostwriter\Container\Interface\ContainerExceptionInterface;
 use Ghostwriter\Container\Interface\ServiceProviderInterface;
 use Ghostwriter\Container\ParameterBuilder;
 use Ghostwriter\Container\Reflector;
@@ -129,7 +129,6 @@ final class ContainerTest extends AbstractTestCase
         ];
     }
 
-
     /**
      * @return Generator<string,array>
      */
@@ -152,7 +151,7 @@ final class ContainerTest extends AbstractTestCase
         yield CallableConstructor::class => [
             CallableConstructor::class,
             [
-                'value' => static fn (ContainerInterface $container) => null,
+                'value' => static fn (ContainerInterface $container): null => null,
             ],
         ];
 
@@ -225,6 +224,23 @@ final class ContainerTest extends AbstractTestCase
         yield self::class => [self::class, ['name']];
     }
 
+    public function expectExceptionInterface(string $exception): void
+    {
+        $this->expectException(Throwable::class);
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException($exception);
+    }
+
+    public function expectNotFoundExceptionInterface(string $exception): void
+    {
+        $this->expectException(Throwable::class);
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(NotFoundExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException($exception);
+    }
+
     public function testAliasNameMustBeNonEmptyStringException(): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -232,6 +248,125 @@ final class ContainerTest extends AbstractTestCase
         $this->expectException(AliasNameMustBeNonEmptyStringException::class);
 
         $this->container->alias('', 'service');
+    }
+
+    public function testAliasNameMustBeNonEmptyStringExceptionForEmptySpaces(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(AliasNameMustBeNonEmptyStringException::class);
+
+        $this->container->alias('             ', 'service');
+    }
+
+    public function testAliasThrowsAliasNameAndServiceNameCannotBeTheSameException(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(AliasNameAndServiceNameCannotBeTheSameException::class);
+        $this->expectExceptionMessage(ServiceProviderInterface::class);
+
+        $this->container->alias(ServiceProviderInterface::class, ServiceProviderInterface::class);
+    }
+
+    public function testBindAbstractThrowsServiceNameMustBeNonEmptyStringException(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->bind(stdClass::class, '', stdClass::class);
+    }
+
+    public function testBindAbstractThrowsServiceNameMustBeNonEmptyStringExceptionForEmptySpaces(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->bind(stdClass::class, '         ', stdClass::class);
+    }
+
+    public function testBindAbstractThrowsServiceNotFoundException(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(NotFoundExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ServiceNotFoundException::class);
+
+        $this->container->bind(stdClass::class, 'not-a-class', stdClass::class);
+    }
+
+    public function testBindConcreteThrowsServiceNameMustBeNonEmptyStringException(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->bind('', stdClass::class, stdClass::class);
+    }
+    public function testBindConcreteThrowsServiceNameMustBeNonEmptyStringExceptionForEmptySpaces(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->bind('     ', stdClass::class, stdClass::class);
+    }
+
+    public function testBindConcreteThrowsServiceNotFoundException(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(NotFoundExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ServiceNotFoundException::class);
+
+        $this->container->bind('not-a-class', stdClass::class, stdClass::class);
+    }
+
+    public function testBindImplementationThrowsServiceNameMustBeNonEmptyStringException(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->bind(stdClass::class, stdClass::class, '');
+    }
+    public function testBindImplementationThrowsServiceNameMustBeNonEmptyStringExceptionForEmptySpaces(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->bind(stdClass::class, stdClass::class, '     ');
+    }
+
+    public function testBindImplementationThrowsServiceNotFoundException(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(NotFoundExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ServiceNotFoundException::class);
+
+        $this->container->bind(stdClass::class, stdClass::class, 'not-a-class');
+    }
+
+    public function testBuildThrowsServiceNameMustBeNonEmptyStringException(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->build('');
+    }
+
+    public function testBuildThrowsServiceNameMustBeNonEmptyStringExceptionForEmptySpaces(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->build('     ');
     }
 
     public function testCircularDependencyException(): void
@@ -289,21 +424,29 @@ final class ContainerTest extends AbstractTestCase
         self::assertSame($std, $this->container->get('class'));
     }
 
-    /**
-     * @throws Throwable
-     */
-    public function testContainerRegisterBind(): void
+    public function testContainerBind(): void
     {
-        self::assertFalse($this->container->has(Dummy::class));
-        self::assertFalse($this->container->has(DummyInterface::class));
-        self::assertFalse($this->container->has(DummyFactory::class));
+        self::assertFalse($this->container->has(GitHub::class));
+        self::assertFalse($this->container->has(ClientInterface::class));
+        self::assertFalse($this->container->has(GitHubClient::class));
 
-        $this->container->register(DummyInterface::class, Dummy::class);
-        $this->container->register(DummyFactory::class);
+        // When GitHub::class asks for ClientInterface::class, resolve GitHubClient::class.
+        $this->container->bind(
+            GitHub::class,
+            ClientInterface::class,
+            GitHubClient::class
+        );
 
-        self::assertTrue($this->container->has(Dummy::class));
-        self::assertTrue($this->container->has(DummyInterface::class));
-        self::assertTrue($this->container->has(DummyFactory::class));
+        self::assertTrue(
+            $this->container->has(GitHubClient::class)
+        );
+
+        self::assertInstanceOf(GitHub::class, $this->container->get(GitHub::class));
+
+        self::assertInstanceOf(ClientInterface::class, $this->container->get(GitHub::class)->getClient());
+
+        self::assertTrue($this->container->has(GitHubClient::class));
+        self::assertTrue($this->container->has(GitHub::class));
     }
 
     /**
@@ -320,7 +463,7 @@ final class ContainerTest extends AbstractTestCase
 
         self::assertSame($buildService, $getService);
 
-        if (!array_key_exists('value', $arguments)) {
+        if (! array_key_exists('value', $arguments)) {
             return;
         }
 
@@ -329,13 +472,13 @@ final class ContainerTest extends AbstractTestCase
 
     public function testContainerBuildServiceProviderDoesNotRegisterServiceProvider(): void
     {
-        $first = $this->container->build(FoobarServiceProvider::class);
-        self::assertInstanceOf(FoobarServiceProvider::class, $first);
+        $foobarServiceProvider = $this->container->build(FoobarServiceProvider::class);
+        self::assertInstanceOf(FoobarServiceProvider::class, $foobarServiceProvider);
 
         $second = $this->container->build(FoobarServiceProvider::class);
         self::assertInstanceOf(FoobarServiceProvider::class, $second);
 
-        self::assertNotSame($first, $second);
+        self::assertNotSame($foobarServiceProvider, $second);
 
         self::assertFalse($this->container->has(Foo::class));
         self::assertFalse($this->container->has(Bar::class));
@@ -378,30 +521,6 @@ final class ContainerTest extends AbstractTestCase
         $this->container->remove(TestEvent::class);
     }
 
-    /**
-     * @throws Throwable
-     */
-    public function testContainerInvokeDefaultValueAvailable(): void
-    {
-        self::assertSame('Untitled Text', $this->container->invoke(Dummy::class));
-        self::assertSame('#BlackLivesMatter', $this->container->invoke(Dummy::class, [[], '#BlackLivesMatter']));
-        self::assertSame('#BlackLivesMatter', $this->container->invoke(Dummy::class, [['#BlackLivesMatter'], '%s']));
-        self::assertSame(
-            '#BlackLivesMatter',
-            $this->container->invoke(Dummy::class, [
-                'data' => [],
-                'text' => '#BlackLivesMatter',
-            ])
-        );
-        self::assertSame(
-            '#BlackLivesMatter',
-            $this->container->invoke(Dummy::class, [
-                'data' => ['BlackLivesMatter'],
-                'text' => '#%s',
-            ])
-        );
-    }
-
     public function testContainerConstruct(): void
     {
         self::assertSame(Container::getInstance(), Container::getInstance());
@@ -412,7 +531,7 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testContainerDestruct(): void
     {
-        $this->container->set('test', static fn(): bool => true);
+        $this->container->set('test', static fn (): bool => true);
 
         self::assertTrue($this->container->has('test'));
 
@@ -452,13 +571,21 @@ final class ContainerTest extends AbstractTestCase
         );
     }
 
-    public function testGetThrowsServiceNotFoundException(): void
+    public function testGetThrowsServiceNameMustBeNonEmptyStringException(): void
     {
         $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(NotFoundExceptionInterface::class);
-        $this->expectException(ServiceNotFoundException::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
 
-        $this->container->get('does-not-exist');
+        $this->container->get('');
+    }
+    public function testGetThrowsServiceNameMustBeNonEmptyStringExceptionForEmptySpaces(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->get('    ');
     }
 
     public function testContainerImplementsContainerInterface(): void
@@ -470,32 +597,30 @@ final class ContainerTest extends AbstractTestCase
         self::assertInstanceOf(Container::class, $container);
     }
 
-    public function testContainerBind(): void
+    public function testContainerInvokeDefaultValueAvailable(): void
     {
-        self::assertFalse($this->container->has(GitHub::class));
-        self::assertFalse($this->container->has(ClientInterface::class));
-        self::assertFalse($this->container->has(GitHubClient::class));
-
-        // When GitHub::class asks for ClientInterface::class, resolve GitHubClient::class.
-        $this->container->bind(
-            GitHub::class,
-            ClientInterface::class,
-            GitHubClient::class
+        self::assertSame('Untitled Text', $this->container->invoke(Dummy::class));
+        self::assertSame('#BlackLivesMatter', $this->container->invoke(Dummy::class, [[], '#BlackLivesMatter']));
+        self::assertSame('#BlackLivesMatter', $this->container->invoke(Dummy::class, [['#BlackLivesMatter'], '%s']));
+        self::assertSame(
+            '#BlackLivesMatter',
+            $this->container->invoke(Dummy::class, [
+                'data' => [],
+                'text' => '#BlackLivesMatter',
+            ])
         );
-
-        self::assertTrue(
-            $this->container->has(GitHubClient::class)
+        self::assertSame(
+            '#BlackLivesMatter',
+            $this->container->invoke(Dummy::class, [
+                'data' => ['BlackLivesMatter'],
+                'text' => '#%s',
+            ])
         );
-
-        self::assertInstanceOf(GitHub::class, $this->container->get(GitHub::class));
-
-        self::assertInstanceOf(ClientInterface::class, $this->container->get(GitHub::class)->getClient());
-
-        self::assertTrue($this->container->has(GitHubClient::class));
-        self::assertTrue($this->container->has(GitHub::class));
     }
 
-    /** @throws Throwable */
+    /**
+     * @throws Throwable
+     */
     public function testContainerProvideServiceProvider(): void
     {
         $this->container->provide(FoobarServiceProvider::class);
@@ -504,14 +629,6 @@ final class ContainerTest extends AbstractTestCase
         self::assertTrue($this->container->has(Bar::class));
         self::assertTrue($this->container->has(Baz::class));
         self::assertInstanceOf(stdClass::class, $this->container->get(Foobar::class));
-    }
-    public function testContainerGetThrowsServiceNameMustBeNonEmptyStringException(): void
-    {
-        $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
-
-        $this->container->get('');
     }
 
     public function testContainerProvideThrowsServiceProviderAlreadyRegisteredException(): void
@@ -535,6 +652,23 @@ final class ContainerTest extends AbstractTestCase
         $this->expectExceptionMessage(ServiceProviderInterface::class);
 
         $this->container->provide(ServiceProviderInterface::class);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testContainerRegisterBind(): void
+    {
+        self::assertFalse($this->container->has(Dummy::class));
+        self::assertFalse($this->container->has(DummyInterface::class));
+        self::assertFalse($this->container->has(DummyFactory::class));
+
+        $this->container->register(DummyInterface::class, Dummy::class);
+        $this->container->register(DummyFactory::class);
+
+        self::assertTrue($this->container->has(Dummy::class));
+        self::assertTrue($this->container->has(DummyInterface::class));
+        self::assertTrue($this->container->has(DummyFactory::class));
     }
 
     /**
@@ -595,6 +729,7 @@ final class ContainerTest extends AbstractTestCase
 
         self::assertSame($object, $this->container->get(stdClass::class));
     }
+
     public function testContainerSetObject(): void
     {
         $object = new stdClass();
@@ -602,6 +737,13 @@ final class ContainerTest extends AbstractTestCase
         $this->container->set(stdClass::class, $object);
 
         self::assertSame($object, $this->container->get(stdClass::class));
+    }
+
+    public function testDestructContainerInterfaceAliasExists(): void
+    {
+        $this->container->__destruct();
+
+        self::assertTrue($this->container->has(ContainerInterface::class));
     }
 
     public function testDontCloneException(): void
@@ -628,9 +770,72 @@ final class ContainerTest extends AbstractTestCase
         $this->expectException(DontUnserializeContainerException::class);
 
         unserialize(
-                // mocks a serialized Container::class
+            // mocks a serialized Container::class
             sprintf('O:%s:"%s":0:{}', mb_strlen(Container::class), Container::class)
         );
+    }
+
+    public function testExtendThrowsServiceExtensionAlreadyRegisteredException(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ServiceExtensionAlreadyRegisteredException::class);
+
+        $this->container->extend(stdClass::class, StdClassOneExtension::class);
+        $this->container->extend(stdClass::class, StdClassOneExtension::class);
+    }
+
+    public function testExtendThrowsServiceExtensionMustBeAnInstanceOfExtensionInterfaceException(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ServiceExtensionMustBeAnInstanceOfExtensionInterfaceException::class);
+
+        $this->container->extend(stdClass::class, stdClass::class);
+    }
+
+    public function testExtendThrowsServiceNameMustBeNonEmptyStringException(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->extend('', StdClassOneExtension::class);
+    }
+    public function testExtendThrowsServiceNameMustBeNonEmptyStringExceptionForEmptySpaces(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->extend('   ', StdClassOneExtension::class);
+    }
+
+    public function testGetThrowsServiceNotFoundException(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(NotFoundExceptionInterface::class);
+        $this->expectException(ServiceNotFoundException::class);
+
+        $this->container->get('does-not-exist');
+    }
+
+    public function testHasThrowsServiceNameMustBeNonEmptyStringException(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->has('');
+    }
+
+    public function testHasThrowsServiceNameMustBeNonEmptyStringExceptionForEmptySpaces(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->has(' ');
     }
 
     public function testNotFoundExceptionImplementsContainerNotFoundExceptionInterface(): void
@@ -651,25 +856,6 @@ final class ContainerTest extends AbstractTestCase
         $this->container->build(Throwable::class);
     }
 
-    public function testAliasThrowsAliasNameAndServiceNameCannotBeTheSameException(): void
-    {
-        $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectException(AliasNameAndServiceNameCannotBeTheSameException::class);
-        $this->expectExceptionMessage(ServiceProviderInterface::class);
-
-        $this->container->alias(ServiceProviderInterface::class, ServiceProviderInterface::class);
-    }
-
-    public function testServiceIdMustBeNonEmptyString(): void
-    {
-        $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
-
-        $this->container->tag('', ['tag']);
-    }
-
     public function testRegisterAbstractThrowsServiceNameMustBeNonEmptyStringException(): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -678,6 +864,15 @@ final class ContainerTest extends AbstractTestCase
 
         $this->container->register('', self::class);
     }
+    public function testRegisterAbstractThrowsServiceNameMustBeNonEmptyStringExceptionForEmptySpaces(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->register(' ', self::class);
+    }
+
     public function testRegisterConcreteThrowsServiceNameMustBeNonEmptyStringException(): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -686,38 +881,31 @@ final class ContainerTest extends AbstractTestCase
 
         $this->container->register(self::class, '');
     }
-    public function testBuildThrowsServiceNameMustBeNonEmptyStringException(): void
+    public function testRegisterConcreteThrowsServiceNameMustBeNonEmptyStringExceptionForEmptySpaces(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectException(ContainerExceptionInterface::class);
         $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
 
-        $this->container->build('');
+        $this->container->register(self::class, '  ');
     }
-    public function testExtendThrowsServiceNameMustBeNonEmptyStringException(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
 
-        $this->container->extend('', StdClassOneExtension::class);
-    }
-    public function testSetThrowsServiceNameMustBeNonEmptyStringException(): void
+    public function testRegisterTag(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
+        $this->container->tag(stdClass::class, ['first-tag']);
 
-        $this->container->set('', new stdClass());
-    }
-    public function testHasThrowsServiceNameMustBeNonEmptyStringException(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
+        $this->container->register(Foo::class, null, ['tag-2']);
+        $this->container->register(stdClass::class, null, ['tag']);
 
-        $this->container->has('');
+        foreach ($this->container->tagged('tag') as $service) {
+            self::assertInstanceOf(stdClass::class, $service);
+        }
+
+        $this->container->untag(stdClass::class, ['tag']);
+
+        self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
     }
+
 
     public function testServiceMustBeNonEmptyStringException(): void
     {
@@ -728,7 +916,80 @@ final class ContainerTest extends AbstractTestCase
         $this->container->alias('alias', '');
     }
 
-    public function testServiceTagMustBeNonEmptyString(): void
+    public function testServiceMustBeNonEmptyStringExceptionForEmptySpaces(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ServiceMustBeNonEmptyStringException::class);
+
+        $this->container->alias('alias', '        ');
+    }
+
+
+    public function testSetTag(): void
+    {
+        $this->container->set(stdClass::class, new stdClass(), ['tag']);
+
+        foreach ($this->container->tagged('tag') as $service) {
+            self::assertInstanceOf(stdClass::class, $service);
+        }
+
+        $this->container->untag(stdClass::class, ['tag']);
+
+        self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
+    }
+
+    public function testSetThrowsServiceNameMustBeNonEmptyStringException(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->set('', new stdClass());
+    }
+
+    public function testSetThrowsServiceNameMustBeNonEmptyStringExceptionForEmptySpaces(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->set('    ', new stdClass());
+    }
+
+    public function testTag(): void
+    {
+        $this->container->register(stdClass::class);
+
+        $this->container->tag(stdClass::class, ['tag']);
+
+        foreach ($this->container->tagged('tag') as $service) {
+            self::assertInstanceOf(stdClass::class, $service);
+        }
+
+        $this->container->untag(stdClass::class, ['tag']);
+
+        self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
+    }
+
+    public function testTagThrowsServiceNameMustBeNonEmptyStringException(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->tag('', ['tag']);
+    }
+    public function testTagThrowsServiceNameMustBeNonEmptyStringExceptionForEmptySpaces(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->tag('  ', ['tag']);
+    }
+
+    public function testTagThrowsServiceTagMustBeNonEmptyStringException(): void
     {
         $this->expectException(Throwable::class);
         $this->expectException(ContainerExceptionInterface::class);
@@ -736,6 +997,60 @@ final class ContainerTest extends AbstractTestCase
         $this->expectException(ServiceTagMustBeNonEmptyStringException::class);
 
         $this->container->tag('service', ['']);
+    }
+    public function testTagThrowsServiceTagMustBeNonEmptyStringExceptionForEmptySpaces(): void
+    {
+        $this->expectException(Throwable::class);
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ServiceTagMustBeNonEmptyStringException::class);
+
+        $this->container->tag('service', ['  ']);
+    }
+
+    public function testTagThrows(): void
+    {
+        $this->container->register(stdClass::class);
+
+        $this->container->tag(stdClass::class, ['tag']);
+
+        foreach ($this->container->tagged('tag') as $service) {
+            self::assertInstanceOf(stdClass::class, $service);
+        }
+
+        $this->container->untag(stdClass::class, ['tag']);
+
+        self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
+    }
+
+    public function testTaggedThrowsServiceTagNotFoundException(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(NotFoundExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ServiceTagNotFoundException::class);
+
+        iterator_to_array($this->container->tagged('tag-not-found'));
+    }
+
+    public function testTaggedThrowsServiceTagMustBeNonEmptyStringException(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(NotFoundExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ServiceTagMustBeNonEmptyStringException::class);
+
+        iterator_to_array($this->container->tagged(''));
+    }
+
+    public function testTaggedThrowsServiceTagMustBeNonEmptyStringExceptionForEmptySpaces(): void
+    {
+        $this->expectException(ContainerExceptionInterface::class);
+        $this->expectException(NotFoundExceptionInterface::class);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ServiceTagMustBeNonEmptyStringException::class);
+
+        iterator_to_array($this->container->tagged('  '));
     }
 
     /**
@@ -778,144 +1093,5 @@ final class ContainerTest extends AbstractTestCase
         ));
 
         $this->container->call('Ghostwriter\Container\Tests\Fixture\typelessFunction');
-    }
-
-    public function expectExceptionInterface(string $exception): void
-    {
-        $this->expectException(Throwable::class);
-        $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectException($exception);
-    }
-
-    public function expectNotFoundExceptionInterface(string $exception): void
-    {
-        $this->expectException(Throwable::class);
-        $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(NotFoundExceptionInterface::class);
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectException($exception);
-    }
-
-    public function testBindConcreteThrowsServiceNameMustBeNonEmptyStringException(): void
-    {
-        $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
-
-        $this->container->bind('', stdClass::class, stdClass::class);
-    }
-    public function testBindAbstractThrowsServiceNameMustBeNonEmptyStringException(): void
-    {
-        $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
-
-        $this->container->bind(stdClass::class, '', stdClass::class);
-    }
-    public function testBindImplementationThrowsServiceNameMustBeNonEmptyStringException(): void
-    {
-        $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
-
-        $this->container->bind(stdClass::class, stdClass::class, '');
-    }
-    public function testBindConcreteThrowsServiceNotFoundException(): void
-    {
-        $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(NotFoundExceptionInterface::class);
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectException(ServiceNotFoundException::class);
-
-        $this->container->bind('not-a-class', stdClass::class, stdClass::class);
-    }
-    public function testBindAbstractThrowsServiceNotFoundException(): void
-    {
-        $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(NotFoundExceptionInterface::class);
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectException(ServiceNotFoundException::class);
-
-        $this->container->bind(stdClass::class, 'not-a-class', stdClass::class);
-    }
-    public function testBindImplementationThrowsServiceNotFoundException(): void
-    {
-        $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(NotFoundExceptionInterface::class);
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectException(ServiceNotFoundException::class);
-
-        $this->container->bind(stdClass::class, stdClass::class, 'not-a-class');
-    }
-
-    public function testExtendThrowsServiceExtensionMustBeAnInstanceOfExtensionInterfaceException(): void
-    {
-        $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectException(ServiceExtensionMustBeAnInstanceOfExtensionInterfaceException::class);
-
-        $this->container->extend(stdClass::class, stdClass::class);
-    }
-    public function testExtendThrowsServiceExtensionAlreadyRegisteredException(): void
-    {
-        $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectException(ServiceExtensionAlreadyRegisteredException::class);
-
-        $this->container->extend(stdClass::class, StdClassOneExtension::class);
-        $this->container->extend(stdClass::class, StdClassOneExtension::class);
-    }
-
-    public function testTag(): void
-    {
-        $this->container->register(stdClass::class);
-
-        $this->container->tag(stdClass::class, ['tag']);
-
-        foreach ($this->container->tagged('tag') as $service) {
-            self::assertInstanceOf(stdClass::class, $service);
-        }
-
-        $this->container->untag(stdClass::class, ['tag']);
-
-        self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
-    }
-    public function testSetTag(): void
-    {
-        $this->container->set(stdClass::class, new stdClass(), ['tag']);
-
-        foreach ($this->container->tagged('tag') as $service) {
-            self::assertInstanceOf(stdClass::class, $service);
-        }
-
-        $this->container->untag(stdClass::class, ['tag']);
-
-        self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
-    }
-
-    public function testRegisterTag(): void
-    {
-        $this->container->tag(stdClass::class, ['first-tag']);
-
-        $this->container->register(stdClass::class, null, ['tag']);
-
-        foreach ($this->container->tagged('tag') as $service) {
-            self::assertInstanceOf(stdClass::class, $service);
-        }
-
-        $this->container->untag(stdClass::class, ['tag']);
-
-        self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
-    }
-
-    public function testTaggedThrowsServiceTagNotFoundException(): void
-    {
-        $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(NotFoundExceptionInterface::class);
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectException(ServiceTagNotFoundException::class);
-
-        iterator_to_array($this->container->tagged('tag-not-found'));
     }
 }
