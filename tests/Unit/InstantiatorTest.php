@@ -7,7 +7,6 @@ namespace Ghostwriter\Container\Tests\Unit;
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Exception\ClassNotInstantiableException;
 use Ghostwriter\Container\Exception\InstantiatorException;
-use Ghostwriter\Container\Exception\ReflectorException;
 use Ghostwriter\Container\Instantiator;
 use Ghostwriter\Container\Interface\ContainerExceptionInterface;
 use Ghostwriter\Container\ParameterBuilder;
@@ -38,10 +37,11 @@ final class InstantiatorTest extends AbstractTestCase
             [],
             $this->instantiator->buildParameters(
                 $container,
-                static fn () => new stdClass()
+                static fn (): stdClass => new stdClass()
             )
         );
     }
+
     public function testInstantiate(): void
     {
         $container = Container::getInstance();
@@ -64,6 +64,7 @@ final class InstantiatorTest extends AbstractTestCase
 
         $this->instantiator->instantiate($container, AbstractTestCase::class);
     }
+
     public function testInstantiateThrowsInstantiatorException(): void
     {
         $this->expectException(ContainerExceptionInterface::class);
