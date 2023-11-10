@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ghostwriter\Container;
 
+use Closure;
 use Ghostwriter\Container\Exception\ClassNotInstantiableException;
 use Ghostwriter\Container\Exception\InstantiatorException;
 use Ghostwriter\Container\Interface\ContainerInterface;
@@ -12,9 +13,10 @@ use Throwable;
 final readonly class Instantiator
 {
     public function __construct(
-        private Reflector $reflector,
-        private ParameterBuilder $parameterBuilder,
-    ) {}
+        private Reflector $reflector = new Reflector(),
+        private ParameterBuilder $parameterBuilder = new ParameterBuilder(),
+    ) {
+    }
 
     /**
      * @template TService of object
@@ -27,7 +29,7 @@ final readonly class Instantiator
      */
     public function buildParameters(
         ContainerInterface $container,
-        \Closure $function,
+        Closure $function,
         array $arguments = []
     ): array {
         $parameters = $this->reflector
@@ -50,7 +52,7 @@ final readonly class Instantiator
      * @return TService
      */
     public function instantiate(
-        Container $container,
+        ContainerInterface $container,
         string $class,
         array $arguments = []
     ): object {
