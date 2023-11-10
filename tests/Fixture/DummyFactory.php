@@ -5,13 +5,18 @@ declare(strict_types=1);
 namespace Ghostwriter\Container\Tests\Fixture;
 
 use Ghostwriter\Container\Interface\ContainerInterface;
-use Ghostwriter\Container\Tests\Fixture\Dummy;
-use Ghostwriter\Container\Tests\Fixture\DummyInterface;
+use Ghostwriter\Container\Interface\Exception\NotFoundExceptionInterface;
+use Ghostwriter\Container\Interface\ContainerExceptionInterface;
+use Ghostwriter\Container\Interface\FactoryInterface;
 
-class DummyFactory
+final readonly class DummyFactory implements FactoryInterface
 {
-    public function __invoke(ContainerInterface $container): DummyInterface
+    /**
+     * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     */
+    public function __invoke(ContainerInterface $container, array $arguments = []): DummyInterface
     {
-       return $container->get(Dummy::class);
+        return $container->get(Dummy::class);
     }
 }

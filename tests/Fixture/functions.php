@@ -6,10 +6,10 @@ namespace Ghostwriter\Container\Tests\Fixture;
 
 function typedFunction(TestEvent $event): void
 {
-    $event->collect(__METHOD__ );
+    $event->collect(__METHOD__);
 }
 
 function typelessFunction($event): void
 {
-    $event->collect(__METHOD__ );
+    $event->collect(__METHOD__);
 }

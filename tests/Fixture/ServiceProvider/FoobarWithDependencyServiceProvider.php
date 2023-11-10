@@ -11,6 +11,7 @@ use Ghostwriter\Container\Tests\Fixture\Baz;
 use Ghostwriter\Container\Tests\Fixture\Dummy;
 use Ghostwriter\Container\Tests\Fixture\Extension\FoobarExtension;
 use Ghostwriter\Container\Tests\Fixture\Foo;
+use Ghostwriter\Container\Tests\Fixture\Foobar;
 use stdClass;
 use Throwable;
 
@@ -27,11 +28,11 @@ class FoobarWithDependencyServiceProvider implements ServiceProviderInterface
      */
     public function __invoke(ContainerInterface $container): void
     {
-        $container->set('dummy', $this->dummy);
-        $container->bind('foobar', stdClass::class);
-        $container->bind(Foo::class);
-        $container->bind(Bar::class);
-        $container->bind(Baz::class);
-        $container->add('foobar', $container->get(FoobarExtension::class));
+        $container->set(Dummy::class, $this->dummy);
+        $container->register(Foobar::class, stdClass::class);
+        $container->register(Foo::class);
+        $container->register(Bar::class);
+        $container->register(Baz::class);
+        $container->set(Foobar::class, $container->get(FoobarExtension::class));
     }
 }
