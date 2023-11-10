@@ -29,8 +29,10 @@ final class ParameterBuilderTest extends AbstractTestCase
 {
     private ParameterBuilder $parameterBuilder;
 
-    protected function setup(): void
+    protected function setUp(): void
     {
+        parent::setUp();
+
         $this->parameterBuilder = new ParameterBuilder();
     }
 
