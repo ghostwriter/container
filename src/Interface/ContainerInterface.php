@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Ghostwriter\Container\Interface;
 
-use Closure;
 use Generator;
 use Ghostwriter\Container\Interface\Exception\NotFoundExceptionInterface;
 use ReflectionException;
