@@ -16,8 +16,10 @@ final class ReflectorTest extends AbstractTestCase
 {
     private Reflector $reflector;
 
-    protected function setup(): void
+    protected function setUp(): void
     {
+        parent::setUp();
+
         $this->reflector = new Reflector();
     }
 
