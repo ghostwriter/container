@@ -33,7 +33,7 @@ final readonly class ParameterBuilder
         array $parameters = [],
         array $arguments = []
     ): array {
-        return array_map(
+        return [...array_map(
         /**
          * @throws ContainerExceptionInterface
          * @throws NotFoundExceptionInterface
@@ -76,6 +76,7 @@ final readonly class ParameterBuilder
                 ));
             },
             $parameters
-        );
+        ),
+            ...array_values($arguments)];
     }
 }
