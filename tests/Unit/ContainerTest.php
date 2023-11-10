@@ -17,8 +17,6 @@ use Ghostwriter\Container\Exception\ReflectorException;
 use Ghostwriter\Container\Exception\ServiceAlreadyRegisteredException;
 use Ghostwriter\Container\Exception\ServiceExtensionAlreadyRegisteredException;
 use Ghostwriter\Container\Exception\ServiceExtensionMustBeAnInstanceOfExtensionInterfaceException;
-use Ghostwriter\Container\Exception\ServiceFactoryAlreadyRegisteredException;
-use Ghostwriter\Container\Exception\ServiceMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\ServiceNameMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\ServiceNotFoundException;
 use Ghostwriter\Container\Exception\ServiceProviderAlreadyRegisteredException;
@@ -85,7 +83,6 @@ use function sprintf;
 #[CoversClass(ParameterBuilder::class)]
 #[CoversClass(Reflector::class)]
 #[CoversClass(ServiceAlreadyRegisteredException::class)]
-#[CoversClass(ServiceFactoryAlreadyRegisteredException::class)]
 #[CoversClass(ServiceNameMustBeNonEmptyStringException::class)]
 #[CoversClass(ServiceNotFoundException::class)]
 #[CoversClass(ServiceProviderAlreadyRegisteredException::class)]
@@ -751,7 +748,7 @@ final class ContainerTest extends AbstractTestCase
         $this->expectException(ContainerExceptionInterface::class);
         $this->expectException(DontCloneContainerException::class);
 
-        clone $this->container;
+        self::assertInstanceOf(ContainerInterface::class, clone $this->container);
     }
 
     public function testDontSerializeException(): void
@@ -911,7 +908,7 @@ final class ContainerTest extends AbstractTestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(ServiceMustBeNonEmptyStringException::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
 
         $this->container->alias('alias', '');
     }
@@ -920,7 +917,7 @@ final class ContainerTest extends AbstractTestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(ServiceMustBeNonEmptyStringException::class);
+        $this->expectException(ServiceNameMustBeNonEmptyStringException::class);
 
         $this->container->alias('alias', '        ');
     }
