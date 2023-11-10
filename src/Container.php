@@ -76,6 +76,7 @@ final class Container implements ContainerInterface
     private array $providers = [];
 
     /**
+     * @template TService of object
      * @var array<class-string<TService>,list<string>>
      */
     private array $tags = [];
