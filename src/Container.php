@@ -77,6 +77,7 @@ final class Container implements ContainerInterface
 
     /**
      * @template TService of object
+     *
      * @var array<class-string<TService>,list<string>>
      */
     private array $tags = [];
@@ -444,7 +445,7 @@ final class Container implements ContainerInterface
 
         unset($this->instances[$service]);
 
-        $this->factories[$service] = !is_callable($value)
+        $this->factories[$service] = ! is_callable($value)
                 ? static fn (ContainerInterface $container): object => $value
             : $value;
     }
