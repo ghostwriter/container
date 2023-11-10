@@ -22,7 +22,6 @@ final readonly class Instantiator
      * @template TService of object
      * @template TArgument
      *
-     * @param class-string<TService> $class
      * @param array<TArgument> $arguments
      *
      * @return TService
@@ -47,7 +46,7 @@ final readonly class Instantiator
      * @template TArgument
      *
      * @param class-string<TService> $class
-     * @param array<TArgument> $arguments
+     * @param array<TArgument>       $arguments
      *
      * @return TService
      */
@@ -56,20 +55,20 @@ final readonly class Instantiator
         string $class,
         array $arguments = []
     ): object {
-        $classReflection = $this->reflector->reflectClass($class);
+        $reflectionClass = $this->reflector->reflectClass($class);
 
-        if (!$classReflection->isInstantiable()) {
+        if (! $reflectionClass->isInstantiable()) {
             throw new ClassNotInstantiableException($class);
         }
 
         $parameters = $this->parameterBuilder->build(
             $container,
-            $classReflection->getConstructor()?->getParameters() ?? [],
+            $reflectionClass->getConstructor()?->getParameters() ?? [],
             $arguments
         );
 
         try {
-            return $classReflection->newInstance(...$parameters);
+            return $reflectionClass->newInstance(...$parameters);
         } catch (Throwable $throwable) {
             throw new InstantiatorException($throwable->getMessage());
         }
