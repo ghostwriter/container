@@ -10,7 +10,6 @@ use Ghostwriter\Container\Exception\UnresolvableParameterException;
 use Ghostwriter\Container\Instantiator;
 use Ghostwriter\Container\Interface\ContainerExceptionInterface;
 use Ghostwriter\Container\Interface\ContainerInterface;
-use Ghostwriter\Container\Interface\Exception\NotFoundExceptionInterface;
 use Ghostwriter\Container\ParameterBuilder;
 use Ghostwriter\Container\Reflector;
 use InvalidArgumentException;
@@ -35,22 +34,16 @@ final class ParameterBuilderTest extends AbstractTestCase
         $this->parameterBuilder = new ParameterBuilder();
     }
 
-    public function testParameterBuilder(): void
-    {
-        self::assertInstanceOf(
-            ParameterBuilder::class,
-            $this->parameterBuilder
-        );
-    }
-
-    /** @throws Throwable */
+    /**
+     * @throws Throwable
+     */
     public static function parameterBuilderBuildDataProvider(): Generator
     {
         $container = Container::getInstance();
 
         $stdClass = $container->get(stdClass::class);
 
-        $closure = fn (stdClass $foo) => $stdClass;
+        $closure = static fn (stdClass $foo): object => $stdClass;
 
         $empty = [];
 
@@ -64,14 +57,16 @@ final class ParameterBuilderTest extends AbstractTestCase
         ];
 
         $withoutArguments = $empty;
-        $withArguments = ['foo' => $stdClass];
+        $withArguments = [
+            'foo' => $stdClass,
+        ];
 
         yield from [
             'no parameters & no arguments' => [
                 $container,
                 $withoutParameters,
                 $withoutArguments,
-                $empty
+                $empty,
             ],
 
             'no parameters & arguments' => [
@@ -90,8 +85,15 @@ final class ParameterBuilderTest extends AbstractTestCase
         ];
     }
 
-    #[DataProvider('parameterBuilderBuildDataProvider')]
+    public function testParameterBuilder(): void
+    {
+        self::assertInstanceOf(
+            ParameterBuilder::class,
+            $this->parameterBuilder
+        );
+    }
 
+    #[DataProvider('parameterBuilderBuildDataProvider')]
     public function testParameterBuilderBuild(
         ContainerInterface $container,
         array $parameters,
