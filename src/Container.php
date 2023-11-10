@@ -445,9 +445,9 @@ final class Container implements ContainerInterface
 
         unset($this->instances[$service]);
 
-        $this->factories[$service] = ! is_callable($value)
-                ? static fn (ContainerInterface $container): object => $value
-            : $value;
+        $this->factories[$service] = is_callable($value)
+                ? $value
+            : static fn (ContainerInterface $container): object => $value;
     }
 
     /**
