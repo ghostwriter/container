@@ -6,20 +6,21 @@ namespace Ghostwriter\Container\Tests\Unit\Exception;
 
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Exception\AliasNameMustBeNonEmptyStringException;
+use Ghostwriter\Container\Tests\Unit\AbstractTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 use Throwable;
 
 #[CoversClass(AliasNameMustBeNonEmptyStringException::class)]
 #[CoversClass(Container::class)]
-final class AliasNameMustBeNonEmptyStringExceptionTest extends AbstractExceptionTestCase
+final class AliasNameMustBeNonEmptyStringExceptionTest extends AbstractTestCase
 {
     /**
      * @throws Throwable
      */
     public function testContainerAlias(): void
     {
-        $this->assertConainerExceptionInterface(AliasNameMustBeNonEmptyStringException::class);
+        $this->assertException(AliasNameMustBeNonEmptyStringException::class);
 
         Container::getInstance()
                  ->alias('', stdClass::class);
@@ -30,7 +31,7 @@ final class AliasNameMustBeNonEmptyStringExceptionTest extends AbstractException
      */
     public function testContainerAliasWithEmptySpace(): void
     {
-        $this->assertConainerExceptionInterface(AliasNameMustBeNonEmptyStringException::class);
+        $this->assertException(AliasNameMustBeNonEmptyStringException::class);
 
         Container::getInstance()
                  ->alias(' ', stdClass::class);
