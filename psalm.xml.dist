@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <psalm
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://getpsalm.org/schema/config"
+    xsi:schemaLocation="https://getpsalm.org/schema/config https://getpsalm.org/schema/config"
     addParamDefaultToDocblockType="true"
     allowStringToStandInForClass="true"
     cacheDirectory=".cache/psalm"
@@ -13,19 +16,22 @@
     findUnusedCode="true"
     findUnusedPsalmSuppress="true"
     findUnusedVariablesAndParams="true"
-    phpVersion="8.1"
     runTaintAnalysis="true"
     strictBinaryOperands="true"
     throwExceptionOnError="true"
     useDocblockPropertyTypes="true"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns="https://getpsalm.org/schema/config"
-    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+    allowInternalNamedArgumentCalls="false"
+    allowNamedArgumentCalls="false"
+    disableSuppressAll="true"
+    ignoreInternalFunctionFalseReturn="false"
+    ignoreInternalFunctionNullReturn="false"
+    memoizeMethodCallResults="true"
 >
     <projectFiles>
         <directory name="src"/>
+        <directory name="tests"/>
         <ignoreFiles>
-            <directory name="tests"/>
+            <directory name=".github"/>
             <directory name="tests/Fixture"/>
             <directory name="vendor"/>
         </ignoreFiles>

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container;
+namespace Ghostwriter\Container\Interface;
 
 /**
  * An extension is an invokable object that extends an object; created using the given container instance.

@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Ghostwriter\Container;
 
+use Ghostwriter\Container\Exception\ReflectorException;
 use Ghostwriter\Container\Tests\Unit\ReflectorTest;
 use ReflectionClass;
 use ReflectionFunction;
 use Throwable;
 
 /** @see ReflectorTest */
-final class Reflector
+final readonly class Reflector
 {
     /**
      * @template TClass of object
@@ -21,7 +22,7 @@ final class Reflector
      *
      * @return ReflectionClass<TClass>
      */
-    public function getReflectionClass(string $class): ReflectionClass
+    public function reflectClass(string $class): ReflectionClass
     {
         try {
             return new ReflectionClass($class);
@@ -35,7 +36,7 @@ final class Reflector
      *
      * @throws ReflectorException
      */
-    public function getReflectionFunction(callable|string $function): ReflectionFunction
+    public function reflectFunction(callable|string $function): ReflectionFunction
     {
         try {
             return new ReflectionFunction($function);

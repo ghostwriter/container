@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container;
+namespace Ghostwriter\Container\Interface;
 
 use Throwable;
 

@@ -2,13 +2,14 @@
 
 [![Compliance](https://github.com/ghostwriter/container/actions/workflows/compliance.yml/badge.svg)](https://github.com/ghostwriter/container/actions/workflows/compliance.yml)
 [![Supported PHP Version](https://badgen.net/packagist/php/ghostwriter/container?color=8892bf)](https://www.php.net/supported-versions)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/ghostwriter?label=Sponsor+@ghostwriter/container&logo=GitHub+Sponsors)](https://github.com/sponsors/ghostwriter)
 [![Mutation Coverage](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fghostwriter%2Fcontainer%2Fmain)](https://dashboard.stryker-mutator.io/reports/github.com/ghostwriter/container/main)
-[![Code Coverage](https://codecov.io/gh/ghostwriter/container/branch/main/graph/badge.svg?token=MEL38D6NG1)](https://codecov.io/gh/ghostwriter/container)
+[![Code Coverage](https://codecov.io/gh/ghostwriter/container/branch/main/graph/badge.svg)](https://codecov.io/gh/ghostwriter/container)
 [![Type Coverage](https://shepherd.dev/github/ghostwriter/container/coverage.svg)](https://shepherd.dev/github/ghostwriter/container)
 [![Latest Version on Packagist](https://badgen.net/packagist/v/ghostwriter/container)](https://packagist.org/packages/ghostwriter/container)
 [![Downloads](https://badgen.net/packagist/dt/ghostwriter/container?color=blue)](https://packagist.org/packages/ghostwriter/container)
 
-Dependency Injection Service Container inspired by [PSR-11](https://www.php-fig.org/psr/psr-11/) for Automated Object Composition, Interception, and Lifetime Management.
+Provides an extensible Dependency Injection Service Container for Automated Object Composition, Interception, and Lifetime Management.
 
 ## Installation
 
@@ -25,7 +26,7 @@ composer require ghostwriter/container
 Registering a service on the given container.
 
 ```php
-class Service
+final readonly class Service
 {
     private Dependency $dependency;
     public function __construct(Dependency $dependency)
@@ -37,8 +38,6 @@ class Service
         return $this->dependency;
     }
 }
-
-use Ghostwriter\Container\Container;
 
 $container = Container::getInstance();
 $service = $container->get(Service::class);
@@ -52,11 +51,11 @@ assert($service->dependency() instanceof Dependency); // true
 Registering a service provider on the container.
 
 ```php
-class TaskInterface{}
+interface TaskInterface {}
 
-class Task extends TaskInterface{}
+final readonly class Task implements TaskInterface {}
 
-class Tasks
+final class Tasks
 {
     private array $tasks;
     public function addTask(TaskInterface $task)
@@ -65,7 +64,7 @@ class Tasks
     }
 }
 
-class TasksServiceProvider implements ServiceProviderInterface
+final readonly class TasksServiceProvider implements ServiceProviderInterface
 {
     public function __invoke(ContainerInterface $container)
     {
@@ -84,7 +83,11 @@ class TasksServiceProvider implements ServiceProviderInterface
     }
 }
 
-$container->register(TasksServiceProvider::class);
+$container->provide(TasksServiceProvider::class);
+
+$service = $container->get(TaskInterface::class);
+
+assert($service instanceof Task); // true
 ```
 
 ### Contextual Bindings
@@ -94,16 +97,16 @@ Registering a Contextual Bindings on the container.
 ```php
 interface ClientInterface { }
 
-class RestClient implements ClientInterface {
+final readonly class RestClient implements ClientInterface {
 }
 
-class GraphQLClient implements ClientInterface {
+final readonly class GraphQLClient implements ClientInterface {
 }
 
-final class GitHub
+final readonly class GitHub
 {
     public function __construct(
-        private readonly ClientInterface $client
+        private ClientInterface $client
     ) {
     }
     public function getClient(): ClientInterface
@@ -112,10 +115,10 @@ final class GitHub
     }
 }
 
-// When GitHub::class asks for ClientInterface::class, it should receive GraphQLClient::class.
-$container->provide(GitHub::class, ClientInterface::class, GraphQLClient::class);
+// When GitHub::class asks for ClientInterface::class, it should receive an instance of GraphQLClient::class.
+$container->bind(GitHub::class, ClientInterface::class, GraphQLClient::class);
 
-// When any service asks for ClientInterface::class, it should receive RestClient::class.
+// When any service asks for ClientInterface::class, it should receive an instance of RestClient::class.
 $container->alias(ClientInterface::class, RestClient::class);
 ```
 
@@ -124,15 +127,7 @@ $container->alias(ClientInterface::class, RestClient::class);
 Registering a service extension on the container.
 
 ```php
-$container->alias(GitHubClientInterface::class, GitHubClient::class);
-
-$container->extend(GitHubClientInterface::class, static function (Container $container, object $client) {
-    $client->setEnterpriseUrl($container->get(GitHubClient::GITHUB_HOST));
-});
-
-// or
-
-class GitHubExtension implements ExtensionInterface
+final readonly class GitHubExtension implements ExtensionInterface
 {
     public function __invoke(ContainerInterface $container, object $service): object
     {

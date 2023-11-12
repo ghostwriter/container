@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Ghostwriter\Container\Tests\Fixture;
 
-class Dummy implements DummyInterface
+final readonly class Dummy implements DummyInterface
 {
     public function __construct(private DummyFactory $dummyFactory)
     {
@@ -15,5 +15,13 @@ class Dummy implements DummyInterface
         string $text = 'Untitled %s',
     ): string {
         return sprintf($text, ...array_values($data));
+    }
+
+    /**
+     * @return DummyFactory
+     */
+    public function getDummyFactory(): DummyFactory
+    {
+        return $this->dummyFactory;
     }
 }

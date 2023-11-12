@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ghostwriter\Container\Tests\Fixture;
 
-final class GitHub
+final readonly class GitHub
 {
     public function __construct(
-        private readonly ClientInterface $client
+        private ClientInterface $client
     ) {
     }
     public function getClient(): ClientInterface

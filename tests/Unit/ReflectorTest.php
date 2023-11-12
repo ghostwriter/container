@@ -4,51 +4,44 @@ declare(strict_types=1);
 
 namespace Ghostwriter\Container\Tests\Unit;
 
-use Ghostwriter\Container\ExceptionInterface;
+use Ghostwriter\Container\Container;
+use Ghostwriter\Container\Instantiator;
+use Ghostwriter\Container\ParameterBuilder;
 use Ghostwriter\Container\Reflector;
-use Ghostwriter\Container\ReflectorException;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\UsesClass;
-use PHPUnit\Framework\TestCase;
-use ReflectionClass;
-use ReflectionFunction;
+use Throwable;
 
+/**
+ * @see Reflector
+ */
+#[CoversClass(Container::class)]
+#[CoversClass(Instantiator::class)]
+#[CoversClass(ParameterBuilder::class)]
 #[CoversClass(Reflector::class)]
-#[UsesClass(ReflectorException::class)]
-final class ReflectorTest extends TestCase
+final class ReflectorTest extends AbstractTestCase
 {
-    private Reflector $reflector;
-
-    protected function setup(): void
+    /**
+     * @throws Throwable
+     */
+    public function testReflectClass(): void
     {
-        $this->reflector = new Reflector();
+        self::assertSame(
+            self::class,
+            (new Reflector())
+                ->reflectClass(self::class)
+                ->getName()
+        );
     }
 
-    public function testGetReflectionClass(): void
+    /**
+     * @throws Throwable
+     */
+    public function testReflectFunction(): void
     {
-        self::assertInstanceOf(ReflectionClass::class, $this->reflector->getReflectionClass(self::class));
-    }
-
-    public function testGetReflectionClassEx(): void
-    {
-        $this->expectException(ExceptionInterface::class);
-        $this->expectException(ReflectorException::class);
-        $this->expectExceptionMessage('Class "dose-not-exist" does not exist');
-
-        self::assertInstanceOf(ReflectionClass::class, $this->reflector->getReflectionClass('dose-not-exist'));
-    }
-
-    public function testGetReflectionFunction(): void
-    {
-        self::assertInstanceOf(ReflectionFunction::class, $this->reflector->getReflectionFunction(static fn () => null));
-    }
-
-    public function testGetReflectionFunctionEx(): void
-    {
-        $this->expectException(ExceptionInterface::class);
-        $this->expectException(ReflectorException::class);
-        $this->expectExceptionMessage('Function dose-not-exist() does not exist');
-
-        self::assertInstanceOf(ReflectionFunction::class, $this->reflector->getReflectionFunction('dose-not-exist'));
+        self::assertTrue(
+            (new Reflector())
+                ->reflectFunction(static fn(): null => null)
+                ->isStatic()
+        );
     }
 }

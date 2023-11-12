@@ -1,6 +1,6 @@
 {
     "name": "ghostwriter/container",
-    "description": "Provides an extensible Dependency Injection Service Container.",
+    "description": "Provides an extensible Dependency Injection Service Container for Automated Object Composition, Interception, and Lifetime Management.",
     "license": "BSD-3-Clause",
     "type": "library",
     "keywords": [
@@ -23,18 +23,17 @@
         }
     ],
     "require": {
-        "php": ">=8.1"
+        "php": ">=8.2"
     },
     "require-dev": {
         "ghostwriter/coding-standard": "dev-main",
-        "ghostwriter/psalm-plugin": "^0 || ^0.3 || ^1.0",
-        "vimeo/psalm": "^5.15"
+        "ghostwriter/psalm-plugin": "^0 || ^0.3 || ^1.0"
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
-            "Ghostwriter\\Container\\": "src/"
+            "Ghostwriter\\Container\\": "src"
         }
     },
     "autoload-dev": {
@@ -53,43 +52,31 @@
         "sort-packages": true
     },
     "scripts": {
-        "bench": "phpbench --colors=always",
+        "bench": "vendor/bin/phpbench --colors=always",
         "check": [
             "@composer validate",
-            "@ecs",
             "@test",
             "@psalm",
-            "@infection",
-            "@rector:dry-run"
+            "@infection"
         ],
-        "ecs": [
-            "@ecs:fix",
-            "@ecs:check"
-        ],
-        "ecs:check": "vendor/bin/ecs check --clear-cache || true",
-        "ecs:fix": "vendor/bin/ecs check --fix --clear-cache || true",
         "dev": [
-            "@ecs",
             "@test",
             "@psalm",
             "@infection"
         ],
         "infection": "vendor/bin/infection --ansi --verbose",
-        "missing-returntypes": "psalm --alter --issues=MissingReturnType",
-        "phpstan": "vendor/bin/phpstan --ansi --verbose --xdebug",
-        "phpunit": "vendor/bin/phpunit",
+        "missing-returntypes": "vendor/bin/psalm --alter --issues=MissingReturnType",
+        "phpunit": "vendor/bin/phpunit --do-not-cache-result --colors=always",
         "phpunit:migrate": "vendor/bin/phpunit --migrate-configuration",
         "psalm": [
             "@psalm:shepherd",
             "@psalm:security"
         ],
-        "psalm:baseline": "psalm --set-baseline=psalm-baseline.xml",
-        "psalm:dry-run": "psalm --alter --issues=all --dry-run",
-        "psalm:missing": "psalm --alter --issues=MissingReturnType",
-        "psalm:security": "psalm --taint-analysis",
-        "psalm:shepherd": "psalm --shepherd --stats --no-diff --no-cache",
-        "rector": "vendor/bin/rector process --verbose",
-        "rector:dry-run": "vendor/bin/rector process --dry-run --verbose || true",
+        "psalm:baseline": "vendor/bin/psalm --set-baseline=psalm-baseline.xml",
+        "psalm:dry-run": "vendor/bin/psalm --alter --issues=all --dry-run",
+        "psalm:missing": "vendor/bin/psalm --alter --issues=MissingReturnType",
+        "psalm:security": "vendor/bin/psalm --taint-analysis",
+        "psalm:shepherd": "vendor/bin/psalm --shepherd --stats --no-diff --no-cache",
         "test": [
             "@xdebug",
             "@phpunit"
