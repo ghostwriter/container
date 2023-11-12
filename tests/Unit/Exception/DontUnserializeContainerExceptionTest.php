@@ -9,6 +9,7 @@ use Ghostwriter\Container\Exception\DontUnserializeContainerException;
 use Ghostwriter\Container\Instantiator;
 use Ghostwriter\Container\ParameterBuilder;
 use Ghostwriter\Container\Reflector;
+use Ghostwriter\Container\Tests\Unit\AbstractTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Throwable;
 
@@ -17,14 +18,14 @@ use Throwable;
 #[CoversClass(Instantiator::class)]
 #[CoversClass(ParameterBuilder::class)]
 #[CoversClass(Reflector::class)]
-final class DontUnserializeContainerExceptionTest extends AbstractExceptionTestCase
+final class DontUnserializeContainerExceptionTest extends AbstractTestCase
 {
     /**
      * @throws Throwable
      */
     public function testUnserialize(): void
     {
-        $this->assertConainerExceptionInterface(DontUnserializeContainerException::class);
+        $this->assertException(DontUnserializeContainerException::class);
 
         unserialize(
         // mocks a serialized Container::class
