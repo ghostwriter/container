@@ -16,7 +16,7 @@ abstract class AbstractTestCase extends TestCase
     /**
      * @throws Throwable
      */
-    protected function tearDown(): void
+    final protected function tearDown(): void
     {
         parent::tearDown();
 
@@ -26,7 +26,7 @@ abstract class AbstractTestCase extends TestCase
     /**
      * @param class-string<Throwable> $expected
      */
-    public function assertException(string $expected): void
+    final public function assertException(string $expected): void
     {
         $this->expectException(ExceptionInterface::class);
         $this->expectException(InvalidArgumentException::class);
@@ -36,7 +36,7 @@ abstract class AbstractTestCase extends TestCase
     /**
      * @param class-string<Throwable> $expected
      */
-    public function assertNotFoundException(string $expected): void
+    final public function assertNotFoundException(string $expected): void
     {
         $this->expectException(NotFoundExceptionInterface::class);
         $this->assertException($expected);
