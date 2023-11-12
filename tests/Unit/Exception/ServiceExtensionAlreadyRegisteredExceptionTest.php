@@ -10,6 +10,7 @@ use Ghostwriter\Container\Instantiator;
 use Ghostwriter\Container\ParameterBuilder;
 use Ghostwriter\Container\Reflector;
 use Ghostwriter\Container\Tests\Fixture\Extension\StdClassOneExtension;
+use Ghostwriter\Container\Tests\Unit\AbstractTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 use Throwable;
@@ -19,14 +20,14 @@ use Throwable;
 #[CoversClass(Instantiator::class)]
 #[CoversClass(ParameterBuilder::class)]
 #[CoversClass(Reflector::class)]
-final class ServiceExtensionAlreadyRegisteredExceptionTest extends AbstractExceptionTestCase
+final class ServiceExtensionAlreadyRegisteredExceptionTest extends AbstractTestCase
 {
     /**
      * @throws Throwable
      */
     public function testContainerExtend(): void
     {
-        $this->assertConainerExceptionInterface(ServiceExtensionAlreadyRegisteredException::class);
+        $this->assertException(ServiceExtensionAlreadyRegisteredException::class);
 
         $container = Container::getInstance();
 
