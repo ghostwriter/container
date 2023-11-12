@@ -9,6 +9,7 @@ use Ghostwriter\Container\Exception\ClassNotInstantiableException;
 use Ghostwriter\Container\Instantiator;
 use Ghostwriter\Container\ParameterBuilder;
 use Ghostwriter\Container\Reflector;
+use Ghostwriter\Container\Tests\Unit\AbstractTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Throwable;
 
@@ -17,14 +18,14 @@ use Throwable;
 #[CoversClass(Instantiator::class)]
 #[CoversClass(ParameterBuilder::class)]
 #[CoversClass(Reflector::class)]
-final class ClassNotInstantiableExceptionTest extends AbstractExceptionTestCase
+final class ClassNotInstantiableExceptionTest extends AbstractTestCase
 {
     /**
      * @throws Throwable
      */
     public function testContainerBuild(): void
     {
-        $this->assertConainerExceptionInterface(ClassNotInstantiableException::class);
+        $this->assertException(ClassNotInstantiableException::class);
         $this->expectExceptionMessage(Throwable::class);
 
         Container::getInstance()->build(Throwable::class);
@@ -35,11 +36,11 @@ final class ClassNotInstantiableExceptionTest extends AbstractExceptionTestCase
      */
     public function testInstantiatorInstantiate(): void
     {
-        $this->assertConainerExceptionInterface(ClassNotInstantiableException::class);
+        $this->assertException(ClassNotInstantiableException::class);
 
         (new Instantiator())->instantiate(
             Container::getInstance(),
-            AbstractExceptionTestCase::class
+            AbstractTestCase::class
         );
     }
 }
