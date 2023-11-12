@@ -7,12 +7,11 @@ namespace Ghostwriter\Container\Tests\Unit\Exception;
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Exception\AliasNameAndServiceNameCannotBeTheSameException;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\UsesClass;
 use stdClass;
 use Throwable;
 
 #[CoversClass(AliasNameAndServiceNameCannotBeTheSameException::class)]
-#[UsesClass(Container::class)]
+#[CoversClass(Container::class)]
 final class AliasNameAndServiceNameCannotBeTheSameExceptionTest extends AbstractExceptionTestCase
 {
     /**
