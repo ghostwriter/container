@@ -21,15 +21,15 @@ use Ghostwriter\Container\Exception\ServiceProviderAlreadyRegisteredException;
 use Ghostwriter\Container\Exception\ServiceProviderMustBeAnInstanceOfServiceProviderInterfaceException;
 use Ghostwriter\Container\Exception\ServiceTagMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\ServiceTagNotFoundException;
-use Ghostwriter\Container\Interface\ContainerExceptionInterface;
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\Exception\NotFoundExceptionInterface;
+use Ghostwriter\Container\Interface\ExceptionInterface;
 use Ghostwriter\Container\Interface\ExtensionInterface;
 use Ghostwriter\Container\Interface\ServiceProviderInterface;
 use InvalidArgumentException;
 use Throwable;
-
 use function array_key_exists;
+use function in_array;
 use function is_callable;
 
 /**
@@ -37,6 +37,7 @@ use function is_callable;
  */
 final class Container implements ContainerInterface
 {
+    private static self $instance;
     /**
      * @template TService of object
      *
@@ -45,27 +46,25 @@ final class Container implements ContainerInterface
     private array $aliases = [
         ContainerInterface::class => self::class,
     ];
-
+    /**
+     * @template TService of object
+     *
+     * @var array<class-string<TService>, class-string<TService>>
+     */
     private array $bindings = [];
-
     private array $dependencies = [];
-
     /**
      * @template TService of object
      *
      * @var array<class-string<TService>,list<ExtensionInterface<TService>>>
      */
     private array $extensions = [];
-
     /**
      * @template TService of object
      *
      * @var array<class-string<TService>,Closure(self,TService):TService>
      */
     private array $factories = [];
-
-    private static self $instance;
-
     /**
      * @template TService of object
      *
@@ -73,6 +72,9 @@ final class Container implements ContainerInterface
      */
     private array $instances = [];
 
+    /**
+     * @var array<class-string<ServiceProviderInterface>, null>
+     */
     private array $providers = [];
 
     /**
@@ -84,7 +86,13 @@ final class Container implements ContainerInterface
 
     private function __construct(
         private readonly Instantiator $instantiator = new Instantiator(),
-    ) {
+    )
+    {
+    }
+
+    public static function getInstance(): self
+    {
+        return self::$instance ??= new self();
     }
 
     /**
@@ -105,9 +113,7 @@ final class Container implements ContainerInterface
     }
 
     /**
-     * @throws ContainerExceptionInterface if "__clone()" method is called
-     *
-     * @return never
+     * @throws ExceptionInterface if "__clone()" method is called
      */
     public function __clone(): void
     {
@@ -115,9 +121,7 @@ final class Container implements ContainerInterface
     }
 
     /**
-     * @throws ContainerExceptionInterface if "__serialize()" method is called
-     *
-     * @return never
+     * @throws ExceptionInterface if "__serialize()" method is called
      */
     public function __serialize(): array
     {
@@ -125,11 +129,10 @@ final class Container implements ContainerInterface
     }
 
     /**
-     * @param array<string,mixed> $data
+     * @template TMixed
+     * @param array<TMixed> $data
      *
-     * @throws ContainerExceptionInterface if "__unserialize()" method is called
-     *
-     * @return never
+     * @throws ExceptionInterface if "__unserialize()" method is called
      */
     public function __unserialize(array $data): void
     {
@@ -158,20 +161,21 @@ final class Container implements ContainerInterface
      * @template TAbstractClass of object
      * @template TImplementationClass of object
      *
-     * @param class-string<TConcreteClass>       $concrete
-     * @param class-string<TAbstractClass>       $abstract
+     * @param class-string<TConcreteClass> $concrete
+     * @param class-string<TAbstractClass> $abstract
      * @param class-string<TImplementationClass> $implementation
      */
     public function bind(
         string $concrete,
         string $abstract,
         string $implementation
-    ): void {
+    ): void
+    {
         if (trim($concrete) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
-        if (! class_exists($concrete)) {
+        if (!class_exists($concrete)) {
             throw new ServiceNotFoundException($concrete);
         }
 
@@ -180,8 +184,8 @@ final class Container implements ContainerInterface
         }
 
         if (
-            ! class_exists($abstract) &&
-            ! interface_exists($abstract)
+            !class_exists($abstract) &&
+            !interface_exists($abstract)
         ) {
             throw new ServiceNotFoundException($abstract);
         }
@@ -191,8 +195,8 @@ final class Container implements ContainerInterface
         }
 
         if (
-            ! class_exists($implementation) &&
-            ! interface_exists($implementation)
+            !class_exists($implementation) &&
+            !interface_exists($implementation)
         ) {
             throw new ServiceNotFoundException($implementation);
         }
@@ -201,21 +205,205 @@ final class Container implements ContainerInterface
     }
 
     /**
+     * @template TService of object
+     *
+     * @param class-string<TService> $service
+     * @param class-string<ExtensionInterface<TService>> $extension
+     */
+    public function extend(string $service, string $extension): void
+    {
+        if (trim($service) === '') {
+            throw new ServiceNameMustBeNonEmptyStringException();
+        }
+
+        if (
+            !is_a($extension, ExtensionInterface::class, true)
+            || $extension === ExtensionInterface::class
+        ) {
+            throw new ServiceExtensionMustBeAnInstanceOfExtensionInterfaceException($extension);
+        }
+
+        if (array_key_exists($extension, $this->extensions[$service] ?? [])) {
+            throw new ServiceExtensionAlreadyRegisteredException($extension);
+        }
+
+        $this->extensions[$service][$extension] = $extension;
+    }
+
+    /**
+     * @template TService of object
+     *
+     * @param class-string<TService> $service
+     *
+     * @throws ServiceNameMustBeNonEmptyStringException
+     */
+    public function has(string $service): bool
+    {
+        if (trim($service) === '') {
+            throw new ServiceNameMustBeNonEmptyStringException();
+        }
+
+        return match (true) {
+            default => array_reduce(
+                $this->bindings,
+                /**
+                 * @param array<class-string<TService>> $binding
+                 */
+                static fn(bool $carry, array $binding): bool => $carry
+                    || in_array($service, $binding, true),
+                false
+            ),
+            array_key_exists($service, $this->instances),
+            array_key_exists($service, $this->factories),
+            array_key_exists($service, $this->aliases),
+            is_a($service, ContainerInterface::class, true) => true,
+        };
+    }
+
+    /**
+     * @param class-string<ServiceProviderInterface> $serviceProvider
+     *
+     * @throws ServiceProviderAlreadyRegisteredException
+     * @throws ServiceProviderMustBeAnInstanceOfServiceProviderInterfaceException
+     * @throws Throwable
+     */
+    public function provide(string $serviceProvider): void
+    {
+        if (
+            !is_a($serviceProvider, ServiceProviderInterface::class, true)
+            || $serviceProvider === ServiceProviderInterface::class
+        ) {
+            throw new ServiceProviderMustBeAnInstanceOfServiceProviderInterfaceException($serviceProvider);
+        }
+
+        if (array_key_exists($serviceProvider, $this->providers)) {
+            throw new ServiceProviderAlreadyRegisteredException($serviceProvider);
+        }
+
+        $this->providers[$serviceProvider] = null;
+
+        $this->invoke($serviceProvider);
+    }
+
+    /**
+     * @template TInvokable of object
+     * @template TArgument
+     * @template TResult
+     *
+     * @param callable-string|class-string<TInvokable> $invokable
+     * @param array<TArgument> $arguments
+     *
+     * @throws Throwable
+     */
+    public function invoke(string $invokable, array $arguments = []): mixed
+    {
+        /** @var callable(array<TArgument>):TResult $callable */
+        $callable = $this->get($invokable);
+
+        return $this->call($callable, $arguments);
+    }
+
+    /**
+     * @template TService of object
+     *
+     * @param class-string<TService> $service
+     *
+     * @return TService
+     *
+     * @throws ExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function get(string $service): object
+    {
+        $class = $this->resolve($service);
+
+        return match (true) {
+            array_key_exists($class, $this->instances) => $this->instances[$class],
+            array_key_exists($class, $this->factories) => $this->apply(
+                $class,
+                $this->call($this->factories[$class])
+            ),
+            is_a($class, ContainerInterface::class, true) => $this,
+            !class_exists($class) => throw new ServiceNotFoundException($class),
+            default => $this->build($class),
+        };
+    }
+
+    /**
+     * @template TService of object
+     *
+     * @param class-string<TService> $service
+     *
+     * @throws ServiceNameMustBeNonEmptyStringException
+     */
+    private function resolve(string $service): string
+    {
+        if (trim($service) === '') {
+            throw new ServiceNameMustBeNonEmptyStringException();
+        }
+
+        while (array_key_exists($service, $this->aliases)) {
+            $service = $this->aliases[$service];
+        }
+
+        $bindings = $this->bindings ?? [];
+
+        $dependencies = $this->dependencies ?? [];
+
+        if ($bindings === [] || $dependencies === []) {
+            return $service;
+        }
+
+        return $bindings[array_key_last($dependencies)][$service] ?? $service;
+    }
+
+    /**
+     * @throws Throwable
+     */
+    private function apply(string $service, object $object): object
+    {
+        $this->instances[$service] = $object;
+
+        foreach ($this->extensions[$service] ?? [] as $extension) {
+            $object = $this->invoke($extension, [$this, $object]);
+        }
+
+        return $this->instances[$service] = $object;
+    }
+
+    /**
+     * @template TArgument
+     * @template TResult
+     *
+     * @param callable(array<TArgument>):TResult $callback
+     * @param array<TArgument> $arguments
+     *
+     * @return TResult
+     */
+    public function call(callable $callback, array $arguments = []): mixed
+    {
+        $parameters = $this->instantiator
+            ->buildParameters($this, $callback(...), $arguments);
+
+        return $callback(...$parameters);
+    }
+
+    /**
      * @template TArgument
      * @template TService of object
      *
      * @param class-string<TService> $service
-     * @param array<TArgument>       $arguments
+     * @param array<TArgument> $arguments
+     *
+     * @return TService
      *
      * @throws CircularDependencyException
      * @throws ClassNotInstantiableException
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      * @throws InvalidArgumentException
      * @throws ServiceNameMustBeNonEmptyStringException
      * @throws ServiceProviderAlreadyRegisteredException
      * @throws Throwable
-     *
-     * @return TService
      */
     public function build(string $service, array $arguments = []): object
     {
@@ -251,145 +439,6 @@ final class Container implements ContainerInterface
         return $this->apply($service, $object);
     }
 
-    /**
-     * @template TArgument
-     * @template TResult
-     *
-     * @param callable(array<TArgument>):TResult|callable-string $callback
-     */
-    public function call(callable $callback, array $arguments = []): mixed
-    {
-        $parameters = $this->instantiator
-            ->buildParameters($this, $callback(...), $arguments);
-
-        return $callback(...$parameters);
-    }
-
-    /**
-     * @template TService of object
-     *
-     * @param class-string<TService>                     $service
-     * @param class-string<ExtensionInterface<TService>> $extension
-     */
-    public function extend(string $service, string $extension): void
-    {
-        if (trim($service) === '') {
-            throw new ServiceNameMustBeNonEmptyStringException();
-        }
-
-        if (
-            ! is_a($extension, ExtensionInterface::class, true)
-            || $extension === ExtensionInterface::class
-        ) {
-            throw new ServiceExtensionMustBeAnInstanceOfExtensionInterfaceException($extension);
-        }
-
-        if (array_key_exists($extension, $this->extensions[$service] ?? [])) {
-            throw new ServiceExtensionAlreadyRegisteredException($extension);
-        }
-
-        $this->extensions[$service][$extension] = $extension;
-    }
-
-    /**
-     * @template TService of object
-     *
-     * @param class-string<TService> $service
-     *
-     * @throws NotFoundExceptionInterface
-     * @throws ContainerExceptionInterface
-     * @throws Throwable
-     *
-     * @return TService
-     */
-    public function get(string $service): object
-    {
-        $class = $this->resolve($service);
-
-        if (array_key_exists($class, $this->instances)) {
-            return $this->instances[$class];
-        }
-
-        if (array_key_exists($class, $this->factories)) {
-            return $this->apply($class, $this->call($this->factories[$class]));
-        }
-
-        if (is_a($class, ContainerInterface::class, true)) {
-            return $this;
-        }
-
-        if (! class_exists($class)) {
-            throw new ServiceNotFoundException($class);
-        }
-
-        return $this->apply($class, $this->build($class));
-    }
-
-    public static function getInstance(): self
-    {
-        return self::$instance ??= new self();
-    }
-
-    public function has(string $service): bool
-    {
-        if (trim($service) === '') {
-            throw new ServiceNameMustBeNonEmptyStringException();
-        }
-
-        return array_key_exists($service, $this->instances) ||
-            array_key_exists($service, $this->factories) ||
-            array_key_exists($service, $this->aliases) ||
-            is_a($service, ContainerInterface::class, true) ||
-            array_reduce(
-                $this->bindings,
-                static fn (
-                    bool $carry,
-                    array $binding
-                ): bool => $carry || in_array($service, $binding, true),
-                false
-            );
-    }
-
-    /**
-     * @template TInvokable of object
-     * @template TArgument
-     * @template TResult
-     *
-     * @param callable-string&class-string<TInvokable> $invokable
-     *
-     * @throws Throwable
-     */
-    public function invoke(string $invokable, array $arguments = []): mixed
-    {
-        /** @var callable(array<TArgument>):TResult $callable */
-        $callable = $this->get($invokable);
-
-        return $this->call($callable, $arguments);
-    }
-
-    /**
-     * @throws ServiceProviderAlreadyRegisteredException
-     * @throws ServiceProviderMustBeAnInstanceOfServiceProviderInterfaceException
-     * @throws ContainerExceptionInterface
-     */
-    public function provide(string $serviceProvider): void
-    {
-        if (
-            ! is_a($serviceProvider, ServiceProviderInterface::class, true)
-            || $serviceProvider === ServiceProviderInterface::class
-        ) {
-            throw new ServiceProviderMustBeAnInstanceOfServiceProviderInterfaceException($serviceProvider);
-        }
-
-        if (array_key_exists($serviceProvider, $this->providers)) {
-            throw new ServiceProviderAlreadyRegisteredException($serviceProvider);
-        }
-
-        $this->providers[$serviceProvider] = null;
-
-        $this->invoke($serviceProvider);
-    }
-
     public function register(string $abstract, string $concrete = null, array $tags = []): void
     {
         $concrete ??= $abstract;
@@ -406,12 +455,30 @@ final class Container implements ContainerInterface
             $this->aliases[$abstract] = $concrete;
         }
 
-        $this->factories[$concrete] ??= static fn (
+        $this->factories[$concrete] ??= static fn(
             ContainerInterface $container
         ): object => $container->build($concrete);
 
         if ($tags !== []) {
             $this->tag($abstract, $tags);
+        }
+    }
+
+    /**
+     * @throws ExceptionInterface
+     */
+    public function tag(string $service, array $tags): void
+    {
+        if (trim($service) === '') {
+            throw new ServiceNameMustBeNonEmptyStringException();
+        }
+
+        foreach ($tags as $tag) {
+            if (trim($tag) === '') {
+                throw new ServiceTagMustBeNonEmptyStringException();
+            }
+
+            $this->tags[$tag][$service] = $service;
         }
     }
 
@@ -429,7 +496,7 @@ final class Container implements ContainerInterface
     /**
      * @throws ServiceNameMustBeNonEmptyStringException
      * @throws ServiceTagMustBeNonEmptyStringException
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      */
     public function set(string $service, callable|object $value, array $tags = []): void
     {
@@ -446,26 +513,8 @@ final class Container implements ContainerInterface
         unset($this->instances[$service]);
 
         $this->factories[$service] = is_callable($value)
-                ? $value
-            : static fn (ContainerInterface $container): object => $value;
-    }
-
-    /**
-     * @throws ContainerExceptionInterface
-     */
-    public function tag(string $service, array $tags): void
-    {
-        if (trim($service) === '') {
-            throw new ServiceNameMustBeNonEmptyStringException();
-        }
-
-        foreach ($tags as $tag) {
-            if (trim($tag) === '') {
-                throw new ServiceTagMustBeNonEmptyStringException();
-            }
-
-            $this->tags[$tag][$service] = $service;
-        }
+            ? $value
+            : static fn(ContainerInterface $container): object => $value;
     }
 
     /**
@@ -473,11 +522,11 @@ final class Container implements ContainerInterface
      *
      * @param class-string<TService> $tag
      *
-     * @throws ContainerExceptionInterface
+     * @return Generator<TService>
      * @throws NotFoundExceptionInterface
      * @throws Throwable
      *
-     * @return Generator<TService>
+     * @throws ExceptionInterface
      */
     public function tagged(string $tag): Generator
     {
@@ -485,7 +534,7 @@ final class Container implements ContainerInterface
             throw new ServiceTagMustBeNonEmptyStringException();
         }
 
-        if (! array_key_exists($tag, $this->tags)) {
+        if (!array_key_exists($tag, $this->tags)) {
             throw new ServiceTagNotFoundException($tag);
         }
 
@@ -495,50 +544,23 @@ final class Container implements ContainerInterface
         }
     }
 
+    /**
+     * @template TService of object
+     * @param class-string<TService> $service
+     * @param list<string> $tags
+     */
     public function untag(string $service, array $tags): void
     {
         foreach ($tags as $tag) {
-            if (! array_key_exists($tag, $this->tags)) {
-                continue;
+            if (!array_key_exists($tag, $this->tags)) {
+                throw new ServiceTagNotFoundException($tag);
             }
 
-            if (! array_key_exists($service, $this->tags[$tag])) {
-                continue;
+            if (!array_key_exists($service, $this->tags[$tag])) {
+                throw new ServiceNotFoundException($tag);
             }
 
             unset($this->tags[$tag][$service]);
         }
-    }
-
-    private function apply(string $service, object $object): object
-    {
-        $this->instances[$service] = $object;
-
-        foreach ($this->extensions[$service] ?? [] as $extension) {
-            $object = $this->invoke($extension, [$this, $object]);
-        }
-
-        return $this->instances[$service] = $object;
-    }
-
-    private function resolve(string $service): string
-    {
-        if (trim($service) === '') {
-            throw new ServiceNameMustBeNonEmptyStringException();
-        }
-
-        while (array_key_exists($service, $this->aliases)) {
-            $service = $this->aliases[$service];
-        }
-
-        $bindings = $this->bindings ?? [];
-
-        $dependencies = $this->dependencies ?? [];
-
-        if ($bindings === [] || $dependencies === []) {
-            return $service;
-        }
-
-        return $bindings[array_key_last($dependencies)][$service] ?? $service;
     }
 }
