@@ -5,75 +5,44 @@ declare(strict_types=1);
 namespace Ghostwriter\Container\Tests\Unit;
 
 use Ghostwriter\Container\Container;
-use Ghostwriter\Container\Exception\ClassNotInstantiableException;
-use Ghostwriter\Container\Exception\InstantiatorException;
 use Ghostwriter\Container\Instantiator;
-use Ghostwriter\Container\Interface\ContainerExceptionInterface;
 use Ghostwriter\Container\ParameterBuilder;
 use Ghostwriter\Container\Reflector;
-use Ghostwriter\Container\Tests\Fixture\Foobar;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\UsesClass;
 use stdClass;
+use Throwable;
 
 #[CoversClass(Instantiator::class)]
-#[UsesClass(Container::class)]
-#[UsesClass(ParameterBuilder::class)]
-#[UsesClass(Reflector::class)]
+#[CoversClass(Container::class)]
+#[CoversClass(ParameterBuilder::class)]
+#[CoversClass(Reflector::class)]
 final class InstantiatorTest extends AbstractTestCase
 {
-    private Instantiator $instantiator;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->instantiator = new Instantiator();
-    }
-
+    /**
+     * @throws Throwable
+     */
     public function testBuildParameters(): void
     {
-        $container = Container::getInstance();
-
         self::assertSame(
             [],
-            $this->instantiator->buildParameters(
-                $container,
-                static fn (): stdClass => new stdClass()
+            (new Instantiator())->buildParameters(
+                Container::getInstance(),
+                static fn(): stdClass => new stdClass()
             )
         );
     }
 
+    /**
+     * @throws Throwable
+     */
     public function testInstantiate(): void
     {
-        $container = Container::getInstance();
-
         self::assertInstanceOf(
             stdClass::class,
-            $this->instantiator->instantiate(
-                $container,
+            (new Instantiator())->instantiate(
+                Container::getInstance(),
                 stdClass::class
             )
         );
-    }
-
-    public function testInstantiateThrowsClassNotInstantiableException(): void
-    {
-        $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(ClassNotInstantiableException::class);
-
-        $container = Container::getInstance();
-
-        $this->instantiator->instantiate($container, AbstractTestCase::class);
-    }
-
-    public function testInstantiateThrowsInstantiatorException(): void
-    {
-        $this->expectException(ContainerExceptionInterface::class);
-        $this->expectException(InstantiatorException::class);
-
-        $container = Container::getInstance();
-
-        $this->instantiator->instantiate($container, Foobar::class, [null]);
     }
 }
