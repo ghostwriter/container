@@ -9,6 +9,7 @@ use Ghostwriter\Container\Exception\ReflectorException;
 use Ghostwriter\Container\Instantiator;
 use Ghostwriter\Container\ParameterBuilder;
 use Ghostwriter\Container\Reflector;
+use Ghostwriter\Container\Tests\Unit\AbstractTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Throwable;
 
@@ -17,14 +18,14 @@ use Throwable;
 #[CoversClass(Instantiator::class)]
 #[CoversClass(ParameterBuilder::class)]
 #[CoversClass(Reflector::class)]
-final class ReflectorExceptionTest extends AbstractExceptionTestCase
+final class ReflectorExceptionTest extends AbstractTestCase
 {
     /**
      * @throws Throwable
      */
     public function testContainerBuild(): void
     {
-        $this->assertConainerExceptionInterface(ReflectorException::class);
+        $this->assertException(ReflectorException::class);
         $this->expectExceptionMessage('Class "does-not-exist" does not exist');
 
         $container = Container::getInstance();
@@ -37,7 +38,7 @@ final class ReflectorExceptionTest extends AbstractExceptionTestCase
      */
     public function testReflectorReflectClass(): void
     {
-        $this->assertConainerExceptionInterface(ReflectorException::class);
+        $this->assertException(ReflectorException::class);
         $this->expectExceptionMessage('Class "dose-not-exist" does not exist');
 
         (new Reflector())->reflectClass('dose-not-exist');
@@ -48,7 +49,7 @@ final class ReflectorExceptionTest extends AbstractExceptionTestCase
      */
     public function testReflectorReflectFunction(): void
     {
-        $this->assertConainerExceptionInterface(ReflectorException::class);
+        $this->assertException(ReflectorException::class);
         $this->expectExceptionMessage('Function dose-not-exist() does not exist');
 
         (new Reflector())->reflectFunction('dose-not-exist');
