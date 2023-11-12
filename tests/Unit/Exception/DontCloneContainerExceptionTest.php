@@ -9,6 +9,7 @@ use Ghostwriter\Container\Exception\DontCloneContainerException;
 use Ghostwriter\Container\Instantiator;
 use Ghostwriter\Container\ParameterBuilder;
 use Ghostwriter\Container\Reflector;
+use Ghostwriter\Container\Tests\Unit\AbstractTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Throwable;
 
@@ -17,14 +18,14 @@ use Throwable;
 #[CoversClass(Instantiator::class)]
 #[CoversClass(ParameterBuilder::class)]
 #[CoversClass(Reflector::class)]
-final class DontCloneContainerExceptionTest extends AbstractExceptionTestCase
+final class DontCloneContainerExceptionTest extends AbstractTestCase
 {
     /**
      * @throws Throwable
      */
     public function testClone(): void
     {
-        $this->assertConainerExceptionInterface(DontCloneContainerException::class);
+        $this->assertException(DontCloneContainerException::class);
 
         $container = Container::getInstance();
 
