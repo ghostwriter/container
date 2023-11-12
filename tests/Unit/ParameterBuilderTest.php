@@ -7,7 +7,6 @@ namespace Ghostwriter\Container\Tests\Unit;
 use Generator;
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Instantiator;
-use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\ParameterBuilder;
 use Ghostwriter\Container\Reflector;
 use PHPUnit\Framework\Attributes\CoversClass;
