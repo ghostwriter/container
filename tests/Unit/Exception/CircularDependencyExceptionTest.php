@@ -15,6 +15,7 @@ use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassC;
 use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassX;
 use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassY;
 use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassZ;
+use Ghostwriter\Container\Tests\Unit\AbstractTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Throwable;
 
@@ -23,14 +24,14 @@ use Throwable;
 #[CoversClass(Instantiator::class)]
 #[CoversClass(ParameterBuilder::class)]
 #[CoversClass(Reflector::class)]
-final class CircularDependencyExceptionTest extends AbstractExceptionTestCase
+final class CircularDependencyExceptionTest extends AbstractTestCase
 {
     /**
      * @throws Throwable
      */
     public function testContainerBuild(): void
     {
-        $this->assertConainerExceptionInterface(CircularDependencyException::class);
+        $this->assertException(CircularDependencyException::class);
         $this->expectExceptionMessage(sprintf(
             'Class: %s',
             implode(
