@@ -10,6 +10,7 @@ use Ghostwriter\Container\Instantiator;
 use Ghostwriter\Container\ParameterBuilder;
 use Ghostwriter\Container\Reflector;
 use Ghostwriter\Container\Tests\Fixture\Foobar;
+use Ghostwriter\Container\Tests\Unit\AbstractTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Throwable;
 
@@ -18,14 +19,14 @@ use Throwable;
 #[CoversClass(Instantiator::class)]
 #[CoversClass(ParameterBuilder::class)]
 #[CoversClass(Reflector::class)]
-final class InstantiatorExceptionTest extends AbstractExceptionTestCase
+final class InstantiatorExceptionTest extends AbstractTestCase
 {
     /**
      * @throws Throwable
      */
     public function testInstantiatorInstantiateThrowsInstantiatorException(): void
     {
-        $this->assertConainerExceptionInterface(InstantiatorException::class);
+        $this->assertException(InstantiatorException::class);
 
         (new Instantiator())->instantiate(
             Container::getInstance(),
