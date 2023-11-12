@@ -24,7 +24,7 @@ interface ContainerInterface
      * @param class-string<TConcrete> $service
      *
      * @throws NotFoundExceptionInterface
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      */
     public function alias(string $name, string $service): void;
 
@@ -36,7 +36,7 @@ interface ContainerInterface
      * $container->bind(GitHub::class, ClientInterface::class, GitHubClient::class);
      *
      * @throws NotFoundExceptionInterface
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      */
     public function bind(string $concrete, string $abstract, string $implementation): void;
 
@@ -49,10 +49,10 @@ interface ContainerInterface
      * @param class-string<TService> $service
      * @param array<TArgument>       $arguments optional constructor arguments passed to build the new class instance
      *
-     * @throws NotFoundExceptionInterface  if no entry was found for **this** identifier
-     * @throws ContainerExceptionInterface if there is an error while retrieving the entry
-     *
      * @return TService
+     *
+     * @throws ExceptionInterface if there is an error while retrieving the entry
+     * @throws NotFoundExceptionInterface  if no entry was found for **this** identifier
      */
     public function build(string $service, array $arguments = []): object;
 
@@ -60,12 +60,10 @@ interface ContainerInterface
      * Invoke the $callback with optional arguments.
      *
      * @template TArgument
-     * @template TArguments of array<TArgument>
      * @template TReturn
-     * @template TInvokable of callable|array{0:object,1:string}
      *
-     * @param callable(TArguments):TReturn $callback
-     * @param TArguments                   $arguments optional arguments passed to $callback
+     * @param callable(array<TArgument>):TReturn $callback
+     * @param array<TArgument>                   $arguments optional arguments passed to $callback
      *
      * @throws ReflectionException
      * @throws Throwable
@@ -94,10 +92,10 @@ interface ContainerInterface
      *
      * @param class-string<TService> $service
      *
-     * @throws NotFoundExceptionInterface  if no entry was found for the given identifier
-     * @throws ContainerExceptionInterface If error while retrieving the entry
-     *
      * @return TService
+     * @throws ExceptionInterface If error while retrieving the entry
+     *
+     * @throws NotFoundExceptionInterface  if no entry was found for the given identifier
      */
     public function get(string $service): object;
 
@@ -115,7 +113,7 @@ interface ContainerInterface
      *
      * @param class-string<ServiceProviderInterface> $serviceProvider
      *
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      * @throws NotFoundExceptionInterface
      */
     public function provide(string $serviceProvider): void;
@@ -131,7 +129,7 @@ interface ContainerInterface
      * @param array<class-string>     $tags
      *
      * @throws NotFoundExceptionInterface
-     * @throws ContainerExceptionInterface
+     * @throws ExceptionInterface
      */
     public function register(string $abstract, string $concrete = null, array $tags = []): void;
 
