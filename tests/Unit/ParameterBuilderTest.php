@@ -64,4 +64,58 @@ final class ParameterBuilderTest extends AbstractTestCase
             )
         );
     }
+
+    /**
+     * @throws Throwable
+     */
+    public function testBuildUsesDefaultValueFromContainer(): void
+    {
+        $parameterBuilder = new ParameterBuilder();
+
+        $container = Container::getInstance();
+
+        $stdClass = new stdClass();
+
+        $container->set(stdClass::class, $stdClass);
+
+        self::assertSame(
+            [$stdClass],
+            $parameterBuilder->build(
+                $container,
+                [
+                    new ReflectionParameter(
+                        static fn(
+                            ?stdClass $foo = null
+                        ): stdClass => $stdClass,
+                        'foo'
+                    )
+                ])
+        );
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testBuildUsesDefaultValue(): void
+    {
+        $parameterBuilder = new ParameterBuilder();
+
+        $container = Container::getInstance();
+
+        $stdClass = new stdClass();
+
+        self::assertSame(
+            [null],
+            $parameterBuilder->build(
+                $container,
+                [
+                    new ReflectionParameter(
+                        static fn(
+                            ?stdClass $foo = null
+                        ): stdClass => $stdClass,
+                        'foo'
+                    )
+                ])
+        );
+    }
 }

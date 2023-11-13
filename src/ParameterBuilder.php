@@ -39,51 +39,64 @@ final readonly class ParameterBuilder
     ): array
     {
         /** @var array<TArgument> */
-        return [
-            ...array_map(
-            /** @throws Throwable */
-                static function (ReflectionParameter $reflectionParameter) use ($container, &$arguments) {
-                    $parameterName = $reflectionParameter->getName();
-                    if ($arguments !== []) {
-                        /** @var class-string<TArgument> $parameterKey */
-                        $parameterKey = array_key_exists($parameterName, $arguments) ?
-                            $parameterName :
-                            array_key_first($arguments);
+        return [...array_map(
+        /** @throws Throwable */
+            static function (ReflectionParameter $reflectionParameter) use ($container, &$arguments) {
+                $parameterName = $reflectionParameter->getName();
+                if ($arguments !== []) {
+                    /** @var class-string<TArgument> $parameterKey */
+                    $parameterKey = array_key_exists($parameterName, $arguments) ?
+                        $parameterName :
+                        array_key_first($arguments);
 
-                        /** @var TArgument $argument */
-                        $argument = $arguments[$parameterKey];
+                    /** @var TArgument $argument */
+                    $argument = $arguments[$parameterKey];
 
-                        unset($arguments[$parameterKey]);
+                    unset($arguments[$parameterKey]);
 
-                        return $argument;
-                    }
+                    return $argument;
+                }
 
-                    $reflectionType = $reflectionParameter->getType();
-                    if ($reflectionType instanceof ReflectionNamedType && !$reflectionType->isBuiltin()) {
-                        /** @var TArgument */
-                        return $container->get($reflectionType->getName());
-                    }
+                $isDefaultValueAvailable = $reflectionParameter->isDefaultValueAvailable();
 
-                    if ($reflectionParameter->isDefaultValueAvailable()) {
+                $reflectionType = $reflectionParameter->getType();
+
+                if (
+                    $reflectionType instanceof ReflectionNamedType
+                    && !$reflectionType->isBuiltin()
+                ) {
+                    $reflectionTypeName = $reflectionType->getName();
+
+                    if (
+                        $isDefaultValueAvailable
+                        && !$container->has($reflectionTypeName)
+                    ) {
                         /** @var TArgument */
                         return $reflectionParameter->getDefaultValue();
                     }
 
-                    $name = $reflectionParameter->getDeclaringFunction()->getName();
+                    /** @var TArgument */
+                    return $container->get($reflectionTypeName);
+                }
 
-                    $isFunction = is_callable($name);
+                if ($isDefaultValueAvailable) {
+                    /** @var TArgument */
+                    return $reflectionParameter->getDefaultValue();
+                }
 
-                    throw new UnresolvableParameterException(sprintf(
-                        'Unresolvable %s parameter "$%s" in "%s%s()"; does not have a default value.',
-                        $isFunction ? 'function' : 'class',
-                        $parameterName,
-                        $isFunction ? $name : $reflectionParameter->getDeclaringClass()?->getName(),
-                        $isFunction ? '' : '::' . $name
-                    ));
-                },
-                $parameters
-            ),
-            ...array_values($arguments)
-        ];
+                $name = $reflectionParameter->getDeclaringFunction()->getName();
+
+                $isFunction = is_callable($name);
+
+                throw new UnresolvableParameterException(sprintf(
+                    'Unresolvable %s parameter "$%s" in "%s%s()"; does not have a default value.',
+                    $isFunction ? 'function' : 'class',
+                    $parameterName,
+                    $isFunction ? $name : $reflectionParameter->getDeclaringClass()?->getName(),
+                    $isFunction ? '' : '::' . $name
+                ));
+            },
+            $parameters
+        ), ...array_values($arguments)];
     }
 }
