@@ -82,6 +82,17 @@ interface ContainerInterface
      */
     public function extend(string $service, string $extension): void;
 
+
+    /**
+     * Provide a FactoryInterface for a service.
+     *
+     * @template TService of object
+     *
+     * @param class-string<TService>                     $service
+     * @param class-string<FactoryInterface<TService>> $serviceFactory
+     */
+    public function factory(string $service, string $serviceFactory): void;
+
     /**
      * Instantiate and return the service with the given id.
      *

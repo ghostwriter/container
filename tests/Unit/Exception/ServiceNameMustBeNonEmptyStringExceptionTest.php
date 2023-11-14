@@ -10,6 +10,7 @@ use Ghostwriter\Container\Instantiator;
 use Ghostwriter\Container\ParameterBuilder;
 use Ghostwriter\Container\Reflector;
 use Ghostwriter\Container\Tests\Fixture\Extension\StdClassOneExtension;
+use Ghostwriter\Container\Tests\Fixture\StdClassFactory;
 use Ghostwriter\Container\Tests\Unit\AbstractTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
@@ -265,6 +266,27 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
         Container::getInstance()->tag(' ', [stdClass::class]);
+    }
+
+
+    /**
+     * @throws Throwable
+     */
+    public function testContainerFactory(): void
+    {
+        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
+
+        Container::getInstance()->factory('', StdClassFactory::class);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testContainerFactoryEmptySpace(): void
+    {
+        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
+
+        Container::getInstance()->factory(' ', StdClassFactory::class);
     }
 
 }

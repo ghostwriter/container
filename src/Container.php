@@ -15,6 +15,7 @@ use Ghostwriter\Container\Exception\DontSerializeContainerException;
 use Ghostwriter\Container\Exception\DontUnserializeContainerException;
 use Ghostwriter\Container\Exception\ServiceExtensionAlreadyRegisteredException;
 use Ghostwriter\Container\Exception\ServiceExtensionMustBeAnInstanceOfExtensionInterfaceException;
+use Ghostwriter\Container\Exception\ServiceFactoryMustBeAnInstanceOfFactoryInterfaceException;
 use Ghostwriter\Container\Exception\ServiceMustBeAnObjectException;
 use Ghostwriter\Container\Exception\ServiceNameMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\ServiceNotFoundException;
@@ -26,6 +27,7 @@ use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\Exception\NotFoundExceptionInterface;
 use Ghostwriter\Container\Interface\ExceptionInterface;
 use Ghostwriter\Container\Interface\ExtensionInterface;
+use Ghostwriter\Container\Interface\FactoryInterface;
 use Ghostwriter\Container\Interface\ServiceProviderInterface;
 use InvalidArgumentException;
 use Throwable;
@@ -64,7 +66,7 @@ final class Container implements ContainerInterface
     /**
      * @template TService of object
      *
-     * @var array<class-string<TService>|callable-string>
+     * @var array<class-string<TService>,callable():TService>
      */
     private array $factories = [];
     /**
@@ -567,5 +569,30 @@ final class Container implements ContainerInterface
 
             unset($this->tags[$tag][$service]);
         }
+    }
+
+
+    /**
+     * Provide a FactoryInterface for a service.
+     *
+     * @template TService of object
+     *
+     * @param class-string<TService>                     $service
+     * @param class-string<FactoryInterface<TService>> $serviceFactory
+     */
+    public function factory(string $service, string $serviceFactory): void
+    {
+        if (trim($service) === '') {
+            throw new ServiceNameMustBeNonEmptyStringException();
+        }
+
+        if (
+            !is_a($serviceFactory, FactoryInterface::class, true)
+            || $serviceFactory === FactoryInterface::class
+        ) {
+            throw new ServiceFactoryMustBeAnInstanceOfFactoryInterfaceException($serviceFactory);
+        }
+
+        $this->factories[$service] = static fn(ContainerInterface $container): object => $container->invoke($serviceFactory);
     }
 }

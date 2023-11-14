@@ -38,6 +38,7 @@ use Ghostwriter\Container\Tests\Fixture\GitHubClient;
 use Ghostwriter\Container\Tests\Fixture\NonStdClassFactory;
 use Ghostwriter\Container\Tests\Fixture\ServiceProvider\FoobarServiceProvider;
 use Ghostwriter\Container\Tests\Fixture\ServiceProvider\FoobarWithDependencyServiceProvider;
+use Ghostwriter\Container\Tests\Fixture\StdClassFactory;
 use Ghostwriter\Container\Tests\Fixture\TestEvent;
 use Ghostwriter\Container\Tests\Fixture\TestEventListener;
 use Ghostwriter\Container\Tests\Fixture\UnionTypehintWithDefaultValue;
@@ -563,5 +564,18 @@ final class ContainerTest extends AbstractTestCase
         Container::getInstance()->untag(stdClass::class, ['tag']);
 
         self::assertCount(0, iterator_to_array(Container::getInstance()->tagged('tag')));
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testFactory(): void
+    {
+        Container::getInstance()->factory(stdClass::class, StdClassFactory::class);
+
+        self::assertSame(
+            '#FreePalestine',
+            Container::getInstance()->get(stdClass::class)->blackLivesMatter
+        );
     }
 }
