@@ -15,6 +15,7 @@ use Ghostwriter\Container\Exception\DontSerializeContainerException;
 use Ghostwriter\Container\Exception\DontUnserializeContainerException;
 use Ghostwriter\Container\Exception\ServiceExtensionAlreadyRegisteredException;
 use Ghostwriter\Container\Exception\ServiceExtensionMustBeAnInstanceOfExtensionInterfaceException;
+use Ghostwriter\Container\Exception\ServiceMustBeAnObjectException;
 use Ghostwriter\Container\Exception\ServiceNameMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\ServiceNotFoundException;
 use Ghostwriter\Container\Exception\ServiceProviderAlreadyRegisteredException;
@@ -31,6 +32,7 @@ use Throwable;
 use function array_key_exists;
 use function in_array;
 use function is_callable;
+use function is_object;
 
 /**
  * @see \Ghostwriter\Container\Tests\Unit\ContainerTest
@@ -62,9 +64,15 @@ final class Container implements ContainerInterface
     /**
      * @template TService of object
      *
-     * @var array<class-string<TService>,Closure(self,TService):TService>
+     * @var array<class-string<TService>|callable-string>
      */
     private array $factories = [];
+    /**
+     * @template TService of object
+     *
+     * @var array<class-string<TService>|callable-string>
+     */
+    private array $services = [];
     /**
      * @template TService of object
      *
@@ -105,8 +113,9 @@ final class Container implements ContainerInterface
         ];
         $this->extensions = [];
         $this->bindings = [];
-        $this->dependencies = [];
         $this->factories = [];
+        $this->dependencies = [];
+        $this->services = [];
         $this->instances = [];
         $this->providers = [];
         $this->tags = [];
@@ -255,6 +264,7 @@ final class Container implements ContainerInterface
             ),
             array_key_exists($service, $this->instances),
             array_key_exists($service, $this->factories),
+            array_key_exists($service, $this->services),
             array_key_exists($service, $this->aliases),
             is_a($service, ContainerInterface::class, true) => true,
         };
@@ -319,10 +329,6 @@ final class Container implements ContainerInterface
 
         return match (true) {
             array_key_exists($class, $this->instances) => $this->instances[$class],
-            array_key_exists($class, $this->factories) => $this->apply(
-                $class,
-                $this->call($this->factories[$class])
-            ),
             is_a($class, ContainerInterface::class, true) => $this,
             !class_exists($class) => throw new ServiceNotFoundException($class),
             default => $this->build($class),
@@ -355,20 +361,6 @@ final class Container implements ContainerInterface
         }
 
         return $bindings[array_key_last($dependencies)][$service] ?? $service;
-    }
-
-    /**
-     * @throws Throwable
-     */
-    private function apply(string $service, object $object): object
-    {
-        $this->instances[$service] = $object;
-
-        foreach ($this->extensions[$service] ?? [] as $extension) {
-            $object = $this->invoke($extension, [$this, $object]);
-        }
-
-        return $this->instances[$service] = $object;
     }
 
     /**
@@ -423,20 +415,30 @@ final class Container implements ContainerInterface
             ));
         }
 
-        $this->dependencies[$service] = true;
+        $this->dependencies[$service] = null;
 
         /** @var TService $object */
-        $object = $this->instantiator->instantiate(
-            $this,
-            $service,
-            $arguments
-        );
+        $object = match (true) {
+            array_key_exists($service, $this->factories) =>
+            $this->call($this->factories[$service], $arguments),
+            default => $this->instantiator->instantiate($this, $service, $arguments)
+        };
 
         if (array_key_exists($service, $this->dependencies)) {
             unset($this->dependencies[$service]);
         }
 
-        return $this->apply($service, $object);
+        if (!is_object($object)) {
+            throw new ServiceMustBeAnObjectException($service);
+        }
+
+        $this->instances[$service] = $object;
+
+        foreach ($this->extensions[$service] ?? [] as $extension) {
+            $object = $this->invoke($extension, [$this, $object]);
+        }
+
+        return $this->instances[$service] = $object;
     }
 
     public function register(string $abstract, string $concrete = null, array $tags = []): void
@@ -455,9 +457,7 @@ final class Container implements ContainerInterface
             $this->aliases[$abstract] = $concrete;
         }
 
-        $this->factories[$concrete] ??= static fn(
-            ContainerInterface $container
-        ): object => $container->build($concrete);
+        $this->services[$concrete] ??= $concrete;
 
         if ($tags !== []) {
             $this->tag($abstract, $tags);
@@ -485,11 +485,12 @@ final class Container implements ContainerInterface
     public function remove(string $service): void
     {
         unset(
+            $this->aliases[$service],
             $this->extensions[$service],
             $this->factories[$service],
             $this->instances[$service],
+            $this->services[$service],
             $this->tags[$service],
-            $this->aliases[$service],
         );
     }
 
@@ -508,13 +509,17 @@ final class Container implements ContainerInterface
             $this->tag($service, $tags);
         }
 
-        $this->instances[$service] = null;
+        if (is_callable($value)) {
+            $this->factories[$service] = $value;
+            return;
+        }
 
-        unset($this->instances[$service]);
+        if (is_object($value)) {
+            $this->instances[$service] = $value;
+            return;
+        }
 
-        $this->factories[$service] = is_callable($value)
-            ? $value
-            : static fn(ContainerInterface $container): object => $value;
+        throw new ServiceMustBeAnObjectException($service);
     }
 
     /**

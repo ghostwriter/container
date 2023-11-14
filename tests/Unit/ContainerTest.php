@@ -35,6 +35,7 @@ use Ghostwriter\Container\Tests\Fixture\Foo;
 use Ghostwriter\Container\Tests\Fixture\Foobar;
 use Ghostwriter\Container\Tests\Fixture\GitHub;
 use Ghostwriter\Container\Tests\Fixture\GitHubClient;
+use Ghostwriter\Container\Tests\Fixture\NonStdClassFactory;
 use Ghostwriter\Container\Tests\Fixture\ServiceProvider\FoobarServiceProvider;
 use Ghostwriter\Container\Tests\Fixture\ServiceProvider\FoobarWithDependencyServiceProvider;
 use Ghostwriter\Container\Tests\Fixture\TestEvent;
@@ -306,13 +307,13 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testContainerDestruct(): void
     {
-        Container::getInstance()->set('test', static fn(): bool => true);
+        Container::getInstance()->set(stdClass::class, static fn(): stdClass => new stdClass());
 
-        self::assertTrue(Container::getInstance()->has('test'));
+        self::assertTrue(Container::getInstance()->has(stdClass::class));
 
         Container::getInstance()->__destruct();
 
-        self::assertFalse(Container::getInstance()->has('test'));
+        self::assertFalse(Container::getInstance()->has(stdClass::class));
     }
 
     /**
@@ -501,8 +502,8 @@ final class ContainerTest extends AbstractTestCase
     {
         Container::getInstance()->tag(stdClass::class, ['first-tag']);
 
-        Container::getInstance()->register(Foo::class, null, ['tag-2']);
-        Container::getInstance()->register(stdClass::class, null, ['tag']);
+        Container::getInstance()->tag(Foo::class,['tag-2']);
+        Container::getInstance()->tag(stdClass::class, ['tag']);
 
         foreach (Container::getInstance()->tagged('tag') as $service) {
             self::assertInstanceOf(stdClass::class, $service);
@@ -536,8 +537,6 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testTag(): void
     {
-        Container::getInstance()->register(stdClass::class);
-
         Container::getInstance()->tag(stdClass::class, ['tag']);
 
         foreach (Container::getInstance()->tagged('tag') as $service) {
@@ -555,8 +554,6 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testTagThrows(): void
     {
-        Container::getInstance()->register(stdClass::class);
-
         Container::getInstance()->tag(stdClass::class, ['tag']);
 
         foreach (Container::getInstance()->tagged('tag') as $service) {
