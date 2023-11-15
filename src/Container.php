@@ -419,8 +419,8 @@ final class Container implements ContainerInterface
 
         $this->dependencies[$service] = null;
 
-        /** @var TService $object */
-        $object = match (true) {
+        /** @var TService $instance */
+        $instance = match (true) {
             array_key_exists($service, $this->factories) =>
             $this->call($this->factories[$service], $arguments),
             default => $this->instantiator->instantiate($this, $service, $arguments)
@@ -430,17 +430,26 @@ final class Container implements ContainerInterface
             unset($this->dependencies[$service]);
         }
 
-        if (!is_object($object)) {
+        if (!is_object($instance)) {
             throw new ServiceMustBeAnObjectException($service);
         }
 
-        $this->instances[$service] = $object;
+        $this->instances[$service] = $instance;
 
-        foreach ($this->extensions[$service] ?? [] as $extension) {
-            $object = $this->invoke($extension, [$this, $object]);
+        foreach (array_keys($this->extensions) as $serviceName) {
+            if (
+                $serviceName !== $service
+                && !is_a($instance, $serviceName, true)
+            ) {
+                continue;
+            }
+
+            foreach ($this->extensions[$serviceName] ?? [] as $extension) {
+                $instance = $this->invoke($extension, [$this, $instance]);
+            }
         }
 
-        return $this->instances[$service] = $object;
+        return $this->instances[$service] = $instance;
     }
 
     public function register(string $abstract, string $concrete = null, array $tags = []): void
@@ -577,7 +586,7 @@ final class Container implements ContainerInterface
      *
      * @template TService of object
      *
-     * @param class-string<TService>                     $service
+     * @param class-string<TService> $service
      * @param class-string<FactoryInterface<TService>> $serviceFactory
      */
     public function factory(string $service, string $serviceFactory): void
