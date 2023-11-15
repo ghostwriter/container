@@ -143,6 +143,40 @@ $container->alias(GitHubClientInterface::class, GitHubClient::class);
 $container->extend(GitHubClientInterface::class, $container->get(GitHubExtention::class));
 ```
 
+### Service Factory
+
+Registering a service factory on the container.
+
+```php
+final readonly class Dependency {}
+final readonly class Service
+{
+    public function __construct(
+        private Dependency $dependency
+    ){}
+
+    public function dependency():Dependency
+    {
+        return $this->dependency;
+    }
+}
+final readonly class ServiceFactory {
+  public function __invoke(Container $container): Service
+  {
+     return new Service($container->get(Dependency::class));
+  }
+}
+
+$container = Container::getInstance();
+
+$container->factory(Service::class, ServiceFactory::class);
+
+$service = $container->get(Service::class);
+
+assert($service instanceof Service); // true
+assert($service->dependency() instanceof Dependency); // true
+```
+
 ### Testing
 
 ``` bash
