@@ -578,4 +578,17 @@ final class ContainerTest extends AbstractTestCase
             Container::getInstance()->get(stdClass::class)->blackLivesMatter
         );
     }
+
+    /**
+     * @throws Throwable
+     */
+    public function testBuildResolvesAlias(): void
+    {
+        Container::getInstance()->alias(ClientInterface::class, GitHubClient::class);
+
+        self::assertInstanceOf(
+            GitHubClient::class,
+            Container::getInstance()->build(ClientInterface::class)
+        );
+    }
 }

@@ -409,6 +409,10 @@ final class Container implements ContainerInterface
             return $this;
         }
 
+        while (array_key_exists($service, $this->aliases)) {
+            $service = $this->aliases[$service];
+        }
+
         if (array_key_exists($service, $this->dependencies)) {
             throw new CircularDependencyException(sprintf(
                 'Class: %s -> %s',
