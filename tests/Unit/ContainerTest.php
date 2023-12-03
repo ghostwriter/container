@@ -178,21 +178,21 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testContainerAlias(): void
     {
-        self::assertFalse(Container::getInstance()->has(stdClass::class));
+        self::assertFalse($this->container->has(stdClass::class));
 
         $std = new stdClass();
 
-        Container::getInstance()->set(stdClass::class, $std);
+        $this->container->set(stdClass::class, $std);
 
-        self::assertTrue(Container::getInstance()->has(stdClass::class));
+        self::assertTrue($this->container->has(stdClass::class));
 
-        self::assertFalse(Container::getInstance()->has('class'));
+        self::assertFalse($this->container->has('class'));
 
-        Container::getInstance()->alias('class', stdClass::class);
+        $this->container->alias('class', stdClass::class);
 
-        self::assertTrue(Container::getInstance()->has('class'));
+        self::assertTrue($this->container->has('class'));
 
-        self::assertSame($std, Container::getInstance()->get('class'));
+        self::assertSame($std, $this->container->get('class'));
     }
 
     /**
@@ -200,27 +200,27 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testContainerBind(): void
     {
-        self::assertFalse(Container::getInstance()->has(GitHub::class));
-        self::assertFalse(Container::getInstance()->has(ClientInterface::class));
-        self::assertFalse(Container::getInstance()->has(GitHubClient::class));
+        self::assertFalse($this->container->has(GitHub::class));
+        self::assertFalse($this->container->has(ClientInterface::class));
+        self::assertFalse($this->container->has(GitHubClient::class));
 
         // When GitHub::class asks for ClientInterface::class, resolve GitHubClient::class.
-        Container::getInstance()->bind(
+        $this->container->bind(
             GitHub::class,
             ClientInterface::class,
             GitHubClient::class
         );
 
         self::assertTrue(
-            Container::getInstance()->has(GitHubClient::class)
+            $this->container->has(GitHubClient::class)
         );
 
-        self::assertInstanceOf(GitHub::class, Container::getInstance()->get(GitHub::class));
+        self::assertInstanceOf(GitHub::class, $this->container->get(GitHub::class));
 
-        self::assertInstanceOf(ClientInterface::class, Container::getInstance()->get(GitHub::class)->getClient());
+        self::assertInstanceOf(ClientInterface::class, $this->container->get(GitHub::class)->getClient());
 
-        self::assertTrue(Container::getInstance()->has(GitHubClient::class));
-        self::assertTrue(Container::getInstance()->has(GitHub::class));
+        self::assertTrue($this->container->has(GitHubClient::class));
+        self::assertTrue($this->container->has(GitHub::class));
     }
 
     /**
@@ -231,9 +231,9 @@ final class ContainerTest extends AbstractTestCase
     #[DataProvider('dataProviderServiceClasses')]
     public function testContainerBuild(string $class, array $arguments = []): void
     {
-        $buildService = Container::getInstance()->build($class, $arguments);
+        $buildService = $this->container->build($class, $arguments);
 
-        $getService = Container::getInstance()->get($class);
+        $getService = $this->container->get($class);
 
         self::assertSame($buildService, $getService);
 
@@ -241,7 +241,7 @@ final class ContainerTest extends AbstractTestCase
             return;
         }
 
-        self::assertSame($arguments['value'], Container::getInstance()->get($class)->value());
+        self::assertSame($arguments['value'], $this->container->get($class)->value());
     }
 
     /**
@@ -249,23 +249,23 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testContainerBuildServiceProviderDoesNotRegisterServiceProvider(): void
     {
-        $foobarServiceProvider = Container::getInstance()->build(FoobarServiceProvider::class);
+        $foobarServiceProvider = $this->container->build(FoobarServiceProvider::class);
         self::assertInstanceOf(FoobarServiceProvider::class, $foobarServiceProvider);
 
-        $second = Container::getInstance()->build(FoobarServiceProvider::class);
+        $second = $this->container->build(FoobarServiceProvider::class);
         self::assertInstanceOf(FoobarServiceProvider::class, $second);
 
         self::assertNotSame($foobarServiceProvider, $second);
 
-        self::assertFalse(Container::getInstance()->has(Foo::class));
-        self::assertFalse(Container::getInstance()->has(Bar::class));
-        self::assertFalse(Container::getInstance()->has(Baz::class));
+        self::assertFalse($this->container->has(Foo::class));
+        self::assertFalse($this->container->has(Bar::class));
+        self::assertFalse($this->container->has(Baz::class));
 
-        Container::getInstance()->provide(FoobarServiceProvider::class);
+        $this->container->provide(FoobarServiceProvider::class);
 
-        self::assertTrue(Container::getInstance()->has(Foo::class));
-        self::assertTrue(Container::getInstance()->has(Bar::class));
-        self::assertTrue(Container::getInstance()->has(Baz::class));
+        self::assertTrue($this->container->has(Foo::class));
+        self::assertTrue($this->container->has(Bar::class));
+        self::assertTrue($this->container->has(Baz::class));
     }
 
     /**
@@ -276,7 +276,7 @@ final class ContainerTest extends AbstractTestCase
     #[DataProvider('dataProviderContainerCallables')]
     public function testContainerCall(callable $callback): void
     {
-        $testEvent = Container::getInstance()->get(TestEvent::class);
+        $testEvent = $this->container->get(TestEvent::class);
 
         self::assertSame([], $testEvent->all());
         $expectedCount = random_int(10, 50);
@@ -284,23 +284,23 @@ final class ContainerTest extends AbstractTestCase
         $actual2 = $expectedCount;
 
         while ($actual1--) {
-            Container::getInstance()->call($callback, [$testEvent]);
+            $this->container->call($callback, [$testEvent]);
         }
 
         self::assertCount($expectedCount, $testEvent->all());
 
         while ($actual2--) {
-            Container::getInstance()->call($callback, [$testEvent]);
+            $this->container->call($callback, [$testEvent]);
         }
 
         self::assertCount($expectedCount * 2, $testEvent->all());
 
-        Container::getInstance()->remove(TestEvent::class);
+        $this->container->remove(TestEvent::class);
     }
 
     public function testContainerConstruct(): void
     {
-        self::assertSame(Container::getInstance(), Container::getInstance());
+        self::assertSame($this->container, $this->container);
     }
 
     /**
@@ -308,13 +308,13 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testContainerDestruct(): void
     {
-        Container::getInstance()->set(stdClass::class, static fn(): stdClass => new stdClass());
+        $this->container->set(stdClass::class, static fn(): stdClass => new stdClass());
 
-        self::assertTrue(Container::getInstance()->has(stdClass::class));
+        self::assertTrue($this->container->has(stdClass::class));
 
-        Container::getInstance()->__destruct();
+        $this->container->__destruct();
 
-        self::assertFalse(Container::getInstance()->has(stdClass::class));
+        self::assertFalse($this->container->has(stdClass::class));
     }
 
     /**
@@ -322,29 +322,29 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testContainerExtend(): void
     {
-        Container::getInstance()->extend(
+        $this->container->extend(
             stdClass::class,
             StdClassOneExtension::class
         );
 
-        Container::getInstance()->extend(
+        $this->container->extend(
             stdClass::class,
             StdClassTwoExtension::class
         );
 
         self::assertInstanceOf(
             stdClass::class,
-            Container::getInstance()->get(stdClass::class)
+            $this->container->get(stdClass::class)
         );
 
         self::assertInstanceOf(
             stdClass::class,
-            Container::getInstance()->get(stdClass::class)->one
+            $this->container->get(stdClass::class)->one
         );
 
         self::assertInstanceOf(
             stdClass::class,
-            Container::getInstance()->get(stdClass::class)->two
+            $this->container->get(stdClass::class)->two
         );
     }
 
@@ -353,7 +353,7 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testContainerImplementsContainerInterface(): void
     {
-        $container = Container::getInstance();
+        $container = $this->container;
 
         self::assertInstanceOf(ContainerInterface::class, $container);
         self::assertInstanceOf(Container::class, $container);
@@ -364,19 +364,19 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testContainerInvokeDefaultValueAvailable(): void
     {
-        self::assertSame('Untitled Text', Container::getInstance()->invoke(Dummy::class));
-        self::assertSame('#BlackLivesMatter', Container::getInstance()->invoke(Dummy::class, [[], '#BlackLivesMatter']));
-        self::assertSame('#BlackLivesMatter', Container::getInstance()->invoke(Dummy::class, [['#BlackLivesMatter'], '%s']));
+        self::assertSame('Untitled Text', $this->container->invoke(Dummy::class));
+        self::assertSame('#BlackLivesMatter', $this->container->invoke(Dummy::class, [[], '#BlackLivesMatter']));
+        self::assertSame('#BlackLivesMatter', $this->container->invoke(Dummy::class, [['#BlackLivesMatter'], '%s']));
         self::assertSame(
             '#BlackLivesMatter',
-            Container::getInstance()->invoke(Dummy::class, [
+            $this->container->invoke(Dummy::class, [
                 'data' => [],
                 'text' => '#BlackLivesMatter',
             ])
         );
         self::assertSame(
             '#BlackLivesMatter',
-            Container::getInstance()->invoke(Dummy::class, [
+            $this->container->invoke(Dummy::class, [
                 'data' => ['BlackLivesMatter'],
                 'text' => '#%s',
             ])
@@ -388,12 +388,12 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testContainerProvideServiceProvider(): void
     {
-        Container::getInstance()->provide(FoobarServiceProvider::class);
+        $this->container->provide(FoobarServiceProvider::class);
 
-        self::assertTrue(Container::getInstance()->has(Foo::class));
-        self::assertTrue(Container::getInstance()->has(Bar::class));
-        self::assertTrue(Container::getInstance()->has(Baz::class));
-        self::assertInstanceOf(stdClass::class, Container::getInstance()->get(Foobar::class));
+        self::assertTrue($this->container->has(Foo::class));
+        self::assertTrue($this->container->has(Bar::class));
+        self::assertTrue($this->container->has(Baz::class));
+        self::assertInstanceOf(stdClass::class, $this->container->get(Foobar::class));
     }
 
 
@@ -402,16 +402,16 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testContainerRegisterBind(): void
     {
-        self::assertFalse(Container::getInstance()->has(Dummy::class));
-        self::assertFalse(Container::getInstance()->has(DummyInterface::class));
-        self::assertFalse(Container::getInstance()->has(DummyFactory::class));
+        self::assertFalse($this->container->has(Dummy::class));
+        self::assertFalse($this->container->has(DummyInterface::class));
+        self::assertFalse($this->container->has(DummyFactory::class));
 
-        Container::getInstance()->register(DummyInterface::class, Dummy::class);
-        Container::getInstance()->register(DummyFactory::class);
+        $this->container->register(DummyInterface::class, Dummy::class);
+        $this->container->register(DummyFactory::class);
 
-        self::assertTrue(Container::getInstance()->has(Dummy::class));
-        self::assertTrue(Container::getInstance()->has(DummyInterface::class));
-        self::assertTrue(Container::getInstance()->has(DummyFactory::class));
+        self::assertTrue($this->container->has(Dummy::class));
+        self::assertTrue($this->container->has(DummyInterface::class));
+        self::assertTrue($this->container->has(DummyFactory::class));
     }
 
     /**
@@ -419,19 +419,19 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testContainerRemove(): void
     {
-        Container::getInstance()->provide(FoobarServiceProvider::class);
+        $this->container->provide(FoobarServiceProvider::class);
 
-        self::assertTrue(Container::getInstance()->has(Foo::class));
-        self::assertTrue(Container::getInstance()->has(Bar::class));
-        self::assertTrue(Container::getInstance()->has(Baz::class));
+        self::assertTrue($this->container->has(Foo::class));
+        self::assertTrue($this->container->has(Bar::class));
+        self::assertTrue($this->container->has(Baz::class));
 
-        Container::getInstance()->remove(Foo::class);
-        Container::getInstance()->remove(Bar::class);
-        Container::getInstance()->remove(Baz::class);
+        $this->container->remove(Foo::class);
+        $this->container->remove(Bar::class);
+        $this->container->remove(Baz::class);
 
-        self::assertFalse(Container::getInstance()->has(Foo::class));
-        self::assertFalse(Container::getInstance()->has(Bar::class));
-        self::assertFalse(Container::getInstance()->has(Baz::class));
+        self::assertFalse($this->container->has(Foo::class));
+        self::assertFalse($this->container->has(Bar::class));
+        self::assertFalse($this->container->has(Baz::class));
     }
 
     /**
@@ -439,27 +439,27 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testContainerReset(): void
     {
-        Container::getInstance()->provide(FoobarServiceProvider::class);
+        $this->container->provide(FoobarServiceProvider::class);
 
-        self::assertTrue(Container::getInstance()->has(Foo::class));
-        self::assertTrue(Container::getInstance()->has(Bar::class));
-        self::assertTrue(Container::getInstance()->has(Baz::class));
+        self::assertTrue($this->container->has(Foo::class));
+        self::assertTrue($this->container->has(Bar::class));
+        self::assertTrue($this->container->has(Baz::class));
 
-        $foo = Container::getInstance()->get(Foo::class);
-        $bar = Container::getInstance()->get(Bar::class);
-        $baz = Container::getInstance()->get(Baz::class);
+        $foo = $this->container->get(Foo::class);
+        $bar = $this->container->get(Bar::class);
+        $baz = $this->container->get(Baz::class);
 
-        Container::getInstance()->set(Foo::class, Container::getInstance()->build(Foo::class));
-        Container::getInstance()->set(Bar::class, Container::getInstance()->build(Bar::class));
-        Container::getInstance()->set(Baz::class, Container::getInstance()->build(Baz::class));
+        $this->container->set(Foo::class, $this->container->build(Foo::class));
+        $this->container->set(Bar::class, $this->container->build(Bar::class));
+        $this->container->set(Baz::class, $this->container->build(Baz::class));
 
-        self::assertInstanceOf(Foo::class, Container::getInstance()->get(Foo::class));
-        self::assertInstanceOf(Bar::class, Container::getInstance()->get(Bar::class));
-        self::assertInstanceOf(Baz::class, Container::getInstance()->get(Baz::class));
+        self::assertInstanceOf(Foo::class, $this->container->get(Foo::class));
+        self::assertInstanceOf(Bar::class, $this->container->get(Bar::class));
+        self::assertInstanceOf(Baz::class, $this->container->get(Baz::class));
 
-        self::assertNotSame($foo, Container::getInstance()->get(Foo::class));
-        self::assertNotSame($bar, Container::getInstance()->get(Bar::class));
-        self::assertNotSame($baz, Container::getInstance()->get(Baz::class));
+        self::assertNotSame($foo, $this->container->get(Foo::class));
+        self::assertNotSame($bar, $this->container->get(Bar::class));
+        self::assertNotSame($baz, $this->container->get(Baz::class));
     }
 
     /**
@@ -471,9 +471,9 @@ final class ContainerTest extends AbstractTestCase
 
         $closure = static fn(ContainerInterface $container): stdClass => $object;
 
-        Container::getInstance()->set(stdClass::class, $closure);
+        $this->container->set(stdClass::class, $closure);
 
-        self::assertSame($object, Container::getInstance()->get(stdClass::class));
+        self::assertSame($object, $this->container->get(stdClass::class));
     }
 
     /**
@@ -483,16 +483,16 @@ final class ContainerTest extends AbstractTestCase
     {
         $object = new stdClass();
 
-        Container::getInstance()->set(stdClass::class, $object);
+        $this->container->set(stdClass::class, $object);
 
-        self::assertSame($object, Container::getInstance()->get(stdClass::class));
+        self::assertSame($object, $this->container->get(stdClass::class));
     }
 
     public function testDestructContainerInterfaceAliasExists(): void
     {
-        Container::getInstance()->__destruct();
+        $this->container->__destruct();
 
-        self::assertTrue(Container::getInstance()->has(ContainerInterface::class));
+        self::assertTrue($this->container->has(ContainerInterface::class));
     }
 
 
@@ -501,18 +501,18 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testRegisterTag(): void
     {
-        Container::getInstance()->tag(stdClass::class, ['first-tag']);
+        $this->container->tag(stdClass::class, ['first-tag']);
 
-        Container::getInstance()->tag(Foo::class,['tag-2']);
-        Container::getInstance()->tag(stdClass::class, ['tag']);
+        $this->container->tag(Foo::class,['tag-2']);
+        $this->container->tag(stdClass::class, ['tag']);
 
-        foreach (Container::getInstance()->tagged('tag') as $service) {
+        foreach ($this->container->tagged('tag') as $service) {
             self::assertInstanceOf(stdClass::class, $service);
         }
 
-        Container::getInstance()->untag(stdClass::class, ['tag']);
+        $this->container->untag(stdClass::class, ['tag']);
 
-        self::assertCount(0, iterator_to_array(Container::getInstance()->tagged('tag')));
+        self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
     }
 
 
@@ -521,15 +521,15 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testSetTag(): void
     {
-        Container::getInstance()->set(stdClass::class, new stdClass(), ['tag']);
+        $this->container->set(stdClass::class, new stdClass(), ['tag']);
 
-        foreach (Container::getInstance()->tagged('tag') as $service) {
+        foreach ($this->container->tagged('tag') as $service) {
             self::assertInstanceOf(stdClass::class, $service);
         }
 
-        Container::getInstance()->untag(stdClass::class, ['tag']);
+        $this->container->untag(stdClass::class, ['tag']);
 
-        self::assertCount(0, iterator_to_array(Container::getInstance()->tagged('tag')));
+        self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
     }
 
 
@@ -538,15 +538,15 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testTag(): void
     {
-        Container::getInstance()->tag(stdClass::class, ['tag']);
+        $this->container->tag(stdClass::class, ['tag']);
 
-        foreach (Container::getInstance()->tagged('tag') as $service) {
+        foreach ($this->container->tagged('tag') as $service) {
             self::assertInstanceOf(stdClass::class, $service);
         }
 
-        Container::getInstance()->untag(stdClass::class, ['tag']);
+        $this->container->untag(stdClass::class, ['tag']);
 
-        self::assertCount(0, iterator_to_array(Container::getInstance()->tagged('tag')));
+        self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
     }
 
 
@@ -555,15 +555,15 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testTagThrows(): void
     {
-        Container::getInstance()->tag(stdClass::class, ['tag']);
+        $this->container->tag(stdClass::class, ['tag']);
 
-        foreach (Container::getInstance()->tagged('tag') as $service) {
+        foreach ($this->container->tagged('tag') as $service) {
             self::assertInstanceOf(stdClass::class, $service);
         }
 
-        Container::getInstance()->untag(stdClass::class, ['tag']);
+        $this->container->untag(stdClass::class, ['tag']);
 
-        self::assertCount(0, iterator_to_array(Container::getInstance()->tagged('tag')));
+        self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
     }
 
     /**
@@ -571,11 +571,11 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testFactory(): void
     {
-        Container::getInstance()->factory(stdClass::class, StdClassFactory::class);
+        $this->container->factory(stdClass::class, StdClassFactory::class);
 
         self::assertSame(
             '#FreePalestine',
-            Container::getInstance()->get(stdClass::class)->blackLivesMatter
+            $this->container->get(stdClass::class)->blackLivesMatter
         );
     }
 
@@ -584,11 +584,11 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testBuildResolvesAlias(): void
     {
-        Container::getInstance()->alias(ClientInterface::class, GitHubClient::class);
+        $this->container->alias(ClientInterface::class, GitHubClient::class);
 
         self::assertInstanceOf(
             GitHubClient::class,
-            Container::getInstance()->build(ClientInterface::class)
+            $this->container->build(ClientInterface::class)
         );
     }
 }
