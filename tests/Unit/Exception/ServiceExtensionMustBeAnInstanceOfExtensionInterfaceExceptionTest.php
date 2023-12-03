@@ -28,6 +28,6 @@ final class ServiceExtensionMustBeAnInstanceOfExtensionInterfaceExceptionTest ex
     {
         $this->assertException(ServiceExtensionMustBeAnInstanceOfExtensionInterfaceException::class);
 
-        Container::getInstance()->extend(stdClass::class, stdClass::class);
+        $this->container->extend(stdClass::class, stdClass::class);
     }
 }
