@@ -30,7 +30,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->extend('', StdClassOneExtension::class);
+        $this->container->extend('', StdClassOneExtension::class);
     }
 
     /**
@@ -40,7 +40,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->extend(' ', StdClassOneExtension::class);
+        $this->container->extend(' ', StdClassOneExtension::class);
     }
 
     /**
@@ -50,7 +50,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->get('');
+        $this->container->get('');
     }
 
     /**
@@ -60,7 +60,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->get(' ');
+        $this->container->get(' ');
     }
 
     /**
@@ -70,7 +70,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->has('');
+        $this->container->has('');
     }
 
     /**
@@ -80,7 +80,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->has(' ');
+        $this->container->has(' ');
     }
 
     /**
@@ -90,7 +90,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->bind(stdClass::class, '', stdClass::class);
+        $this->container->bind(stdClass::class, '', stdClass::class);
     }
 
     /**
@@ -100,7 +100,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->bind(stdClass::class, ' ', stdClass::class);
+        $this->container->bind(stdClass::class, ' ', stdClass::class);
     }
 
 
@@ -111,7 +111,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->bind('', stdClass::class, stdClass::class);
+        $this->container->bind('', stdClass::class, stdClass::class);
     }
 
     /**
@@ -121,7 +121,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->bind(' ', stdClass::class, stdClass::class);
+        $this->container->bind(' ', stdClass::class, stdClass::class);
     }
 
 
@@ -132,7 +132,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->bind(stdClass::class, stdClass::class, '');
+        $this->container->bind(stdClass::class, stdClass::class, '');
     }
 
     /**
@@ -142,7 +142,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->bind(stdClass::class, stdClass::class, ' ');
+        $this->container->bind(stdClass::class, stdClass::class, ' ');
     }
 
 
@@ -153,7 +153,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->build('');
+        $this->container->build('');
     }
 
     /**
@@ -163,7 +163,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->build(' ');
+        $this->container->build(' ');
     }
 
     /**
@@ -173,7 +173,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->register('', stdClass::class);
+        $this->container->register('', stdClass::class);
     }
 
     /**
@@ -183,7 +183,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->register(' ', stdClass::class);
+        $this->container->register(' ', stdClass::class);
     }
 
     /**
@@ -193,7 +193,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->register(stdClass::class, '');
+        $this->container->register(stdClass::class, '');
     }
 
     /**
@@ -203,7 +203,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->register(stdClass::class, ' ');
+        $this->container->register(stdClass::class, ' ');
     }
 
     /**
@@ -213,7 +213,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->alias(stdClass::class, '');
+        $this->container->alias(stdClass::class, '');
     }
 
     /**
@@ -223,7 +223,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->alias(stdClass::class, ' ');
+        $this->container->alias(stdClass::class, ' ');
     }
 
 
@@ -234,7 +234,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->set('', new stdClass());
+        $this->container->set('', new stdClass());
     }
 
     /**
@@ -244,7 +244,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->set(' ', new stdClass());
+        $this->container->set(' ', new stdClass());
     }
 
 
@@ -255,7 +255,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->tag('', [stdClass::class]);
+        $this->container->tag('', [stdClass::class]);
     }
 
     /**
@@ -265,7 +265,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->tag(' ', [stdClass::class]);
+        $this->container->tag(' ', [stdClass::class]);
     }
 
 
@@ -276,7 +276,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->factory('', StdClassFactory::class);
+        $this->container->factory('', StdClassFactory::class);
     }
 
     /**
@@ -286,7 +286,7 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->factory(' ', StdClassFactory::class);
+        $this->container->factory(' ', StdClassFactory::class);
     }
 
 }
