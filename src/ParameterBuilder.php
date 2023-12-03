@@ -5,51 +5,44 @@ declare(strict_types=1);
 namespace Ghostwriter\Container;
 
 use Ghostwriter\Container\Exception\UnresolvableParameterException;
-use Ghostwriter\Container\Interface\ExceptionInterface;
 use Ghostwriter\Container\Interface\ContainerInterface;
-use Ghostwriter\Container\Interface\Exception\NotFoundExceptionInterface;
-use ReflectionException;
 use ReflectionNamedType;
 use ReflectionParameter;
 use Throwable;
 use function array_key_exists;
 use function array_key_first;
-use function array_values;
 use function is_callable;
 
+/** @see Ghostwriter\Container\Tests\Unit\ParameterBuilderTest */
 final readonly class ParameterBuilder
 {
     /**
-     * @template TArgument
+     * @template TParameter
      *
-     * @param array<ReflectionParameter> $parameters
-     * @param array<TArgument> $arguments
+     * @param array<ReflectionParameter> $reflectionParameters
+     * @param array<TParameter> $arguments
      *
-     * @return array<TArgument>
-     * @throws ReflectionException
+     * @return array<TParameter>
      * @throws Throwable
-     * @throws ExceptionInterface
-     *
-     * @throws NotFoundExceptionInterface
      */
     public function build(
         ContainerInterface $container,
-        array              $parameters = [],
+        array              $reflectionParameters = [],
         array              $arguments = []
-    ): array
-    {
-        /** @var array<TArgument> */
-        return [...array_map(
-        /** @throws Throwable */
-            static function (ReflectionParameter $reflectionParameter) use ($container, &$arguments) {
+    ): array {
+        /** @var array<TParameter> */
+        return array_map(
+            /** @throws Throwable */
+            static function (ReflectionParameter $reflectionParameter) use ($container, &$arguments): mixed {
                 $parameterName = $reflectionParameter->getName();
+
                 if ($arguments !== []) {
-                    /** @var class-string<TArgument> $parameterKey */
+                    /** @var class-string<TParameter> $parameterKey */
                     $parameterKey = array_key_exists($parameterName, $arguments) ?
                         $parameterName :
                         array_key_first($arguments);
 
-                    /** @var TArgument $argument */
+                    /** @var TParameter $argument */
                     $argument = $arguments[$parameterKey];
 
                     unset($arguments[$parameterKey]);
@@ -61,26 +54,21 @@ final readonly class ParameterBuilder
 
                 $reflectionType = $reflectionParameter->getType();
 
-                if (
-                    $reflectionType instanceof ReflectionNamedType
-                    && !$reflectionType->isBuiltin()
-                ) {
+                if ($reflectionType instanceof ReflectionNamedType && !$reflectionType->isBuiltin()) {
                     $reflectionTypeName = $reflectionType->getName();
 
-                    if (
-                        $isDefaultValueAvailable
-                        && !$container->has($reflectionTypeName)
-                    ) {
-                        /** @var TArgument */
-                        return $reflectionParameter->getDefaultValue();
-                    }
-
-                    /** @var TArgument */
-                    return $container->get($reflectionTypeName);
+                    /** @var TParameter */
+                    return match (true) {
+                        default => $container->get($reflectionTypeName),
+                        $isDefaultValueAvailable => match (true) {
+                            $container->has($reflectionTypeName) => $container->get($reflectionTypeName),
+                            default => $reflectionParameter->getDefaultValue(),
+                        }
+                    };
                 }
 
                 if ($isDefaultValueAvailable) {
-                    /** @var TArgument */
+                    /** @var TParameter */
                     return $reflectionParameter->getDefaultValue();
                 }
 
@@ -96,7 +84,7 @@ final readonly class ParameterBuilder
                     $isFunction ? '' : '::' . $name
                 ));
             },
-            $parameters
-        ), ...array_values($arguments)];
+            $reflectionParameters
+        );
     }
 }
