@@ -10,9 +10,11 @@ use Ghostwriter\Container\Tests\Unit\AbstractTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 use Throwable;
+use Ghostwriter\Container\Instantiator;
 
 #[CoversClass(AliasNameAndServiceNameCannotBeTheSameException::class)]
 #[CoversClass(Container::class)]
+#[CoversClass(Instantiator::class)]
 final class AliasNameAndServiceNameCannotBeTheSameExceptionTest extends AbstractTestCase
 {
     /**
@@ -22,7 +24,7 @@ final class AliasNameAndServiceNameCannotBeTheSameExceptionTest extends Abstract
     {
         $this->assertException(AliasNameAndServiceNameCannotBeTheSameException::class);
 
-        Container::getInstance()
+        $this->container
                  ->alias(stdClass::class, stdClass::class);
     }
 }
