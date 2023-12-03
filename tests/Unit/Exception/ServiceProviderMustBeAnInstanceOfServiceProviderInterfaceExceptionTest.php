@@ -29,6 +29,6 @@ final class ServiceProviderMustBeAnInstanceOfServiceProviderInterfaceExceptionTe
         $this->assertException(ServiceProviderMustBeAnInstanceOfServiceProviderInterfaceException::class);
         $this->expectExceptionMessage(ServiceProviderInterface::class);
 
-        Container::getInstance()->provide(ServiceProviderInterface::class);
+        $this->container->provide(ServiceProviderInterface::class);
     }
 }
