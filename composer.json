@@ -52,7 +52,7 @@
         "sort-packages": true
     },
     "scripts": {
-        "bench": "vendor/bin/phpbench --colors=always",
+        "bench": "vendor/ghostwriter/coding-standard/tools/phpbench --colors=always",
         "check": [
             "@composer validate",
             "@test",
@@ -64,19 +64,19 @@
             "@psalm",
             "@infection"
         ],
-        "infection": "vendor/bin/infection --ansi --verbose",
-        "missing-returntypes": "vendor/bin/psalm --alter --issues=MissingReturnType",
-        "phpunit": "vendor/bin/phpunit --do-not-cache-result --colors=always",
-        "phpunit:migrate": "vendor/bin/phpunit --migrate-configuration",
+        "infection": "vendor/ghostwriter/coding-standard/tools/infection --ansi --verbose",
+        "missing-returntypes": "vendor/ghostwriter/coding-standard/tools/psalm --alter --issues=MissingReturnType",
+        "phpunit": "vendor/ghostwriter/coding-standard/tools/phpunit --do-not-cache-result --colors=always",
+        "phpunit:migrate": "vendor/ghostwriter/coding-standard/tools/phpunit --migrate-configuration",
         "psalm": [
             "@psalm:shepherd",
             "@psalm:security"
         ],
-        "psalm:baseline": "vendor/bin/psalm --set-baseline=psalm-baseline.xml",
-        "psalm:dry-run": "vendor/bin/psalm --alter --issues=all --dry-run",
-        "psalm:missing": "vendor/bin/psalm --alter --issues=MissingReturnType",
-        "psalm:security": "vendor/bin/psalm --taint-analysis",
-        "psalm:shepherd": "vendor/bin/psalm --shepherd --stats --no-diff --no-cache",
+        "psalm:baseline": "vendor/ghostwriter/coding-standard/tools/psalm --set-baseline=psalm-baseline.xml",
+        "psalm:dry-run": "vendor/ghostwriter/coding-standard/tools/psalm --alter --issues=all --dry-run",
+        "psalm:missing": "vendor/ghostwriter/coding-standard/tools/psalm --alter --issues=MissingReturnType",
+        "psalm:security": "vendor/ghostwriter/coding-standard/tools/psalm --taint-analysis",
+        "psalm:shepherd": "vendor/ghostwriter/coding-standard/tools/psalm --shepherd --stats --no-diff --no-cache",
         "test": [
             "@xdebug",
             "@phpunit"
