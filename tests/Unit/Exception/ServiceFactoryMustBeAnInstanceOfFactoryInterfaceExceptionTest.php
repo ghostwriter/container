@@ -29,6 +29,6 @@ final class ServiceFactoryMustBeAnInstanceOfFactoryInterfaceExceptionTest extend
     {
         $this->assertException(ServiceFactoryMustBeAnInstanceOfFactoryInterfaceException::class);
 
-        Container::getInstance()->factory(stdClass::class, InvalidStdClassFactory::class);
+        $this->container->factory(stdClass::class, InvalidStdClassFactory::class);
     }
 }
