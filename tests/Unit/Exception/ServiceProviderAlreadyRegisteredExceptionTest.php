@@ -29,7 +29,7 @@ final class ServiceProviderAlreadyRegisteredExceptionTest extends AbstractTestCa
         $this->assertException(ServiceProviderAlreadyRegisteredException::class);
         $this->expectExceptionMessage(FoobarServiceProvider::class);
 
-        Container::getInstance()->provide(FoobarServiceProvider::class);
-        Container::getInstance()->provide(FoobarServiceProvider::class);
+        $this->container->provide(FoobarServiceProvider::class);
+        $this->container->provide(FoobarServiceProvider::class);
     }
 }
