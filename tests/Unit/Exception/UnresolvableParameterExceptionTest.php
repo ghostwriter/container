@@ -34,7 +34,7 @@ final class UnresolvableParameterExceptionTest extends AbstractTestCase
             '__construct()'
         ));
 
-        Container::getInstance()->build(UnresolvableParameter::class);
+        $this->container->build(UnresolvableParameter::class);
     }
 
     /**
@@ -49,7 +49,7 @@ final class UnresolvableParameterExceptionTest extends AbstractTestCase
             'Ghostwriter\Container\Tests\Fixture\typelessFunction()',
         ));
 
-        Container::getInstance()->call('Ghostwriter\Container\Tests\Fixture\typelessFunction');
+        $this->container->call('Ghostwriter\Container\Tests\Fixture\typelessFunction');
     }
 
     /**
@@ -59,8 +59,8 @@ final class UnresolvableParameterExceptionTest extends AbstractTestCase
     {
         $this->assertException(UnresolvableParameterException::class);
 
-        (new ParameterBuilder())->build(
-            Container::getInstance(),
+        $this->parameterBuilder->build(
+            $this->container,
             [
                 new ReflectionParameter(
                     static fn($foo) => $foo,
