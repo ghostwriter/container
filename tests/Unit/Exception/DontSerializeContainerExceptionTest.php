@@ -27,6 +27,6 @@ final class DontSerializeContainerExceptionTest extends AbstractTestCase
     {
         $this->assertException(DontSerializeContainerException::class);
 
-        self::assertNull(serialize(Container::getInstance()));
+        self::assertNull(serialize($this->container));
     }
 }
