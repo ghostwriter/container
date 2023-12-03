@@ -27,7 +27,7 @@ final class ServiceTagNotFoundExceptionTest extends AbstractTestCase
     {
         $this->assertNotFoundException(ServiceTagNotFoundException::class);
 
-        iterator_to_array(Container::getInstance()->tagged('tag-not-found'));
+        iterator_to_array($this->container->tagged('tag-not-found'));
     }
 
     /**
@@ -37,6 +37,6 @@ final class ServiceTagNotFoundExceptionTest extends AbstractTestCase
     {
         $this->assertNotFoundException(ServiceTagNotFoundException::class);
 
-        Container::getInstance()->untag(self::class, ['tag-not-found']);
+        $this->container->untag(self::class, ['tag-not-found']);
     }
 }
