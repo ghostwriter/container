@@ -27,8 +27,6 @@ final class DontCloneContainerExceptionTest extends AbstractTestCase
     {
         $this->assertException(DontCloneContainerException::class);
 
-        $container = Container::getInstance();
-
-        self::assertNull(clone $container);
+        self::assertNull(clone $this->container);
     }
 }
