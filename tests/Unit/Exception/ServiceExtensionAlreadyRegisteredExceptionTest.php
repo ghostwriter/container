@@ -29,9 +29,7 @@ final class ServiceExtensionAlreadyRegisteredExceptionTest extends AbstractTestC
     {
         $this->assertException(ServiceExtensionAlreadyRegisteredException::class);
 
-        $container = Container::getInstance();
-
-        $container->extend(stdClass::class, StdClassOneExtension::class);
-        $container->extend(stdClass::class, StdClassOneExtension::class);
+        $this->container->extend(stdClass::class, StdClassOneExtension::class);
+        $this->container->extend(stdClass::class, StdClassOneExtension::class);
     }
 }
