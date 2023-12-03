@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace Ghostwriter\Container;
 
 use Ghostwriter\Container\Exception\ReflectorException;
-use Ghostwriter\Container\Tests\Unit\ReflectorTest;
 use ReflectionClass;
 use ReflectionFunction;
 use Throwable;
 
-/** @see ReflectorTest */
+/** @see Ghostwriter\Container\Tests\Unit\ReflectorTest */
 final readonly class Reflector
 {
     /**
@@ -18,9 +17,9 @@ final readonly class Reflector
      *
      * @param class-string<TClass> $class
      *
-     * @throws ReflectorException
-     *
      * @return ReflectionClass<TClass>
+     *
+     * @throws ReflectorException
      */
     public function reflectClass(string $class): ReflectionClass
     {
