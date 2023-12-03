@@ -25,8 +25,8 @@ final class InstantiatorTest extends AbstractTestCase
     {
         self::assertSame(
             [],
-            (new Instantiator())->buildParameters(
-                Container::getInstance(),
+            $this->instantiator->buildParameters(
+                $this->container,
                 static fn(): stdClass => new stdClass()
             )
         );
@@ -39,8 +39,8 @@ final class InstantiatorTest extends AbstractTestCase
     {
         self::assertInstanceOf(
             stdClass::class,
-            (new Instantiator())->instantiate(
-                Container::getInstance(),
+            $this->instantiator->instantiate(
+                $this->container,
                 stdClass::class
             )
         );
