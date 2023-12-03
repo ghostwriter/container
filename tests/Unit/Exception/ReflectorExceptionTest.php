@@ -28,9 +28,7 @@ final class ReflectorExceptionTest extends AbstractTestCase
         $this->assertException(ReflectorException::class);
         $this->expectExceptionMessage('Class "does-not-exist" does not exist');
 
-        $container = Container::getInstance();
-
-        $container->build('does-not-exist');
+        $this->container->build('does-not-exist');
     }
 
     /**
@@ -41,7 +39,7 @@ final class ReflectorExceptionTest extends AbstractTestCase
         $this->assertException(ReflectorException::class);
         $this->expectExceptionMessage('Class "dose-not-exist" does not exist');
 
-        (new Reflector())->reflectClass('dose-not-exist');
+        $this->reflector->reflectClass('dose-not-exist');
     }
 
     /**
@@ -52,6 +50,6 @@ final class ReflectorExceptionTest extends AbstractTestCase
         $this->assertException(ReflectorException::class);
         $this->expectExceptionMessage('Function dose-not-exist() does not exist');
 
-        (new Reflector())->reflectFunction('dose-not-exist');
+        $this->reflector->reflectFunction('dose-not-exist');
     }
 }
