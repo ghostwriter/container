@@ -35,7 +35,7 @@ final class ParameterBuilderTest extends AbstractTestCase
         yield from [
             'no parameters & no arguments' => [$empty, $empty, $empty],
 
-            'no parameters & arguments' => [$empty, ['foo' => $stdClass], [$stdClass]],
+            'no parameters & arguments' => [$empty, ['foo' => $stdClass], $empty],
 
             'parameters & no arguments' => [
                 [new ReflectionParameter($closure, 'foo')],
@@ -57,8 +57,8 @@ final class ParameterBuilderTest extends AbstractTestCase
     {
         self::assertEquals(
             $expected,
-            (new ParameterBuilder())->build(
-                Container::getInstance(),
+            $this->parameterBuilder->build(
+                $this->container,
                 $parameters,
                 $arguments
             )
@@ -70,18 +70,14 @@ final class ParameterBuilderTest extends AbstractTestCase
      */
     public function testBuildUsesDefaultValueFromContainer(): void
     {
-        $parameterBuilder = new ParameterBuilder();
-
-        $container = Container::getInstance();
-
         $stdClass = new stdClass();
 
-        $container->set(stdClass::class, $stdClass);
+        $this->container->set(stdClass::class, $stdClass);
 
         self::assertSame(
             [$stdClass],
-            $parameterBuilder->build(
-                $container,
+            $this->parameterBuilder->build(
+                $this->container,
                 [
                     new ReflectionParameter(
                         static fn(
@@ -98,16 +94,12 @@ final class ParameterBuilderTest extends AbstractTestCase
      */
     public function testBuildUsesDefaultValue(): void
     {
-        $parameterBuilder = new ParameterBuilder();
-
-        $container = Container::getInstance();
-
         $stdClass = new stdClass();
 
         self::assertSame(
             [null],
-            $parameterBuilder->build(
-                $container,
+            $this->parameterBuilder->build(
+                $this->container,
                 [
                     new ReflectionParameter(
                         static fn(
