@@ -10,8 +10,10 @@ use Ghostwriter\Container\Tests\Unit\AbstractTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 use Throwable;
+use Ghostwriter\Container\Instantiator;
 
 #[CoversClass(AliasNameMustBeNonEmptyStringException::class)]
+#[CoversClass(Instantiator::class)]
 #[CoversClass(Container::class)]
 final class AliasNameMustBeNonEmptyStringExceptionTest extends AbstractTestCase
 {
@@ -22,7 +24,7 @@ final class AliasNameMustBeNonEmptyStringExceptionTest extends AbstractTestCase
     {
         $this->assertException(AliasNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()
+        $this->container
                  ->alias('', stdClass::class);
     }
 
@@ -33,7 +35,7 @@ final class AliasNameMustBeNonEmptyStringExceptionTest extends AbstractTestCase
     {
         $this->assertException(AliasNameMustBeNonEmptyStringException::class);
 
-        Container::getInstance()
+        $this->container
                  ->alias(' ', stdClass::class);
     }
 }
