@@ -28,7 +28,7 @@ final class ClassNotInstantiableExceptionTest extends AbstractTestCase
         $this->assertException(ClassNotInstantiableException::class);
         $this->expectExceptionMessage(Throwable::class);
 
-        Container::getInstance()->build(Throwable::class);
+        $this->container->build(Throwable::class);
     }
 
     /**
@@ -38,8 +38,8 @@ final class ClassNotInstantiableExceptionTest extends AbstractTestCase
     {
         $this->assertException(ClassNotInstantiableException::class);
 
-        (new Instantiator())->instantiate(
-            Container::getInstance(),
+        $this->instantiator->instantiate(
+            $this->container,
             AbstractTestCase::class
         );
     }
