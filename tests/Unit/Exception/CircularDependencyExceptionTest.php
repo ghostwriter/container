@@ -48,6 +48,6 @@ final class CircularDependencyExceptionTest extends AbstractTestCase
             )
         ));
 
-        Container::getInstance()->build(ClassA::class);
+        $this->container->build(ClassA::class);
     }
 }
