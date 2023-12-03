@@ -27,7 +27,7 @@ final class ServiceTagMustBeNonEmptyStringExceptionTest extends AbstractTestCase
     {
         $this->assertException(ServiceTagMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->tag('service', ['']);
+        $this->container->tag('service', ['']);
     }
 
     /**
@@ -37,7 +37,7 @@ final class ServiceTagMustBeNonEmptyStringExceptionTest extends AbstractTestCase
     {
         $this->assertException(ServiceTagMustBeNonEmptyStringException::class);
 
-        Container::getInstance()->tag('service', [' ']);
+        $this->container->tag('service', [' ']);
     }
 
     /**
@@ -47,7 +47,7 @@ final class ServiceTagMustBeNonEmptyStringExceptionTest extends AbstractTestCase
     {
         $this->assertException(ServiceTagMustBeNonEmptyStringException::class);
 
-        iterator_to_array(Container::getInstance()->tagged(''));
+        iterator_to_array($this->container->tagged(''));
     }
 
     /**
@@ -57,6 +57,6 @@ final class ServiceTagMustBeNonEmptyStringExceptionTest extends AbstractTestCase
     {
         $this->assertException(ServiceTagMustBeNonEmptyStringException::class);
 
-        iterator_to_array(Container::getInstance()->tagged(' '));
+        iterator_to_array($this->container->tagged(' '));
     }
 }
