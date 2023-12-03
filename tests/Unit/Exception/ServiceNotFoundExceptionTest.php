@@ -28,7 +28,7 @@ final class ServiceNotFoundExceptionTest extends AbstractTestCase
     {
         $this->assertNotFoundException(ServiceNotFoundException::class);
 
-        Container::getInstance()->bind(stdClass::class, 'does-not-exist', stdClass::class);
+        $this->container->bind(stdClass::class, 'does-not-exist', stdClass::class);
     }
 
     /**
@@ -38,7 +38,7 @@ final class ServiceNotFoundExceptionTest extends AbstractTestCase
     {
         $this->assertNotFoundException(ServiceNotFoundException::class);
 
-        Container::getInstance()->bind('does-not-exist', stdClass::class, stdClass::class);
+        $this->container->bind('does-not-exist', stdClass::class, stdClass::class);
     }
 
     /**
@@ -48,7 +48,7 @@ final class ServiceNotFoundExceptionTest extends AbstractTestCase
     {
         $this->assertNotFoundException(ServiceNotFoundException::class);
 
-        Container::getInstance()->bind(stdClass::class, stdClass::class, 'does-not-exist');
+        $this->container->bind(stdClass::class, stdClass::class, 'does-not-exist');
     }
 
     /**
@@ -58,7 +58,7 @@ final class ServiceNotFoundExceptionTest extends AbstractTestCase
     {
         $this->assertNotFoundException(ServiceNotFoundException::class);
 
-        Container::getInstance()->get('does-not-exist');
+        $this->container->get('does-not-exist');
     }
 
     /**
@@ -68,7 +68,7 @@ final class ServiceNotFoundExceptionTest extends AbstractTestCase
     {
         $this->assertNotFoundException(ServiceNotFoundException::class);
 
-        Container::getInstance()->tag(self::class, [self::class]);
-        Container::getInstance()->untag(ServiceNotFoundException::class, [self::class]);
+        $this->container->tag(self::class, [self::class]);
+        $this->container->untag(ServiceNotFoundException::class, [self::class]);
     }
 }
