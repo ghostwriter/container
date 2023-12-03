@@ -5,14 +5,37 @@ declare(strict_types=1);
 namespace Ghostwriter\Container\Tests\Unit;
 
 use Ghostwriter\Container\Container;
+use Ghostwriter\Container\Instantiator;
 use Ghostwriter\Container\Interface\Exception\NotFoundExceptionInterface;
 use Ghostwriter\Container\Interface\ExceptionInterface;
+use Ghostwriter\Container\ParameterBuilder;
+use Ghostwriter\Container\Reflector;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Throwable;
 
 abstract class AbstractTestCase extends TestCase
 {
+    protected Container $container;
+    protected Instantiator $instantiator;
+    protected ParameterBuilder $parameterBuilder;
+    protected Reflector $reflector;
+    final protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->container = Container::getInstance();
+        
+        $this->reflector = new Reflector();
+        
+        $this->parameterBuilder = new ParameterBuilder();
+
+        $this->instantiator = new Instantiator(
+            $this->reflector,
+            $this->parameterBuilder
+        );
+    }
+
     /**
      * @throws Throwable
      */
@@ -20,7 +43,7 @@ abstract class AbstractTestCase extends TestCase
     {
         parent::tearDown();
 
-        Container::getInstance()->__destruct();
+        $this->container->__destruct();
     }
 
     /**
