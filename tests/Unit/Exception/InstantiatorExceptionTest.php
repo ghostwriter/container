@@ -28,8 +28,8 @@ final class InstantiatorExceptionTest extends AbstractTestCase
     {
         $this->assertException(InstantiatorException::class);
 
-        (new Instantiator())->instantiate(
-            Container::getInstance(),
+        $this->instantiator->instantiate(
+            $this->container,
             Foobar::class,
             [null]
         );
