@@ -29,10 +29,8 @@ final class ServiceMustBeAnObjectExceptionTest extends AbstractTestCase
     {
         $this->assertException(ServiceMustBeAnObjectException::class);
 
-        $container = Container::getInstance();
+        $this->container->set(stdClass::class, static fn() => false);
 
-        $container->set(stdClass::class, static fn() => false);
-
-        $container->build(stdClass::class);
+        $this->container->build(stdClass::class);
     }
 }
