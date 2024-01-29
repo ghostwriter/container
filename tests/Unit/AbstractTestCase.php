@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container\Tests\Unit;
+namespace Ghostwriter\ContainerTests\Unit;
 
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Instantiator;
@@ -17,20 +17,24 @@ use Throwable;
 abstract class AbstractTestCase extends TestCase
 {
     protected Container $container;
+
     protected Instantiator $instantiator;
+
     protected ParameterBuilder $parameterBuilder;
+
     protected Reflector $reflector;
+
     final protected function setUp(): void
     {
         parent::setUp();
 
         $this->container = Container::getInstance();
-        
-        $this->reflector = new Reflector();
-        
-        $this->parameterBuilder = new ParameterBuilder();
 
-        $this->instantiator = new Instantiator(
+        $this->reflector = new Reflector();
+
+        $this->parameterBuilder = new ParameterBuilder($this->container);
+
+        $this->instantiator = Instantiator::new(
             $this->reflector,
             $this->parameterBuilder
         );
