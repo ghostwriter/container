@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container\Tests\Unit\Exception;
+namespace Ghostwriter\ContainerTests\Unit\Exception;
 
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Exception\ServiceNameMustBeNonEmptyStringException;
 use Ghostwriter\Container\Instantiator;
 use Ghostwriter\Container\ParameterBuilder;
 use Ghostwriter\Container\Reflector;
-use Ghostwriter\Container\Tests\Fixture\Extension\StdClassOneExtension;
-use Ghostwriter\Container\Tests\Fixture\StdClassFactory;
-use Ghostwriter\Container\Tests\Unit\AbstractTestCase;
+use Ghostwriter\ContainerTests\Fixture\Extension\StdClassOneExtension;
+use Ghostwriter\ContainerTests\Fixture\StdClassFactory;
+use Ghostwriter\ContainerTests\Unit\AbstractTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 use Throwable;
@@ -23,6 +23,106 @@ use Throwable;
 #[CoversClass(Reflector::class)]
 final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCase
 {
+    /**
+     * @throws Throwable
+     */
+    public function testContainerAliasService(): void
+    {
+        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->alias(stdClass::class, '');
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testContainerAliasServiceEmptySpace(): void
+    {
+        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->alias(stdClass::class, ' ');
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testContainerBindAbstract(): void
+    {
+        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->bind(stdClass::class, '', stdClass::class);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testContainerBindAbstractEmptySpace(): void
+    {
+        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->bind(stdClass::class, ' ', stdClass::class);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testContainerBindConcrete(): void
+    {
+        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->bind('', stdClass::class, stdClass::class);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testContainerBindConcreteEmptySpace(): void
+    {
+        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->bind(' ', stdClass::class, stdClass::class);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testContainerBindImplementation(): void
+    {
+        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->bind(stdClass::class, stdClass::class, '');
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testContainerBindImplementationEmptySpace(): void
+    {
+        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->bind(stdClass::class, stdClass::class, ' ');
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testContainerBuild(): void
+    {
+        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->build('');
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testContainerBuildEmptySpace(): void
+    {
+        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->build(' ');
+    }
+
     /**
      * @throws Throwable
      */
@@ -41,6 +141,26 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
 
         $this->container->extend(' ', StdClassOneExtension::class);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testContainerFactory(): void
+    {
+        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->factory('', StdClassFactory::class);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testContainerFactoryEmptySpace(): void
+    {
+        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
+
+        $this->container->factory(' ', StdClassFactory::class);
     }
 
     /**
@@ -86,89 +206,6 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     /**
      * @throws Throwable
      */
-    public function testContainerBindAbstract(): void
-    {
-        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
-
-        $this->container->bind(stdClass::class, '', stdClass::class);
-    }
-
-    /**
-     * @throws Throwable
-     */
-    public function testContainerBindAbstractEmptySpace(): void
-    {
-        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
-
-        $this->container->bind(stdClass::class, ' ', stdClass::class);
-    }
-
-
-    /**
-     * @throws Throwable
-     */
-    public function testContainerBindConcrete(): void
-    {
-        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
-
-        $this->container->bind('', stdClass::class, stdClass::class);
-    }
-
-    /**
-     * @throws Throwable
-     */
-    public function testContainerBindConcreteEmptySpace(): void
-    {
-        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
-
-        $this->container->bind(' ', stdClass::class, stdClass::class);
-    }
-
-
-    /**
-     * @throws Throwable
-     */
-    public function testContainerBindImplementation(): void
-    {
-        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
-
-        $this->container->bind(stdClass::class, stdClass::class, '');
-    }
-
-    /**
-     * @throws Throwable
-     */
-    public function testContainerBindImplementationEmptySpace(): void
-    {
-        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
-
-        $this->container->bind(stdClass::class, stdClass::class, ' ');
-    }
-
-
-    /**
-     * @throws Throwable
-     */
-    public function testContainerBuild(): void
-    {
-        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
-
-        $this->container->build('');
-    }
-
-    /**
-     * @throws Throwable
-     */
-    public function testContainerBuildEmptySpace(): void
-    {
-        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
-
-        $this->container->build(' ');
-    }
-
-    /**
-     * @throws Throwable
-     */
     public function testContainerRegisterAbstract(): void
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
@@ -209,27 +246,6 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
     /**
      * @throws Throwable
      */
-    public function testContainerAliasService(): void
-    {
-        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
-
-        $this->container->alias(stdClass::class, '');
-    }
-
-    /**
-     * @throws Throwable
-     */
-    public function testContainerAliasServiceEmptySpace(): void
-    {
-        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
-
-        $this->container->alias(stdClass::class, ' ');
-    }
-
-
-    /**
-     * @throws Throwable
-     */
     public function testContainerSet(): void
     {
         $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
@@ -246,7 +262,6 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
 
         $this->container->set(' ', new stdClass());
     }
-
 
     /**
      * @throws Throwable
@@ -267,26 +282,4 @@ final class ServiceNameMustBeNonEmptyStringExceptionTest extends AbstractTestCas
 
         $this->container->tag(' ', [stdClass::class]);
     }
-
-
-    /**
-     * @throws Throwable
-     */
-    public function testContainerFactory(): void
-    {
-        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
-
-        $this->container->factory('', StdClassFactory::class);
-    }
-
-    /**
-     * @throws Throwable
-     */
-    public function testContainerFactoryEmptySpace(): void
-    {
-        $this->assertException(ServiceNameMustBeNonEmptyStringException::class);
-
-        $this->container->factory(' ', StdClassFactory::class);
-    }
-
 }

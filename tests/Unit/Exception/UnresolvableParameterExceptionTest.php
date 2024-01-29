@@ -2,18 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container\Tests\Unit\Exception;
+namespace Ghostwriter\ContainerTests\Unit\Exception;
 
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Exception\UnresolvableParameterException;
 use Ghostwriter\Container\Instantiator;
 use Ghostwriter\Container\ParameterBuilder;
 use Ghostwriter\Container\Reflector;
-use Ghostwriter\Container\Tests\Fixture\UnresolvableParameter;
-use Ghostwriter\Container\Tests\Unit\AbstractTestCase;
+use Ghostwriter\ContainerTests\Fixture\UnresolvableParameter;
+use Ghostwriter\ContainerTests\Unit\AbstractTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use ReflectionParameter;
 use Throwable;
+use function sprintf;
 
 #[CoversClass(UnresolvableParameterException::class)]
 #[CoversClass(Container::class)]
@@ -46,10 +47,10 @@ final class UnresolvableParameterExceptionTest extends AbstractTestCase
         $this->expectExceptionMessage(sprintf(
             'Unresolvable function parameter "%s" in "%s"; does not have a default value.',
             '$event',
-            'Ghostwriter\Container\Tests\Fixture\typelessFunction()',
+            'Ghostwriter\ContainerTests\Fixture\typelessFunction()',
         ));
 
-        $this->container->call('Ghostwriter\Container\Tests\Fixture\typelessFunction');
+        $this->container->call('Ghostwriter\ContainerTests\Fixture\typelessFunction');
     }
 
     /**
@@ -60,10 +61,9 @@ final class UnresolvableParameterExceptionTest extends AbstractTestCase
         $this->assertException(UnresolvableParameterException::class);
 
         $this->parameterBuilder->build(
-            $this->container,
             [
                 new ReflectionParameter(
-                    static fn($foo) => $foo,
+                    static fn ($foo) => $foo,
                     'foo'
                 ),
             ]

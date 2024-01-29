@@ -2,16 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container\Tests\Unit\Exception;
+namespace Ghostwriter\ContainerTests\Unit\Exception;
 
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Exception\ServiceTagMustBeNonEmptyStringException;
 use Ghostwriter\Container\Instantiator;
 use Ghostwriter\Container\ParameterBuilder;
 use Ghostwriter\Container\Reflector;
-use Ghostwriter\Container\Tests\Unit\AbstractTestCase;
+use Ghostwriter\ContainerTests\Unit\AbstractTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Throwable;
+use function iterator_to_array;
 
 #[CoversClass(ServiceTagMustBeNonEmptyStringException::class)]
 #[CoversClass(Container::class)]
@@ -33,16 +34,6 @@ final class ServiceTagMustBeNonEmptyStringExceptionTest extends AbstractTestCase
     /**
      * @throws Throwable
      */
-    public function testContainerTagWithEmptySpace(): void
-    {
-        $this->assertException(ServiceTagMustBeNonEmptyStringException::class);
-
-        $this->container->tag('service', [' ']);
-    }
-
-    /**
-     * @throws Throwable
-     */
     public function testContainerTagged(): void
     {
         $this->assertException(ServiceTagMustBeNonEmptyStringException::class);
@@ -58,5 +49,15 @@ final class ServiceTagMustBeNonEmptyStringExceptionTest extends AbstractTestCase
         $this->assertException(ServiceTagMustBeNonEmptyStringException::class);
 
         iterator_to_array($this->container->tagged(' '));
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testContainerTagWithEmptySpace(): void
+    {
+        $this->assertException(ServiceTagMustBeNonEmptyStringException::class);
+
+        $this->container->tag('service', [' ']);
     }
 }

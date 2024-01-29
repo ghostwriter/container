@@ -2,22 +2,24 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container\Tests\Unit\Exception;
+namespace Ghostwriter\ContainerTests\Unit\Exception;
 
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Exception\CircularDependencyException;
 use Ghostwriter\Container\Instantiator;
 use Ghostwriter\Container\ParameterBuilder;
 use Ghostwriter\Container\Reflector;
-use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassA;
-use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassB;
-use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassC;
-use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassX;
-use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassY;
-use Ghostwriter\Container\Tests\Fixture\CircularDependency\ClassZ;
-use Ghostwriter\Container\Tests\Unit\AbstractTestCase;
+use Ghostwriter\ContainerTests\Fixture\CircularDependency\ClassA;
+use Ghostwriter\ContainerTests\Fixture\CircularDependency\ClassB;
+use Ghostwriter\ContainerTests\Fixture\CircularDependency\ClassC;
+use Ghostwriter\ContainerTests\Fixture\CircularDependency\ClassX;
+use Ghostwriter\ContainerTests\Fixture\CircularDependency\ClassY;
+use Ghostwriter\ContainerTests\Fixture\CircularDependency\ClassZ;
+use Ghostwriter\ContainerTests\Unit\AbstractTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Throwable;
+use function implode;
+use function sprintf;
 
 #[CoversClass(CircularDependencyException::class)]
 #[CoversClass(Container::class)]

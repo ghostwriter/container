@@ -2,15 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container\Tests\Unit\Exception;
+namespace Ghostwriter\ContainerTests\Unit\Exception;
 
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Exception\ServiceMustBeAnObjectException;
 use Ghostwriter\Container\Instantiator;
 use Ghostwriter\Container\ParameterBuilder;
 use Ghostwriter\Container\Reflector;
-use Ghostwriter\Container\Tests\Fixture\NonStdClassFactory;
-use Ghostwriter\Container\Tests\Unit\AbstractTestCase;
+use Ghostwriter\ContainerTests\Unit\AbstractTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 use Throwable;
@@ -29,7 +28,7 @@ final class ServiceMustBeAnObjectExceptionTest extends AbstractTestCase
     {
         $this->assertException(ServiceMustBeAnObjectException::class);
 
-        $this->container->set(stdClass::class, static fn() => false);
+        $this->container->set(stdClass::class, static fn () => false);
 
         $this->container->build(stdClass::class);
     }
