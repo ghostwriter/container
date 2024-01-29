@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [3.0.0] - 2024-01-29
 
+### Added
+
+- Method invoke() was added to interface Ghostwriter\Container\Interface\ContainerInterface
+
 ### Changed
 
 - The number of required arguments for Ghostwriter\Container\Instantiator#__construct() increased from 0 to 2
