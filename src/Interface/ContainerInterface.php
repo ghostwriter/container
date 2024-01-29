@@ -14,6 +14,24 @@ use Throwable;
  */
 interface ContainerInterface
 {
+    public const ALIASES = 0;
+
+    public const BINDINGS = 2;
+
+    public const DEPENDENCIES = 4;
+
+    public const EXTENSIONS = 1;
+
+    public const FACTORIES = 3;
+
+    public const INSTANCES = 6;
+
+    public const PROVIDERS = 7;
+
+    public const SERVICES = 5;
+
+    public const TAGS = 8;
+
     /**
      * Provide an alternative name for a registered service.
      *
@@ -49,10 +67,10 @@ interface ContainerInterface
      * @param class-string<TService> $service
      * @param array<TArgument>       $arguments optional constructor arguments passed to build the new class instance
      *
-     * @return TService
+     * @throws ExceptionInterface         if there is an error while retrieving the entry
+     * @throws NotFoundExceptionInterface if no entry was found for **this** identifier
      *
-     * @throws ExceptionInterface if there is an error while retrieving the entry
-     * @throws NotFoundExceptionInterface  if no entry was found for **this** identifier
+     * @return TService
      */
     public function build(string $service, array $arguments = []): object;
 
@@ -82,13 +100,12 @@ interface ContainerInterface
      */
     public function extend(string $service, string $extension): void;
 
-
     /**
      * Provide a FactoryInterface for a service.
      *
      * @template TService of object
      *
-     * @param class-string<TService>                     $service
+     * @param class-string<TService>                   $service
      * @param class-string<FactoryInterface<TService>> $serviceFactory
      */
     public function factory(string $service, string $serviceFactory): void;
@@ -103,10 +120,10 @@ interface ContainerInterface
      *
      * @param class-string<TService> $service
      *
-     * @return TService
-     * @throws ExceptionInterface If error while retrieving the entry
+     * @throws ExceptionInterface         If error while retrieving the entry
+     * @throws NotFoundExceptionInterface if no entry was found for the given identifier
      *
-     * @throws NotFoundExceptionInterface  if no entry was found for the given identifier
+     * @return TService
      */
     public function get(string $service): object;
 
