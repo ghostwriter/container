@@ -16,11 +16,7 @@ interface FactoryInterface
     /**
      * Create a service instance using the given container.
      *
-     * @template TArgument
-     *
-     * @param array<TArgument> $arguments
-     *
      * @return TService
      */
-    public function __invoke(ContainerInterface $container, array $arguments = []): object;
+    public function __invoke(ContainerInterface $container): object;
 }
