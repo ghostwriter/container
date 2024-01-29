@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container\Tests\Unit;
+namespace Ghostwriter\ContainerTests\Unit;
 
 use Generator;
 use Ghostwriter\Container\Container;
@@ -10,46 +10,50 @@ use Ghostwriter\Container\Instantiator;
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\ParameterBuilder;
 use Ghostwriter\Container\Reflector;
-use Ghostwriter\Container\Tests\Fixture\Bar;
-use Ghostwriter\Container\Tests\Fixture\Baz;
-use Ghostwriter\Container\Tests\Fixture\ClientInterface;
-use Ghostwriter\Container\Tests\Fixture\Constructor\ArrayConstructor;
-use Ghostwriter\Container\Tests\Fixture\Constructor\BoolConstructor;
-use Ghostwriter\Container\Tests\Fixture\Constructor\CallableConstructor;
-use Ghostwriter\Container\Tests\Fixture\Constructor\EmptyConstructor;
-use Ghostwriter\Container\Tests\Fixture\Constructor\FloatConstructor;
-use Ghostwriter\Container\Tests\Fixture\Constructor\IntConstructor;
-use Ghostwriter\Container\Tests\Fixture\Constructor\IterableConstructor;
-use Ghostwriter\Container\Tests\Fixture\Constructor\MixedConstructor;
-use Ghostwriter\Container\Tests\Fixture\Constructor\ObjectConstructor;
-use Ghostwriter\Container\Tests\Fixture\Constructor\OptionalConstructor;
-use Ghostwriter\Container\Tests\Fixture\Constructor\StringConstructor;
-use Ghostwriter\Container\Tests\Fixture\Constructor\TypelessConstructor;
-use Ghostwriter\Container\Tests\Fixture\Dummy;
-use Ghostwriter\Container\Tests\Fixture\DummyFactory;
-use Ghostwriter\Container\Tests\Fixture\DummyInterface;
-use Ghostwriter\Container\Tests\Fixture\Extension\FoobarExtension;
-use Ghostwriter\Container\Tests\Fixture\Extension\StdClassOneExtension;
-use Ghostwriter\Container\Tests\Fixture\Extension\StdClassTwoExtension;
-use Ghostwriter\Container\Tests\Fixture\Foo;
-use Ghostwriter\Container\Tests\Fixture\Foobar;
-use Ghostwriter\Container\Tests\Fixture\GitHub;
-use Ghostwriter\Container\Tests\Fixture\GitHubClient;
-use Ghostwriter\Container\Tests\Fixture\NonStdClassFactory;
-use Ghostwriter\Container\Tests\Fixture\ServiceProvider\FoobarServiceProvider;
-use Ghostwriter\Container\Tests\Fixture\ServiceProvider\FoobarWithDependencyServiceProvider;
-use Ghostwriter\Container\Tests\Fixture\StdClassFactory;
-use Ghostwriter\Container\Tests\Fixture\TestEvent;
-use Ghostwriter\Container\Tests\Fixture\TestEventListener;
-use Ghostwriter\Container\Tests\Fixture\UnionTypehintWithDefaultValue;
-use Ghostwriter\Container\Tests\Fixture\UnionTypehintWithoutDefaultValue;
+use Ghostwriter\Container\ServiceProvider;
+use Ghostwriter\ContainerTests\Fixture\Bar;
+use Ghostwriter\ContainerTests\Fixture\Baz;
+use Ghostwriter\ContainerTests\Fixture\ClassWithArray;
+use Ghostwriter\ContainerTests\Fixture\ClientInterface;
+use Ghostwriter\ContainerTests\Fixture\Constructor\ArrayConstructor;
+use Ghostwriter\ContainerTests\Fixture\Constructor\BoolConstructor;
+use Ghostwriter\ContainerTests\Fixture\Constructor\CallableConstructor;
+use Ghostwriter\ContainerTests\Fixture\Constructor\EmptyConstructor;
+use Ghostwriter\ContainerTests\Fixture\Constructor\FloatConstructor;
+use Ghostwriter\ContainerTests\Fixture\Constructor\IntConstructor;
+use Ghostwriter\ContainerTests\Fixture\Constructor\IterableConstructor;
+use Ghostwriter\ContainerTests\Fixture\Constructor\MixedConstructor;
+use Ghostwriter\ContainerTests\Fixture\Constructor\ObjectConstructor;
+use Ghostwriter\ContainerTests\Fixture\Constructor\OptionalConstructor;
+use Ghostwriter\ContainerTests\Fixture\Constructor\StringConstructor;
+use Ghostwriter\ContainerTests\Fixture\Constructor\TypelessConstructor;
+use Ghostwriter\ContainerTests\Fixture\Dummy;
+use Ghostwriter\ContainerTests\Fixture\DummyFactory;
+use Ghostwriter\ContainerTests\Fixture\DummyInterface;
+use Ghostwriter\ContainerTests\Fixture\Extension\FoobarExtension;
+use Ghostwriter\ContainerTests\Fixture\Extension\StdClassOneExtension;
+use Ghostwriter\ContainerTests\Fixture\Extension\StdClassTwoExtension;
+use Ghostwriter\ContainerTests\Fixture\Foo;
+use Ghostwriter\ContainerTests\Fixture\Foobar;
+use Ghostwriter\ContainerTests\Fixture\GitHub;
+use Ghostwriter\ContainerTests\Fixture\GitHubClient;
+use Ghostwriter\ContainerTests\Fixture\ServiceProvider\FoobarServiceProvider;
+use Ghostwriter\ContainerTests\Fixture\ServiceProvider\FoobarWithDependencyServiceProvider;
+use Ghostwriter\ContainerTests\Fixture\StdClassFactory;
+use Ghostwriter\ContainerTests\Fixture\TestEvent;
+use Ghostwriter\ContainerTests\Fixture\TestEventListener;
+use Ghostwriter\ContainerTests\Fixture\UnionTypehintWithDefaultValue;
+use Ghostwriter\ContainerTests\Fixture\UnionTypehintWithoutDefaultValue;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use stdClass;
 use Throwable;
 use function array_key_exists;
+use function iterator_to_array;
+use function random_int;
 
 #[CoversClass(Container::class)]
+#[CoversClass(ServiceProvider::class)]
 #[CoversClass(Instantiator::class)]
 #[CoversClass(ParameterBuilder::class)]
 #[CoversClass(Reflector::class)]
@@ -63,12 +67,11 @@ final class ContainerTest extends AbstractTestCase
         yield 'AnonymousFunctionCall' => [static function (TestEvent $testEvent): void {
             $testEvent->collect($testEvent::class);
         }];
-
         yield 'CallableArrayInstanceMethodCall' => [[new TestEventListener(), 'onTest']];
         yield 'CallableArrayInstanceMethodCallOnVariadic' => [[new TestEventListener(), 'onVariadicTest']];
         yield 'CallableArrayStaticMethodCall' => [[TestEventListener::class, 'onStaticCallableArray']];
-        yield 'FunctionCall@typedFunction' => ['Ghostwriter\Container\Tests\Fixture\typedFunction'];
-        yield 'FunctionCall@typelessFunction' => ['Ghostwriter\Container\Tests\Fixture\typelessFunction'];
+        yield 'FunctionCall@typedFunction' => ['Ghostwriter\ContainerTests\Fixture\typedFunction'];
+        yield 'FunctionCall@typelessFunction' => ['Ghostwriter\ContainerTests\Fixture\typelessFunction'];
         yield 'Invokable' => [new TestEventListener()];
         yield 'StaticMethodCall' => [TestEventListener::class . '::onStatic'];
         yield 'TypelessAnonymousFunctionCall' => [
@@ -100,7 +103,7 @@ final class ContainerTest extends AbstractTestCase
         yield CallableConstructor::class => [
             CallableConstructor::class,
             [
-                'value' => static fn(ContainerInterface $container): null => null,
+                'value' => static fn (ContainerInterface $container): null => null,
             ],
         ];
 
@@ -176,6 +179,31 @@ final class ContainerTest extends AbstractTestCase
     /**
      * @throws Throwable
      */
+    public function testBuildParamPosition(): void
+    {
+        $service = $this->container->build(ClassWithArray::class, [
+            'items' => ['tag'],
+        ]);
+
+        self::assertInstanceOf(ClassWithArray::class, $service);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testBuildResolvesAlias(): void
+    {
+        $this->container->alias(ClientInterface::class, GitHubClient::class);
+
+        self::assertInstanceOf(
+            GitHubClient::class,
+            $this->container->build(ClientInterface::class)
+        );
+    }
+
+    /**
+     * @throws Throwable
+     */
     public function testContainerAlias(): void
     {
         self::assertFalse($this->container->has(stdClass::class));
@@ -237,7 +265,7 @@ final class ContainerTest extends AbstractTestCase
 
         self::assertSame($buildService, $getService);
 
-        if (!array_key_exists('value', $arguments)) {
+        if (! array_key_exists('value', $arguments)) {
             return;
         }
 
@@ -283,6 +311,8 @@ final class ContainerTest extends AbstractTestCase
         $actual1 = $expectedCount;
         $actual2 = $expectedCount;
 
+        self::assertCount(0, $testEvent->all());
+
         while ($actual1--) {
             $this->container->call($callback, [$testEvent]);
         }
@@ -308,7 +338,7 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testContainerDestruct(): void
     {
-        $this->container->set(stdClass::class, static fn(): stdClass => new stdClass());
+        $this->container->set(stdClass::class, static fn (): stdClass => new stdClass());
 
         self::assertTrue($this->container->has(stdClass::class));
 
@@ -396,7 +426,6 @@ final class ContainerTest extends AbstractTestCase
         self::assertInstanceOf(stdClass::class, $this->container->get(Foobar::class));
     }
 
-
     /**
      * @throws Throwable
      */
@@ -469,7 +498,7 @@ final class ContainerTest extends AbstractTestCase
     {
         $object = new stdClass();
 
-        $closure = static fn(ContainerInterface $container): stdClass => $object;
+        $closure = static fn (ContainerInterface $container): stdClass => $object;
 
         $this->container->set(stdClass::class, $closure);
 
@@ -495,6 +524,18 @@ final class ContainerTest extends AbstractTestCase
         self::assertTrue($this->container->has(ContainerInterface::class));
     }
 
+    /**
+     * @throws Throwable
+     */
+    public function testFactory(): void
+    {
+        $this->container->factory(stdClass::class, StdClassFactory::class);
+
+        self::assertSame(
+            '#FreePalestine',
+            $this->container->get(stdClass::class)->blackLivesMatter
+        );
+    }
 
     /**
      * @throws Throwable
@@ -503,7 +544,7 @@ final class ContainerTest extends AbstractTestCase
     {
         $this->container->tag(stdClass::class, ['first-tag']);
 
-        $this->container->tag(Foo::class,['tag-2']);
+        $this->container->tag(Foo::class, ['tag-2']);
         $this->container->tag(stdClass::class, ['tag']);
 
         foreach ($this->container->tagged('tag') as $service) {
@@ -514,7 +555,6 @@ final class ContainerTest extends AbstractTestCase
 
         self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
     }
-
 
     /**
      * @throws Throwable
@@ -532,7 +572,6 @@ final class ContainerTest extends AbstractTestCase
         self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
     }
 
-
     /**
      * @throws Throwable
      */
@@ -549,7 +588,6 @@ final class ContainerTest extends AbstractTestCase
         self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
     }
 
-
     /**
      * @throws Throwable
      */
@@ -564,31 +602,5 @@ final class ContainerTest extends AbstractTestCase
         $this->container->untag(stdClass::class, ['tag']);
 
         self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
-    }
-
-    /**
-     * @throws Throwable
-     */
-    public function testFactory(): void
-    {
-        $this->container->factory(stdClass::class, StdClassFactory::class);
-
-        self::assertSame(
-            '#FreePalestine',
-            $this->container->get(stdClass::class)->blackLivesMatter
-        );
-    }
-
-    /**
-     * @throws Throwable
-     */
-    public function testBuildResolvesAlias(): void
-    {
-        $this->container->alias(ClientInterface::class, GitHubClient::class);
-
-        self::assertInstanceOf(
-            GitHubClient::class,
-            $this->container->build(ClientInterface::class)
-        );
     }
 }
