@@ -449,6 +449,8 @@ final class Container implements ContainerInterface
      * @param array<TArgument>                         $arguments
      *
      * @throws Throwable
+     *
+     * @return TResult
      */
     public function invoke(string $invokable, array $arguments = []): mixed
     {
