@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [3.0.0] - 2024-01-29
+
+### Changed
+
+- The number of required arguments for Ghostwriter\Container\Instantiator#__construct() increased from 0 to 2
+- Parameter $container of Ghostwriter\Container\ParameterBuilder#construct() was added
+- Parameter $reflector of Ghostwriter\Container\Instantiator#construct() was added
+- Parameter $parameterBuilder of Ghostwriter\Container\Instantiator#construct() was added
+
+### Fixed
+
+- `ParameterBuilder` resolves positional arguments
+
+### Removed
+
+- Method Ghostwriter\Container\Instantiator#buildParameters() was removed
+- Parameter $container of Ghostwriter\Container\Instantiator#instantiate() was removed
+- Parameter $container of Ghostwriter\Container\ParameterBuilder#build() was removed
+
 ## [2.0.1] - 2023-11-15
 
 ### Added
