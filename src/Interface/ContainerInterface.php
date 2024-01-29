@@ -135,6 +135,20 @@ interface ContainerInterface
     public function has(string $service): bool;
 
     /**
+     * @template TInvokable of object
+     * @template TArgument
+     * @template TResult
+     *
+     * @param callable-string|class-string<TInvokable> $invokable
+     * @param array<TArgument>                         $arguments
+     *
+     * @throws Throwable
+     *
+     * @return TResult
+     */
+    public function invoke(string $invokable, array $arguments = []): mixed;
+
+    /**
      * Register a ServiceProvider class.
      *
      * Note: Service providers are automatically registered via `build` or `get` method.
