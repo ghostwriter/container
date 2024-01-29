@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container\Tests\Fixture\ServiceProvider;
+namespace Ghostwriter\ContainerTests\Fixture\ServiceProvider;
 
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\ServiceProviderInterface;
-use Ghostwriter\Container\Tests\Fixture\Bar;
-use Ghostwriter\Container\Tests\Fixture\Baz;
-use Ghostwriter\Container\Tests\Fixture\Dummy;
-use Ghostwriter\Container\Tests\Fixture\Extension\FoobarExtension;
-use Ghostwriter\Container\Tests\Fixture\Foo;
-use Ghostwriter\Container\Tests\Fixture\Foobar;
+use Ghostwriter\ContainerTests\Fixture\Bar;
+use Ghostwriter\ContainerTests\Fixture\Baz;
+use Ghostwriter\ContainerTests\Fixture\Dummy;
+use Ghostwriter\ContainerTests\Fixture\Extension\FoobarExtension;
+use Ghostwriter\ContainerTests\Fixture\Foo;
+use Ghostwriter\ContainerTests\Fixture\Foobar;
 use stdClass;
 use Throwable;
 

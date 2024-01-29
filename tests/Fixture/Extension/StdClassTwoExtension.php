@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container\Tests\Fixture\Extension;
+namespace Ghostwriter\ContainerTests\Fixture\Extension;
 
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\ExtensionInterface;

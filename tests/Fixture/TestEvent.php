@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container\Tests\Fixture;
+namespace Ghostwriter\ContainerTests\Fixture;
 
 class TestEvent
 {
@@ -11,7 +11,7 @@ class TestEvent
 
     public function collect(string $event): void
     {
-        $this->events[] = $event;
+        $this->events[] = $event . time();
     }
 
     /** @return array<array-key,string> */

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container\Tests\Fixture\Extension;
+namespace Ghostwriter\ContainerTests\Fixture\Extension;
 
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\ExtensionInterface;
-use Ghostwriter\Container\Tests\Fixture\Bar;
-use Ghostwriter\Container\Tests\Fixture\Foo;
+use Ghostwriter\ContainerTests\Fixture\Bar;
+use Ghostwriter\ContainerTests\Fixture\Foo;
 
 class FoobarExtension implements ExtensionInterface
 {

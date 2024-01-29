@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container\Tests\Fixture\CircularDependency;
+namespace Ghostwriter\ContainerTests\Fixture\CircularDependency;
 
 class ClassZ
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container\Tests\Fixture\Constructor;
+namespace Ghostwriter\ContainerTests\Fixture\Constructor;
 
 class IntConstructor
 {

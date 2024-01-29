@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container\Tests\Fixture;
+namespace Ghostwriter\ContainerTests\Fixture;
 
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\FactoryInterface;
