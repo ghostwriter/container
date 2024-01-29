@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container\Tests\Unit;
+namespace Ghostwriter\ContainerTests\Unit;
 
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Instantiator;
@@ -21,26 +21,11 @@ final class InstantiatorTest extends AbstractTestCase
     /**
      * @throws Throwable
      */
-    public function testBuildParameters(): void
-    {
-        self::assertSame(
-            [],
-            $this->instantiator->buildParameters(
-                $this->container,
-                static fn(): stdClass => new stdClass()
-            )
-        );
-    }
-
-    /**
-     * @throws Throwable
-     */
     public function testInstantiate(): void
     {
         self::assertInstanceOf(
             stdClass::class,
             $this->instantiator->instantiate(
-                $this->container,
                 stdClass::class
             )
         );
