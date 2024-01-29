@@ -10,7 +10,7 @@ use ReflectionFunction;
 use Throwable;
 
 /** @see \Ghostwriter\ContainerTests\Unit\ReflectorTest */
-final class Reflector
+final readonly class Reflector
 {
     public static function new(): self
     {
