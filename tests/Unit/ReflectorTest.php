@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container\Tests\Unit;
+namespace Ghostwriter\ContainerTests\Unit;
 
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Instantiator;
@@ -36,12 +36,36 @@ final class ReflectorTest extends AbstractTestCase
     /**
      * @throws Throwable
      */
+    public function testReflectClassNotSame(): void
+    {
+        self::assertNotSame(
+            $this->reflector->reflectClass(self::class),
+            $this->reflector->reflectClass(self::class)
+        );
+    }
+
+    /**
+     * @throws Throwable
+     */
     public function testReflectFunction(): void
     {
         self::assertTrue(
             $this->reflector
-                ->reflectFunction(static fn(): null => null)
+                ->reflectFunction(static fn (): null => null)
                 ->isStatic()
+        );
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testReflectFunctionNotSame(): void
+    {
+        $closure = static fn (): null => null;
+
+        self::assertNotSame(
+            $this->reflector->reflectFunction($closure),
+            $this->reflector->reflectFunction($closure)
         );
     }
 }
