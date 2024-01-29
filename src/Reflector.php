@@ -9,24 +9,29 @@ use ReflectionClass;
 use ReflectionFunction;
 use Throwable;
 
-/** @see Ghostwriter\Container\Tests\Unit\ReflectorTest */
-final readonly class Reflector
+/** @see \Ghostwriter\ContainerTests\Unit\ReflectorTest */
+final class Reflector
 {
+    public static function new(): self
+    {
+        return new self();
+    }
+
     /**
      * @template TClass of object
      *
      * @param class-string<TClass> $class
      *
-     * @return ReflectionClass<TClass>
-     *
      * @throws ReflectorException
+     *
+     * @return ReflectionClass<TClass>
      */
     public function reflectClass(string $class): ReflectionClass
     {
         try {
             return new ReflectionClass($class);
         } catch (Throwable $throwable) {
-            throw new ReflectorException($throwable->getMessage());
+            throw new ReflectorException($throwable->getMessage(), 0, $throwable);
         }
     }
 
@@ -40,7 +45,7 @@ final readonly class Reflector
         try {
             return new ReflectionFunction($function);
         } catch (Throwable $throwable) {
-            throw new ReflectorException($throwable->getMessage());
+            throw new ReflectorException($throwable->getMessage(), 0, $throwable);
         }
     }
 }
