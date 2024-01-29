@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\Container\Tests\Unit;
+namespace Ghostwriter\ContainerTests\Unit;
 
 use Generator;
 use Ghostwriter\Container\Container;
@@ -16,8 +16,8 @@ use stdClass;
 use Throwable;
 
 #[CoversClass(Container::class)]
-#[CoversClass(ParameterBuilder::class)]
 #[CoversClass(Instantiator::class)]
+#[CoversClass(ParameterBuilder::class)]
 #[CoversClass(Reflector::class)]
 final class ParameterBuilderTest extends AbstractTestCase
 {
@@ -28,7 +28,7 @@ final class ParameterBuilderTest extends AbstractTestCase
     {
         $stdClass = new stdClass();
 
-        $closure = static fn(stdClass $foo): object => $stdClass;
+        $closure = static fn (stdClass $foo): object => $stdClass;
 
         $empty = [];
 
@@ -40,7 +40,7 @@ final class ParameterBuilderTest extends AbstractTestCase
             'parameters & no arguments' => [
                 [new ReflectionParameter($closure, 'foo')],
                 $empty,
-                [$stdClass]
+                [$stdClass],
             ],
         ];
     }
@@ -58,9 +58,32 @@ final class ParameterBuilderTest extends AbstractTestCase
         self::assertEquals(
             $expected,
             $this->parameterBuilder->build(
-                $this->container,
+
                 $parameters,
                 $arguments
+            )
+        );
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testBuildUsesDefaultValue(): void
+    {
+        $stdClass = new stdClass();
+
+        self::assertSame(
+            [null],
+            $this->parameterBuilder->build(
+
+                [
+                    new ReflectionParameter(
+                        static fn (
+                            ?stdClass $foo = null
+                        ): stdClass => $stdClass,
+                        'foo'
+                    ),
+                ]
             )
         );
     }
@@ -77,37 +100,16 @@ final class ParameterBuilderTest extends AbstractTestCase
         self::assertSame(
             [$stdClass],
             $this->parameterBuilder->build(
-                $this->container,
+
                 [
                     new ReflectionParameter(
-                        static fn(
+                        static fn (
                             ?stdClass $foo = null
                         ): stdClass => $stdClass,
                         'foo'
-                    )
-                ])
-        );
-    }
-
-    /**
-     * @throws Throwable
-     */
-    public function testBuildUsesDefaultValue(): void
-    {
-        $stdClass = new stdClass();
-
-        self::assertSame(
-            [null],
-            $this->parameterBuilder->build(
-                $this->container,
-                [
-                    new ReflectionParameter(
-                        static fn(
-                            ?stdClass $foo = null
-                        ): stdClass => $stdClass,
-                        'foo'
-                    )
-                ])
+                    ),
+                ]
+            )
         );
     }
 }
