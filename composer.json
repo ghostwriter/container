@@ -23,7 +23,7 @@
         }
     ],
     "require": {
-        "php": ">=8.2"
+        "php": "^8.3"
     },
     "require-dev": {
         "ghostwriter/coding-standard": "dev-main",
@@ -38,7 +38,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Ghostwriter\\Container\\Tests\\": "tests/"
+            "Ghostwriter\\ContainerTests\\": "tests"
         },
         "files": [
             "tests/Fixture/functions.php"
