@@ -10,7 +10,6 @@ use Ghostwriter\Container\Instantiator;
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\ParameterBuilder;
 use Ghostwriter\Container\Reflector;
-use Ghostwriter\Container\ServiceProvider;
 use Ghostwriter\ContainerTests\Fixture\Bar;
 use Ghostwriter\ContainerTests\Fixture\Baz;
 use Ghostwriter\ContainerTests\Fixture\ClassWithArray;
@@ -53,7 +52,6 @@ use function iterator_to_array;
 use function random_int;
 
 #[CoversClass(Container::class)]
-#[CoversClass(ServiceProvider::class)]
 #[CoversClass(Instantiator::class)]
 #[CoversClass(ParameterBuilder::class)]
 #[CoversClass(Reflector::class)]
