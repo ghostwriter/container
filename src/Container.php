@@ -58,7 +58,9 @@ final class Container implements ContainerInterface
     /**
      * @var array<string,string>
      */
-    private array $aliases = [];
+    private array $aliases = [
+        ContainerInterface::class => self::class,
+    ];
 
     /**
      * @var array<class-string,array<class-string,class-string>>
@@ -114,10 +116,7 @@ final class Container implements ContainerInterface
 
         $this->parameterBuilder = ParameterBuilder::new($this);
 
-        $this->instantiator = Instantiator::new(
-            $this->reflector,
-            $this->parameterBuilder
-        );
+        $this->instantiator = Instantiator::new($this->reflector, $this->parameterBuilder);
     }
 
     /**
@@ -400,6 +399,7 @@ final class Container implements ContainerInterface
     public function get(string $service): object
     {
         $class = $this->resolve($service);
+
         if (is_a($service, ContainerInterface::class, true)) {
             return $this;
         }
