@@ -492,6 +492,23 @@ final class ContainerTest extends AbstractTestCase
     /**
      * @throws Throwable
      */
+    public function testContainerSetAndGetFactory(): void
+    {
+        $this->container->set(
+            UnionTypehintWithoutDefaultValue::class,
+            static fn (
+                ContainerInterface $container
+            ) => $container->build(UnionTypehintWithoutDefaultValue::class, [1])
+        );
+        self::assertInstanceOf(
+            UnionTypehintWithoutDefaultValue::class,
+            $this->container->get(UnionTypehintWithoutDefaultValue::class)
+        );
+    }
+
+    /**
+     * @throws Throwable
+     */
     public function testContainerSetClosure(): void
     {
         $object = new stdClass();
