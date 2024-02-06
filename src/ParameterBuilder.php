@@ -11,6 +11,7 @@ use ReflectionParameter;
 use Throwable;
 use function array_key_exists;
 use function array_reduce;
+use function is_a;
 use function is_callable;
 use function sprintf;
 
@@ -77,9 +78,7 @@ final readonly class ParameterBuilder
                 }
 
                 $isDefaultValueAvailable = $reflectionParameter->isDefaultValueAvailable();
-
                 $reflectionType = $reflectionParameter->getType();
-
                 if ($reflectionType instanceof ReflectionNamedType && ! $reflectionType->isBuiltin()) {
                     $reflectionTypeName = $reflectionType->getName();
 
@@ -87,6 +86,7 @@ final readonly class ParameterBuilder
                     $parameters[$parameterPosition] = match (true) {
                         default => $container->get($reflectionTypeName),
                         $isDefaultValueAvailable => match (true) {
+                            is_a($reflectionTypeName, ContainerInterface::class, true) => $container,
                             $container->has($reflectionTypeName) => $container->get($reflectionTypeName),
                             default => $reflectionParameter->getDefaultValue(),
                         }
