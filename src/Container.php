@@ -247,33 +247,33 @@ final class Container implements ContainerInterface
      */
     public function build(string $service, array $arguments = []): object
     {
+        $class = $this->resolve($service);
+
         if (is_a($service, ContainerInterface::class, true)) {
             return $this;
         }
 
-        $service = $this->resolve($service);
-
-        if (array_key_exists($service, $this->dependencies)) {
+        if (array_key_exists($class, $this->dependencies)) {
             throw new CircularDependencyException(sprintf(
                 'Class: %s -> %s',
                 implode(' -> ', array_keys($this->dependencies)),
-                $service
+                $class
             ));
         }
 
-        $this->dependencies[$service] = true;
+        $this->dependencies[$class] = true;
 
         /** @var TService $instance */
-        $instance = $this->instantiator->instantiate($service, $arguments);
+        $instance = $this->instantiator->instantiate($class, $arguments);
 
-        $this->instances[$service] = $instance;
+        $this->instances[$class] = $instance;
 
-        if (array_key_exists($service, $this->dependencies)) {
-            unset($this->dependencies[$service]);
+        if (array_key_exists($class, $this->dependencies)) {
+            unset($this->dependencies[$class]);
         }
 
         foreach (array_keys($this->extensions) as $serviceName) {
-            if ($serviceName !== $service || ! is_a($instance, $serviceName, true)) {
+            if ($serviceName !== $class || ! is_a($instance, $serviceName, true)) {
                 continue;
             }
 
@@ -282,7 +282,7 @@ final class Container implements ContainerInterface
             }
         }
 
-        return $this->instances[$service] = $instance;
+        return $this->instances[$class] = $instance;
     }
 
     /**
