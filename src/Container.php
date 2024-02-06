@@ -92,7 +92,7 @@ final class Container implements ContainerInterface
     private readonly ParameterBuilder $parameterBuilder;
 
     /**
-     * @var list<class-string<ServiceProviderInterface>>
+     * @var array<class-string<ServiceProviderInterface>,bool>
      */
     private array $providers = [];
 
@@ -273,11 +273,7 @@ final class Container implements ContainerInterface
         }
 
         foreach (array_keys($this->extensions) as $serviceName) {
-            if ($serviceName !== $service) {
-                continue;
-            }
-
-            if (! is_a($instance, $serviceName, true)) {
+            if ($serviceName !== $service || ! is_a($instance, $serviceName, true)) {
                 continue;
             }
 
@@ -500,7 +496,7 @@ final class Container implements ContainerInterface
             throw new ServiceProviderAlreadyRegisteredException($serviceProvider);
         }
 
-        $this->providers[$serviceProvider] = $serviceProvider;
+        $this->providers[$serviceProvider] = true;
 
         $this->invoke($serviceProvider);
     }
@@ -517,15 +513,17 @@ final class Container implements ContainerInterface
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
-        if ($abstract !== $concrete) {
-            $this->aliases[$abstract] = $concrete;
+        if ($tags !== []) {
+            $this->tag($abstract, $tags);
         }
 
         $this->services[$concrete] ??= $concrete;
 
-        if ($tags !== []) {
-            $this->tag($abstract, $tags);
+        if ($abstract === $concrete) {
+            return;
         }
+
+        $this->aliases[$abstract] = $concrete;
     }
 
     public function remove(string $service): void
@@ -560,12 +558,7 @@ final class Container implements ContainerInterface
             return;
         }
 
-        if (is_object($value)) {
-            $this->instances[$service] = $value;
-            return;
-        }
-
-        throw new ServiceMustBeAnObjectException($service);
+        $this->instances[$service] = $value;
     }
 
     /**
