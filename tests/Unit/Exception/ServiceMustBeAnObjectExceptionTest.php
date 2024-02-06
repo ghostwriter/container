@@ -24,12 +24,12 @@ final class ServiceMustBeAnObjectExceptionTest extends AbstractTestCase
     /**
      * @throws Throwable
      */
-    public function testContainerBuild(): void
+    public function testContainerGet(): void
     {
         $this->assertException(ServiceMustBeAnObjectException::class);
 
         $this->container->set(stdClass::class, static fn () => false);
 
-        $this->container->build(stdClass::class);
+        $this->container->get(stdClass::class);
     }
 }
