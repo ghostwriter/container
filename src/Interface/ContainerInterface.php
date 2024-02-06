@@ -14,24 +14,6 @@ use Throwable;
  */
 interface ContainerInterface
 {
-    public const ALIASES = 0;
-
-    public const BINDINGS = 2;
-
-    public const DEPENDENCIES = 4;
-
-    public const EXTENSIONS = 1;
-
-    public const FACTORIES = 3;
-
-    public const INSTANCES = 6;
-
-    public const PROVIDERS = 7;
-
-    public const SERVICES = 5;
-
-    public const TAGS = 8;
-
     /**
      * Provide an alternative name for a registered service.
      *
