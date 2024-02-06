@@ -400,6 +400,9 @@ final class Container implements ContainerInterface
     public function get(string $service): object
     {
         $class = $this->resolve($service);
+        if (is_a($service, ContainerInterface::class, true)) {
+            return $this;
+        }
 
         if (array_key_exists($class, $this->instances)) {
             return $this->instances[$class];
