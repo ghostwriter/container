@@ -55,59 +55,69 @@ use function trim;
  */
 final class Container implements ContainerInterface
 {
-    public const DEFAULT = [
-        self::ALIASES => [
-            ContainerInterface::class => self::class,
-        ],
-        self::EXTENSIONS => [],
-        self::BINDINGS => [],
-        self::FACTORIES => [],
-        self::DEPENDENCIES => [],
-        self::SERVICES => [],
-        self::INSTANCES => [],
-        self::PROVIDERS => [],
-        self::TAGS => [],
-    ];
+    /**
+     * @var array<string,string>
+     */
+    private array $aliases = [];
 
     /**
-     * @template TService of object
-     *
-     * @var array<class-string<TService>, class-string<TService>>
-     * @var array<class-string<TService>, class-string<TService>>
-     * @var array<class-string<TService>,list<ExtensionInterface<TService>>>
-     * @var array<class-string<TService>,callable():TService>
-     * @var array<class-string<ServiceProviderInterface>, null>
-     * @var array<class-string<TService>, TService>
-     * @var array<callable-string|class-string<TService>>
-     * @var array<class-string<TService>,list<string>>
-     * @var array{
-     *     0: array<class-string<TService>, class-string<TService>>,
-     *     1: array<class-string<TService>,list<ExtensionInterface<TService>>>,
-     *     2: array<class-string<TService>, class-string<TService>>,
-     *     3: array<class-string<TService>,callable():TService>,
-     *     4: array<class-string<TService>, null>,
-     *     5: array<class-string<TService>, TService>,
-     *     6: array<callable-string|class-string<TService>>,
-     *     7: array<class-string<TService>,list<string>>,
-     *     7: array<class-string<ServiceProviderInterface>,null>,
-     *     8: array<string, array<string, string>>,
-     * }
+     * @var array<class-string,array<class-string,class-string>>
      */
-    public static array $cache = self::DEFAULT;
+    private array $bindings = [];
+
+    /**
+     * @var array<class-string,bool>
+     */
+    private array $dependencies = [];
+
+    /**
+     * @var array<class-string,list<ExtensionInterface>>
+     */
+    private array $extensions = [];
+
+    /**
+     * @var array<class-string,Closure(ContainerInterface):object>
+     */
+    private array $factories = [];
 
     private static self $instance;
+
+    /**
+     * @var array<class-string,object>
+     */
+    private array $instances = [];
 
     private readonly Instantiator $instantiator;
 
     private readonly ParameterBuilder $parameterBuilder;
 
+    /**
+     * @var list<class-string<ServiceProviderInterface>>
+     */
+    private array $providers = [];
+
     private readonly Reflector $reflector;
+
+    /**
+     * @var array<class-string,class-string>
+     */
+    private array $services = [];
+
+    /**
+     * @var array<string,array<string,string>>
+     */
+    private array $tags = [];
 
     private function __construct()
     {
         $this->reflector = Reflector::new();
+
         $this->parameterBuilder = ParameterBuilder::new($this);
-        $this->instantiator = Instantiator::new($this->reflector, $this->parameterBuilder);
+
+        $this->instantiator = Instantiator::new(
+            $this->reflector,
+            $this->parameterBuilder
+        );
     }
 
     /**
@@ -115,7 +125,17 @@ final class Container implements ContainerInterface
      */
     public function __destruct()
     {
-        self::$cache = self::DEFAULT;
+        $this->aliases = [
+            ContainerInterface::class => self::class,
+        ];
+        $this->bindings = [];
+        $this->dependencies = [];
+        $this->extensions = [];
+        $this->factories = [];
+        $this->instances = [];
+        $this->providers = [];
+        $this->services = [];
+        $this->tags = [];
     }
 
     /**
@@ -160,7 +180,7 @@ final class Container implements ContainerInterface
             throw new AliasNameAndServiceNameCannotBeTheSameException($name);
         }
 
-        self::$cache[self::ALIASES][$name] = $service;
+        $this->aliases[$name] = $service;
     }
 
     /**
@@ -205,7 +225,7 @@ final class Container implements ContainerInterface
             throw new ServiceNotFoundException($implementation);
         }
 
-        self::$cache[self::BINDINGS][$concrete][$abstract] = $implementation;
+        $this->bindings[$concrete][$abstract] = $implementation;
     }
 
     /**
@@ -227,58 +247,46 @@ final class Container implements ContainerInterface
      */
     public function build(string $service, array $arguments = []): object
     {
-        if (trim($service) === '') {
-            throw new ServiceNameMustBeNonEmptyStringException();
-        }
-
         if (is_a($service, ContainerInterface::class, true)) {
             return $this;
         }
 
-        while (array_key_exists($service, self::$cache[self::ALIASES])) {
-            $service = self::$cache[self::ALIASES][$service];
-        }
+        $service = $this->resolve($service);
 
-        if (array_key_exists($service, self::$cache[self::DEPENDENCIES])) {
+        if (array_key_exists($service, $this->dependencies)) {
             throw new CircularDependencyException(sprintf(
                 'Class: %s -> %s',
-                implode(' -> ', array_keys(self::$cache[self::DEPENDENCIES])),
+                implode(' -> ', array_keys($this->dependencies)),
                 $service
             ));
         }
 
-        self::$cache[self::DEPENDENCIES][$service] = true;
+        $this->dependencies[$service] = true;
 
         /** @var TService $instance */
-        $instance = match (true) {
-            array_key_exists($service, self::$cache[self::FACTORIES]) =>
-            $this->call(self::$cache[self::FACTORIES][$service], $arguments),
-            default => $this->instantiator->instantiate($service, $arguments)
-        };
+        $instance = $this->instantiator->instantiate($service, $arguments);
 
-        if (array_key_exists($service, self::$cache[self::DEPENDENCIES])) {
-            unset(self::$cache[self::DEPENDENCIES][$service]);
+        $this->instances[$service] = $instance;
+
+        if (array_key_exists($service, $this->dependencies)) {
+            unset($this->dependencies[$service]);
         }
 
-        if (! is_object($instance)) {
-            throw new ServiceMustBeAnObjectException($service);
-        }
-
-        self::$cache[self::INSTANCES][$service] = $instance;
-
-        foreach (array_keys(self::$cache[self::EXTENSIONS]) as $serviceName) {
-            if ($serviceName !== $service
-                && ! is_a($instance, $serviceName, true)
-            ) {
+        foreach (array_keys($this->extensions) as $serviceName) {
+            if ($serviceName !== $service) {
                 continue;
             }
 
-            foreach (self::$cache[self::EXTENSIONS][$serviceName] ?? [] as $extension) {
+            if (! is_a($instance, $serviceName, true)) {
+                continue;
+            }
+
+            foreach ($this->extensions[$serviceName] ?? [] as $extension) {
                 $instance = $this->invoke($extension, [$this, $instance]);
             }
         }
 
-        return self::$cache[self::INSTANCES][$service] = $instance;
+        return $this->instances[$service] = $instance;
     }
 
     /**
@@ -350,11 +358,11 @@ final class Container implements ContainerInterface
             throw new ServiceExtensionMustBeAnInstanceOfExtensionInterfaceException($extension);
         }
 
-        if (array_key_exists($extension, self::$cache[self::EXTENSIONS][$service] ?? [])) {
+        if (array_key_exists($extension, $this->extensions[$service] ?? [])) {
             throw new ServiceExtensionAlreadyRegisteredException($extension);
         }
 
-        self::$cache[self::EXTENSIONS][$service][$extension] = $extension;
+        $this->extensions[$service][$extension] = $extension;
     }
 
     /**
@@ -377,7 +385,9 @@ final class Container implements ContainerInterface
             throw new ServiceFactoryMustBeAnInstanceOfFactoryInterfaceException($serviceFactory);
         }
 
-        self::$cache[self::FACTORIES][$service] = static fn (ContainerInterface $container): object => $container->invoke($serviceFactory);
+        $this->factories[$service] = static fn (
+            ContainerInterface $container
+        ): object => $container->invoke($serviceFactory);
     }
 
     /**
@@ -385,8 +395,9 @@ final class Container implements ContainerInterface
      *
      * @param class-string<TService> $service
      *
-     * @throws NotFoundExceptionInterface
      * @throws ExceptionInterface
+     * @throws Throwable
+     * @throws NotFoundExceptionInterface
      *
      * @return TService
      */
@@ -394,13 +405,23 @@ final class Container implements ContainerInterface
     {
         $class = $this->resolve($service);
 
-        $instances = self::$cache[self::INSTANCES];
+        if (array_key_exists($class, $this->instances)) {
+            return $this->instances[$class];
+        }
+
+        if (array_key_exists($class, $this->factories)) {
+            $instance = $this->call($this->factories[$class]);
+
+            if (! is_object($instance)) {
+                throw new ServiceMustBeAnObjectException($service);
+            }
+
+            return $this->instances[$service] = $instance;
+        }
 
         return match (true) {
-            array_key_exists($class, $instances) => $instances[$class],
-            is_a($class, ContainerInterface::class, true) => $this,
-            ! class_exists($class) => throw new ServiceNotFoundException($class),
-            default => $this->build($class),
+            class_exists($class) => $this->build($class),
+            default => throw new ServiceNotFoundException($class),
         };
     }
 
@@ -424,7 +445,7 @@ final class Container implements ContainerInterface
 
         return match (true) {
             default => array_reduce(
-                self::$cache[self::BINDINGS],
+                $this->bindings,
                 /**
                  * @param array<class-string<TService>> $binding
                  */
@@ -432,10 +453,10 @@ final class Container implements ContainerInterface
                     || in_array($service, $binding, true),
                 false
             ),
-            array_key_exists($service, self::$cache[self::INSTANCES]),
-            array_key_exists($service, self::$cache[self::FACTORIES]),
-            array_key_exists($service, self::$cache[self::SERVICES]),
-            array_key_exists($service, self::$cache[self::ALIASES]),
+            array_key_exists($service, $this->instances),
+            array_key_exists($service, $this->factories),
+            array_key_exists($service, $this->services),
+            array_key_exists($service, $this->aliases),
             is_a($service, ContainerInterface::class, true) => true,
         };
     }
@@ -475,11 +496,11 @@ final class Container implements ContainerInterface
             throw new ServiceProviderMustBeAnInstanceOfServiceProviderInterfaceException($serviceProvider);
         }
 
-        if (array_key_exists($serviceProvider, self::$cache[self::PROVIDERS])) {
+        if (array_key_exists($serviceProvider, $this->providers)) {
             throw new ServiceProviderAlreadyRegisteredException($serviceProvider);
         }
 
-        self::$cache[self::PROVIDERS][$serviceProvider] = null;
+        $this->providers[$serviceProvider] = $serviceProvider;
 
         $this->invoke($serviceProvider);
     }
@@ -497,10 +518,10 @@ final class Container implements ContainerInterface
         }
 
         if ($abstract !== $concrete) {
-            self::$cache[self::ALIASES][$abstract] = $concrete;
+            $this->aliases[$abstract] = $concrete;
         }
 
-        self::$cache[self::SERVICES][$concrete] ??= $concrete;
+        $this->services[$concrete] ??= $concrete;
 
         if ($tags !== []) {
             $this->tag($abstract, $tags);
@@ -510,12 +531,12 @@ final class Container implements ContainerInterface
     public function remove(string $service): void
     {
         unset(
-            self::$cache[self::ALIASES][$service],
-            self::$cache[self::EXTENSIONS][$service],
-            self::$cache[self::FACTORIES][$service],
-            self::$cache[self::INSTANCES][$service],
-            self::$cache[self::SERVICES][$service],
-            self::$cache[self::TAGS][$service],
+            $this->aliases[$service],
+            $this->extensions[$service],
+            $this->factories[$service],
+            $this->instances[$service],
+            $this->services[$service],
+            $this->tags[$service],
         );
     }
 
@@ -535,12 +556,12 @@ final class Container implements ContainerInterface
         }
 
         if (is_callable($value)) {
-            self::$cache[self::FACTORIES][$service] = $value;
+            $this->factories[$service] = $value;
             return;
         }
 
         if (is_object($value)) {
-            self::$cache[self::INSTANCES][$service] = $value;
+            $this->instances[$service] = $value;
             return;
         }
 
@@ -561,7 +582,7 @@ final class Container implements ContainerInterface
                 throw new ServiceTagMustBeNonEmptyStringException();
             }
 
-            self::$cache[self::TAGS][$tag][$service] = $service;
+            $this->tags[$tag][$service] = $service;
         }
     }
 
@@ -570,9 +591,9 @@ final class Container implements ContainerInterface
      *
      * @param class-string<TService> $tag
      *
-     * @throws NotFoundExceptionInterface
      * @throws Throwable
      * @throws ExceptionInterface
+     * @throws NotFoundExceptionInterface
      *
      * @return Generator<TService>
      */
@@ -582,12 +603,12 @@ final class Container implements ContainerInterface
             throw new ServiceTagMustBeNonEmptyStringException();
         }
 
-        if (! array_key_exists($tag, self::$cache[self::TAGS])) {
+        if (! array_key_exists($tag, $this->tags)) {
             throw new ServiceTagNotFoundException($tag);
         }
 
         /** @var class-string<TService> $service */
-        foreach (self::$cache[self::TAGS][$tag] as $service) {
+        foreach ($this->tags[$tag] as $service) {
             yield $this->get($service);
         }
     }
@@ -601,15 +622,15 @@ final class Container implements ContainerInterface
     public function untag(string $service, array $tags): void
     {
         foreach ($tags as $tag) {
-            if (! array_key_exists($tag, self::$cache[self::TAGS])) {
+            if (! array_key_exists($tag, $this->tags)) {
                 throw new ServiceTagNotFoundException($tag);
             }
 
-            if (! array_key_exists($service, self::$cache[self::TAGS][$tag])) {
+            if (! array_key_exists($service, $this->tags[$tag])) {
                 throw new ServiceNotFoundException($tag);
             }
 
-            unset(self::$cache[self::TAGS][$tag][$service]);
+            unset($this->tags[$tag][$service]);
         }
     }
 
@@ -626,13 +647,13 @@ final class Container implements ContainerInterface
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
-        while (array_key_exists($service, self::$cache[self::ALIASES])) {
-            $service = self::$cache[self::ALIASES][$service];
+        while (array_key_exists($service, $this->aliases)) {
+            $service = $this->aliases[$service];
         }
 
-        $bindings = self::$cache[self::BINDINGS] ?? [];
+        $bindings = $this->bindings ?? [];
 
-        $dependencies = self::$cache[self::DEPENDENCIES] ?? [];
+        $dependencies = $this->dependencies ?? [];
 
         if ($bindings === [] || $dependencies === []) {
             return $service;
