@@ -8,14 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- Method invoke() was added to interface Ghostwriter\Container\Interface\ContainerInterface
+- Method `invoke()` was added to interface `Ghostwriter\Container\Interface\ContainerInterface`
 
 ### Changed
 
-- The number of required arguments for Ghostwriter\Container\Instantiator#__construct() increased from 0 to 2
-- Parameter $container of Ghostwriter\Container\ParameterBuilder#construct() was added
-- Parameter $reflector of Ghostwriter\Container\Instantiator#construct() was added
-- Parameter $parameterBuilder of Ghostwriter\Container\Instantiator#construct() was added
+- The number of required arguments for `Ghostwriter\Container\Instantiator#__construct()` increased from 0 to 2
+- Parameter `$reflector` of `Ghostwriter\Container\Instantiator#construct()` was added
+- Parameter `$parameterBuilder` of `Ghostwriter\Container\Instantiator#construct()` was added
+- Parameter `$container` of `Ghostwriter\Container\ParameterBuilder#construct()` was added
 
 ### Fixed
 
@@ -23,9 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Removed
 
-- Method Ghostwriter\Container\Instantiator#buildParameters() was removed
-- Parameter $container of Ghostwriter\Container\Instantiator#instantiate() was removed
-- Parameter $container of Ghostwriter\Container\ParameterBuilder#build() was removed
+- Method `Ghostwriter\Container\Instantiator#buildParameters()` was removed
+- Parameter `$container` of `Ghostwriter\Container\Instantiator#instantiate()` was removed
+- Parameter `$container` of `Ghostwriter\Container\ParameterBuilder#build()` was removed
 
 ## [2.0.1] - 2023-11-15
 
