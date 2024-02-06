@@ -433,7 +433,7 @@ final class ContainerTest extends AbstractTestCase
         self::assertFalse($this->container->has(DummyInterface::class));
         self::assertFalse($this->container->has(DummyFactory::class));
 
-        $this->container->register(DummyInterface::class, Dummy::class);
+        $this->container->register(DummyInterface::class, Dummy::class, [DummyInterface::class]);
         $this->container->register(DummyFactory::class);
 
         self::assertTrue($this->container->has(Dummy::class));
