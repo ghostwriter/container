@@ -272,7 +272,7 @@ final class Container implements ContainerInterface
         }
 
         foreach (array_keys($this->extensions) as $serviceName) {
-            if ($serviceName !== $class || ! is_a($instance, $serviceName, true)) {
+            if ($serviceName !== $class && ! is_a($instance, $serviceName, true)) {
                 continue;
             }
 
