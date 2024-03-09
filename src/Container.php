@@ -265,23 +265,11 @@ final class Container implements ContainerInterface
         /** @var TService $instance */
         $instance = $this->instantiator->instantiate($class, $arguments);
 
-        $this->instances[$class] = $instance;
-
         if (array_key_exists($class, $this->dependencies)) {
             unset($this->dependencies[$class]);
         }
 
-        foreach (array_keys($this->extensions) as $serviceName) {
-            if ($serviceName !== $class && ! is_a($instance, $serviceName, true)) {
-                continue;
-            }
-
-            foreach ($this->extensions[$serviceName] ?? [] as $extension) {
-                $instance = $this->invoke($extension, [$this, $instance]);
-            }
-        }
-
-        return $this->instances[$class] = $instance;
+        return $this->applyExtensions($class, $instance);
     }
 
     /**
@@ -312,23 +300,12 @@ final class Container implements ContainerInterface
                         })($callback),
                         default => $this->reflector->reflectFunction($callback)->getParameters(),
                     },
-                    $callback instanceof Closure => $this->reflector
-                        ->reflectFunction($callback)
-                        ->getParameters(),
+                    $callback instanceof Closure => $this->reflector->reflectFunction($callback)->getParameters(),
                     is_array($callback) => match (true) {
-                        is_object($callback[0]) => $this->reflector
-                            ->reflectClass($callback[0]::class)
-                            ->getMethod($callback[1])
-                            ->getParameters(),
-                        default => $this->reflector
-                            ->reflectClass($callback[0])
-                            ->getMethod($callback[1])
-                            ->getParameters(),
+                        is_object($callback[0]) => $this->reflector->reflectClass($callback[0]::class)->getMethod($callback[1])->getParameters(),
+                        default => $this->reflector->reflectClass($callback[0])->getMethod($callback[1])->getParameters(),
                     },
-                    default => $this->reflector
-                        ->reflectClass($callback::class)
-                        ->getMethod('__invoke')
-                        ->getParameters()
+                    default => $this->reflector->reflectClass($callback::class)->getMethod('__invoke')->getParameters()
                 } ?? [],
                 $arguments
             )
@@ -347,7 +324,8 @@ final class Container implements ContainerInterface
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
-        if (! is_a($extension, ExtensionInterface::class, true)
+        if (
+            ! is_a($extension, ExtensionInterface::class, true)
             || $extension === ExtensionInterface::class
         ) {
             throw new ServiceExtensionMustBeAnInstanceOfExtensionInterfaceException($extension);
@@ -415,11 +393,11 @@ final class Container implements ContainerInterface
                 throw new ServiceMustBeAnObjectException($service);
             }
 
-            return $this->instances[$service] = $instance;
+            return $this->applyExtensions($class, $instance);
         }
 
         return match (true) {
-            class_exists($class) => $this->build($class),
+            class_exists($class, true) => $this->build($class),
             default => throw new ServiceNotFoundException($class),
         };
     }
@@ -628,6 +606,28 @@ final class Container implements ContainerInterface
 
             unset($this->tags[$tag][$service]);
         }
+    }
+
+    private function applyExtensions(string $service, object $instance): object
+    {
+        $this->instances[$service] = $instance;
+
+        $extensions = $this->extensions ?? [];
+        if ($extensions === []) {
+            return $instance;
+        }
+
+        foreach (array_keys($extensions) as $serviceName) {
+            if (! $instance instanceof $serviceName) {
+                continue;
+            }
+
+            foreach ($extensions[$serviceName] ?? [] as $extension) {
+                $instance = $this->invoke($extension, [$this, $instance]);
+            }
+        }
+
+        return $this->instances[$service] = $instance;
     }
 
     /**

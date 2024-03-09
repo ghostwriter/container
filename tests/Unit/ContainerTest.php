@@ -379,6 +379,48 @@ final class ContainerTest extends AbstractTestCase
     /**
      * @throws Throwable
      */
+    public function testContainerExtendFactory(): void
+    {
+        $this->container->factory(stdClass::class, StdClassFactory::class);
+        $this->container->extend(
+            stdClass::class,
+            StdClassOneExtension::class
+        );
+
+        $this->container->extend(
+            stdClass::class,
+            StdClassTwoExtension::class
+        );
+
+        self::assertInstanceOf(
+            stdClass::class,
+            $this->container->get(stdClass::class)
+        );
+
+        self::assertInstanceOf(
+            stdClass::class,
+            $this->container->get(stdClass::class)->one
+        );
+
+        self::assertInstanceOf(
+            stdClass::class,
+            $this->container->get(stdClass::class)->two
+        );
+
+        self::assertSame(
+            '#FreePalestine',
+            $this->container->get(stdClass::class)->blackLivesMatter
+        );
+
+        self::assertSame(
+            $this->container->get(stdClass::class),
+            $this->container->get(stdClass::class),
+        );
+    }
+
+    /**
+     * @throws Throwable
+     */
     public function testContainerImplementsContainerInterface(): void
     {
         $container = $this->container;
