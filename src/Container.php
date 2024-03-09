@@ -248,7 +248,7 @@ final class Container implements ContainerInterface
     {
         $class = $this->resolve($service);
 
-        if (is_a($service, ContainerInterface::class, true)) {
+        if (is_a($class, ContainerInterface::class, true)) {
             return $this;
         }
 
@@ -324,10 +324,7 @@ final class Container implements ContainerInterface
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
-        if (
-            ! is_a($extension, ExtensionInterface::class, true)
-            || $extension === ExtensionInterface::class
-        ) {
+        if (! is_a($extension, ExtensionInterface::class, true)) {
             throw new ServiceExtensionMustBeAnInstanceOfExtensionInterfaceException($extension);
         }
 
@@ -352,9 +349,7 @@ final class Container implements ContainerInterface
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
-        if (! is_a($serviceFactory, FactoryInterface::class, true)
-            || $serviceFactory === FactoryInterface::class
-        ) {
+        if (! is_a($serviceFactory, FactoryInterface::class, true)) {
             throw new ServiceFactoryMustBeAnInstanceOfFactoryInterfaceException($serviceFactory);
         }
 
@@ -378,7 +373,7 @@ final class Container implements ContainerInterface
     {
         $class = $this->resolve($service);
 
-        if (is_a($service, ContainerInterface::class, true)) {
+        if (is_a($class, ContainerInterface::class, true)) {
             return $this;
         }
 
@@ -467,9 +462,7 @@ final class Container implements ContainerInterface
      */
     public function provide(string $serviceProvider): void
     {
-        if (! is_a($serviceProvider, ServiceProviderInterface::class, true)
-            || $serviceProvider === ServiceProviderInterface::class
-        ) {
+        if (! is_a($serviceProvider, ServiceProviderInterface::class, true)) {
             throw new ServiceProviderMustBeAnInstanceOfServiceProviderInterfaceException($serviceProvider);
         }
 
