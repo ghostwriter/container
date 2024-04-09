@@ -9,6 +9,7 @@ use Ghostwriter\Container\Interface\ContainerInterface;
 use ReflectionNamedType;
 use ReflectionParameter;
 use Throwable;
+
 use function array_key_exists;
 use function array_reduce;
 use function is_a;
@@ -33,10 +34,8 @@ final readonly class ParameterBuilder
      *
      * @return array<TParameter>
      */
-    public function build(
-        array $reflectionParameters = [],
-        array $arguments = []
-    ): array {
+    public function build(array $reflectionParameters = [], array $arguments = []): array
+    {
         $container = $this->container;
 
         /** @var array<TParameter> */
@@ -46,10 +45,7 @@ final readonly class ParameterBuilder
             static function (
                 array $parameters,
                 ReflectionParameter $reflectionParameter
-            ) use (
-                $container,
-                &$arguments
-            ): array {
+            ) use ($container, &$arguments): array {
                 $parameterName = $reflectionParameter->getName();
                 $parameterPosition = $reflectionParameter->getPosition();
 
@@ -96,7 +92,8 @@ final readonly class ParameterBuilder
                 }
 
                 if (! $isDefaultValueAvailable) {
-                    $name = $reflectionParameter->getDeclaringFunction()->getName();
+                    $name = $reflectionParameter->getDeclaringFunction()
+                        ->getName();
 
                     $isFunction = is_callable($name);
 
