@@ -24,45 +24,10 @@ final class ParameterBuilderTest extends AbstractTestCase
     /**
      * @throws Throwable
      */
-    public static function parameterBuilderBuildDataProvider(): Generator
-    {
-        $stdClass = new stdClass();
-
-        $closure = static fn (stdClass $foo): object => $stdClass;
-
-        $empty = [];
-
-        yield from [
-            'no parameters & no arguments' => [$empty, $empty, $empty],
-
-            'no parameters & arguments' => [$empty, ['foo' => $stdClass], $empty],
-
-            'parameters & no arguments' => [
-                [new ReflectionParameter($closure, 'foo')],
-                $empty,
-                [$stdClass],
-            ],
-        ];
-    }
-
-    /**
-     * @throws Throwable
-     */
     #[DataProvider('parameterBuilderBuildDataProvider')]
-    public function testBuild(
-        array $parameters,
-        array $arguments,
-        array $expected
-    ): void
+    public function testBuild(array $parameters, array $arguments, array $expected): void
     {
-        self::assertEquals(
-            $expected,
-            $this->parameterBuilder->build(
-
-                $parameters,
-                $arguments
-            )
-        );
+        self::assertEquals($expected, $this->parameterBuilder->build($parameters, $arguments));
     }
 
     /**
@@ -75,7 +40,6 @@ final class ParameterBuilderTest extends AbstractTestCase
         self::assertSame(
             [null],
             $this->parameterBuilder->build(
-
                 [
                     new ReflectionParameter(
                         static fn (
@@ -100,7 +64,6 @@ final class ParameterBuilderTest extends AbstractTestCase
         self::assertSame(
             [$stdClass],
             $this->parameterBuilder->build(
-
                 [
                     new ReflectionParameter(
                         static fn (
@@ -111,5 +74,27 @@ final class ParameterBuilderTest extends AbstractTestCase
                 ]
             )
         );
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public static function parameterBuilderBuildDataProvider(): Generator
+    {
+        $stdClass = new stdClass();
+
+        $closure = static fn (stdClass $foo): object => $stdClass;
+
+        $empty = [];
+
+        yield from [
+            'no parameters & no arguments' => [$empty, $empty, $empty],
+
+            'no parameters & arguments' => [$empty, [
+                'foo' => $stdClass,
+            ], $empty],
+
+            'parameters & no arguments' => [[new ReflectionParameter($closure, 'foo')], $empty, [$stdClass]],
+        ];
     }
 }
