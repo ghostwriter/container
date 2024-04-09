@@ -26,10 +26,8 @@ final readonly class Instantiator
      *
      * @return TService
      */
-    public function instantiate(
-        string $class,
-        array $arguments = []
-    ): object {
+    public function instantiate(string $class, array $arguments = []): object
+    {
         $reflectionClass = $this->reflector->reflectClass($class);
 
         if (! $reflectionClass->isInstantiable()) {
@@ -48,10 +46,8 @@ final readonly class Instantiator
         }
     }
 
-    public static function new(
-        Reflector $reflector,
-        ParameterBuilder $parameterBuilder
-    ): self {
+    public static function new(Reflector $reflector, ParameterBuilder $parameterBuilder): self
+    {
         return new self($reflector, $parameterBuilder);
     }
 }
