@@ -38,8 +38,6 @@ final class ClassNotInstantiableExceptionTest extends AbstractTestCase
     {
         $this->assertException(ClassNotInstantiableException::class);
 
-        $this->instantiator->instantiate(
-            AbstractTestCase::class
-        );
+        $this->instantiator->instantiate(AbstractTestCase::class);
     }
 }
