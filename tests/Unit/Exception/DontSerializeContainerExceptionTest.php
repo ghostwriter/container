@@ -12,6 +12,7 @@ use Ghostwriter\Container\Reflector;
 use Ghostwriter\ContainerTests\Unit\AbstractTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Throwable;
+
 use function serialize;
 
 #[CoversClass(DontSerializeContainerException::class)]
