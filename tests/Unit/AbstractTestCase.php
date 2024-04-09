@@ -34,10 +34,7 @@ abstract class AbstractTestCase extends TestCase
 
         $this->parameterBuilder = new ParameterBuilder($this->container);
 
-        $this->instantiator = Instantiator::new(
-            $this->reflector,
-            $this->parameterBuilder
-        );
+        $this->instantiator = Instantiator::new($this->reflector, $this->parameterBuilder);
     }
 
     /**
