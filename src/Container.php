@@ -31,6 +31,7 @@ use Ghostwriter\Container\Interface\FactoryInterface;
 use Ghostwriter\Container\Interface\ServiceProviderInterface;
 use InvalidArgumentException;
 use Throwable;
+
 use function array_key_exists;
 use function array_key_last;
 use function array_keys;
@@ -82,23 +83,15 @@ final class Container implements ContainerInterface
      */
     private array $factories = [];
 
-    private static self $instance;
-
     /**
      * @var array<class-string,object>
      */
     private array $instances = [];
 
-    private readonly Instantiator $instantiator;
-
-    private readonly ParameterBuilder $parameterBuilder;
-
     /**
      * @var array<class-string<ServiceProviderInterface>,bool>
      */
     private array $providers = [];
-
-    private readonly Reflector $reflector;
 
     /**
      * @var array<class-string,class-string>
@@ -109,6 +102,14 @@ final class Container implements ContainerInterface
      * @var array<string,array<string,string>>
      */
     private array $tags = [];
+
+    private readonly Instantiator $instantiator;
+
+    private readonly ParameterBuilder $parameterBuilder;
+
+    private readonly Reflector $reflector;
+
+    private static self $instance;
 
     private function __construct()
     {
@@ -191,11 +192,8 @@ final class Container implements ContainerInterface
      * @param class-string<TAbstractClass>       $abstract
      * @param class-string<TImplementationClass> $implementation
      */
-    public function bind(
-        string $concrete,
-        string $abstract,
-        string $implementation
-    ): void {
+    public function bind(string $concrete, string $abstract, string $implementation): void
+    {
         if (trim($concrete) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
@@ -296,14 +294,22 @@ final class Container implements ContainerInterface
 
                             $method = mb_substr($callback, $position + 2);
 
-                            return $this->reflector->reflectClass($class)->getMethod($method)->getParameters();
+                            return $this->reflector->reflectClass($class)
+                                ->getMethod($method)
+                                ->getParameters();
                         })($callback),
-                        default => $this->reflector->reflectFunction($callback)->getParameters(),
+                        default => $this->reflector->reflectFunction($callback)
+                            ->getParameters(),
                     },
-                    $callback instanceof Closure => $this->reflector->reflectFunction($callback)->getParameters(),
+                    $callback instanceof Closure => $this->reflector->reflectFunction($callback)
+                        ->getParameters(),
                     is_array($callback) => match (true) {
-                        is_object($callback[0]) => $this->reflector->reflectClass($callback[0]::class)->getMethod($callback[1])->getParameters(),
-                        default => $this->reflector->reflectClass($callback[0])->getMethod($callback[1])->getParameters(),
+                        is_object($callback[0]) => $this->reflector->reflectClass($callback[0]::class)->getMethod(
+                            $callback[1]
+                        )->getParameters(),
+                        default => $this->reflector->reflectClass($callback[0])->getMethod(
+                            $callback[1]
+                        )->getParameters(),
                     },
                     default => $this->reflector->reflectClass($callback::class)->getMethod('__invoke')->getParameters()
                 } ?? [],
@@ -395,11 +401,6 @@ final class Container implements ContainerInterface
             class_exists($class, true) => $this->build($class),
             default => throw new ServiceNotFoundException($class),
         };
-    }
-
-    public static function getInstance(): self
-    {
-        return self::$instance ??= new self();
     }
 
     /**
@@ -649,5 +650,10 @@ final class Container implements ContainerInterface
         }
 
         return $bindings[array_key_last($dependencies)][$service] ?? $service;
+    }
+
+    public static function getInstance(): self
+    {
+        return self::$instance ??= new self();
     }
 }
