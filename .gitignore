@@ -1,14 +1,3 @@
 /.cache/
-/.phpunit.cache/
-/docs/html/
 /vendor/
-/.phpcs.cache
-/.phpcs-cache
-/.phpunit.cache
-/clover.xml
-/coveralls-upload.json
-/mkdocs.site.yml
-/phpcs.log
-/phpcs.xml
-/phpunit.xml
-/psalm.xml
+/.env
