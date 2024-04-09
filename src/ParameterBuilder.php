@@ -21,8 +21,7 @@ final readonly class ParameterBuilder
 {
     public function __construct(
         private ContainerInterface $container
-    ) {
-    }
+    ) {}
 
     /**
      * @template TParameter
