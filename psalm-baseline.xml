@@ -1,2 +1,952 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="5.22.1@e9dad66e11274315dac27e08349c628c7d6a1a43"/>
+<files psalm-version="5.23.1@8471a896ccea3526b26d082f4461eeea467f10a4">
+  <file src="src/Container.php">
+    <ArgumentTypeCoercion>
+      <code><![CDATA[$class]]></code>
+      <code><![CDATA[$class]]></code>
+      <code><![CDATA[$invokable]]></code>
+      <code><![CDATA[$service]]></code>
+      <code><![CDATA[$tags]]></code>
+      <code><![CDATA[$tags]]></code>
+    </ArgumentTypeCoercion>
+    <DocblockTypeContradiction>
+      <code><![CDATA[array_key_exists($service, $this->instances),
+            array_key_exists($service, $this->factories),
+            array_key_exists($service, $this->services),
+            array_key_exists($service, $this->aliases),
+            is_a($service, ContainerInterface::class, true) => true]]></code>
+      <code><![CDATA[is_object($instance)]]></code>
+    </DocblockTypeContradiction>
+    <InvalidArgument>
+      <code><![CDATA[$extension]]></code>
+      <code><![CDATA[$this->factories[$class]]]></code>
+      <code><![CDATA[array<class-string<TService>>]]></code>
+    </InvalidArgument>
+    <InvalidCast>
+      <code><![CDATA[$extension]]></code>
+    </InvalidCast>
+    <InvalidPropertyAssignmentValue>
+      <code><![CDATA[$this->instances]]></code>
+    </InvalidPropertyAssignmentValue>
+    <InvalidReturnStatement>
+      <code><![CDATA[$this]]></code>
+      <code><![CDATA[$this]]></code>
+      <code><![CDATA[$this->applyExtensions($class, $instance)]]></code>
+      <code><![CDATA[$this->applyExtensions($class, $instance)]]></code>
+      <code><![CDATA[$this->instances[$class]]]></code>
+      <code><![CDATA[match (true) {
+            class_exists($class, true) => $this->build($class),
+            default => throw new ServiceNotFoundException($class),
+        }]]></code>
+    </InvalidReturnStatement>
+    <InvalidReturnType>
+      <code><![CDATA[TService]]></code>
+      <code><![CDATA[TService]]></code>
+    </InvalidReturnType>
+    <LessSpecificReturnType>
+      <code><![CDATA[object]]></code>
+    </LessSpecificReturnType>
+    <MethodSignatureMustOmitReturnType>
+      <code><![CDATA[public function __clone(): void]]></code>
+    </MethodSignatureMustOmitReturnType>
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function alias(string $name, string $service): void]]></code>
+      <code><![CDATA[public function bind(string $concrete, string $abstract, string $implementation): void]]></code>
+      <code><![CDATA[public function build(string $service, array $arguments = []): object]]></code>
+      <code><![CDATA[public function call(callable $callback, array $arguments = []): mixed]]></code>
+      <code><![CDATA[public function extend(string $service, string $extension): void]]></code>
+      <code><![CDATA[public function factory(string $service, string $serviceFactory): void]]></code>
+      <code><![CDATA[public function get(string $service): object]]></code>
+      <code><![CDATA[public function has(string $service): bool]]></code>
+      <code><![CDATA[public function invoke(string $invokable, array $arguments = []): mixed]]></code>
+      <code><![CDATA[public function provide(string $serviceProvider): void]]></code>
+      <code><![CDATA[public function register(string $abstract, string $concrete = null, array $tags = []): void]]></code>
+      <code><![CDATA[public function remove(string $service): void]]></code>
+      <code><![CDATA[public function set(string $service, callable|object $value, array $tags = []): void]]></code>
+      <code><![CDATA[public function tag(string $service, array $tags): void]]></code>
+      <code><![CDATA[public function tagged(string $tag): Generator]]></code>
+      <code><![CDATA[public function untag(string $service, array $tags): void]]></code>
+    </MissingOverrideAttribute>
+    <MissingThrowsDocblock>
+      <code><![CDATA[throw new ServiceExtensionAlreadyRegisteredException($extension);]]></code>
+      <code><![CDATA[throw new ServiceExtensionMustBeAnInstanceOfExtensionInterfaceException($extension);]]></code>
+      <code><![CDATA[throw new ServiceFactoryMustBeAnInstanceOfFactoryInterfaceException($serviceFactory);]]></code>
+      <code><![CDATA[throw new ServiceNameMustBeNonEmptyStringException();]]></code>
+      <code><![CDATA[throw new ServiceNameMustBeNonEmptyStringException();]]></code>
+    </MissingThrowsDocblock>
+    <MixedArgument>
+      <code><![CDATA[$callback[0]]]></code>
+      <code><![CDATA[$callback[1]]]></code>
+      <code><![CDATA[$callback[1]]]></code>
+    </MixedArgument>
+    <MixedArgumentTypeCoercion>
+      <code><![CDATA[$this->parameterBuilder->build(
+                match (true) {
+                    is_string($callback) => match (true) {
+                        str_contains($callback, '::') => (function (string $callback) {
+                            $position = mb_strpos($callback, '::');
+
+                            $class = mb_substr($callback, 0, $position);
+
+                            $method = mb_substr($callback, $position + 2);
+
+                            return $this->reflector->reflectClass($class)
+                                ->getMethod($method)
+                                ->getParameters();
+                        })($callback),
+                        default => $this->reflector->reflectFunction($callback)
+                            ->getParameters(),
+                    },
+                    $callback instanceof Closure => $this->reflector->reflectFunction($callback)
+                        ->getParameters(),
+                    is_array($callback) => match (true) {
+                        is_object($callback[0]) => $this->reflector->reflectClass($callback[0]::class)->getMethod(
+                            $callback[1]
+                        )->getParameters(),
+                        default => $this->reflector->reflectClass($callback[0])->getMethod(
+                            $callback[1]
+                        )->getParameters(),
+                    },
+                    default => $this->reflector->reflectClass($callback::class)->getMethod('__invoke')->getParameters()
+                } ?? [],
+                $arguments
+            )]]></code>
+    </MixedArgumentTypeCoercion>
+    <MixedInferredReturnType>
+      <code><![CDATA[bool]]></code>
+      <code><![CDATA[object]]></code>
+    </MixedInferredReturnType>
+    <MixedReturnStatement>
+      <code><![CDATA[$this->instances[$service] = $instance]]></code>
+      <code><![CDATA[$this->instances[$service] = $instance]]></code>
+      <code><![CDATA[match (true) {
+            default => array_reduce(
+                $this->bindings,
+                /**
+                 * @param array<class-string<TService>> $binding
+                 */
+                static fn (bool $carry, array $binding): bool => $carry
+                    || in_array($service, $binding, true),
+                false
+            ),
+            array_key_exists($service, $this->instances),
+            array_key_exists($service, $this->factories),
+            array_key_exists($service, $this->services),
+            array_key_exists($service, $this->aliases),
+            is_a($service, ContainerInterface::class, true) => true,
+        }]]></code>
+      <code><![CDATA[match (true) {
+            default => array_reduce(
+                $this->bindings,
+                /**
+                 * @param array<class-string<TService>> $binding
+                 */
+                static fn (bool $carry, array $binding): bool => $carry
+                    || in_array($service, $binding, true),
+                false
+            ),
+            array_key_exists($service, $this->instances),
+            array_key_exists($service, $this->factories),
+            array_key_exists($service, $this->services),
+            array_key_exists($service, $this->aliases),
+            is_a($service, ContainerInterface::class, true) => true,
+        }]]></code>
+    </MixedReturnStatement>
+    <MoreSpecificImplementedParamType>
+      <code><![CDATA[$abstract]]></code>
+      <code><![CDATA[$concrete]]></code>
+      <code><![CDATA[$implementation]]></code>
+      <code><![CDATA[$service]]></code>
+    </MoreSpecificImplementedParamType>
+    <NoValue>
+      <code><![CDATA[$container->invoke($serviceFactory)]]></code>
+      <code><![CDATA[$instance]]></code>
+    </NoValue>
+    <PossiblyFalseArgument>
+      <code><![CDATA[$position]]></code>
+    </PossiblyFalseArgument>
+    <PossiblyFalseOperand>
+      <code><![CDATA[$position]]></code>
+    </PossiblyFalseOperand>
+    <PossiblyInvalidArrayOffset>
+      <code><![CDATA[$bindings[array_key_last($dependencies)][$service]]]></code>
+    </PossiblyInvalidArrayOffset>
+    <PossiblyUndefinedIntArrayOffset>
+      <code><![CDATA[$callback[0]]]></code>
+      <code><![CDATA[$callback[1]]]></code>
+      <code><![CDATA[$callback[1]]]></code>
+    </PossiblyUndefinedIntArrayOffset>
+    <PropertyTypeCoercion>
+      <code><![CDATA[$this->dependencies]]></code>
+      <code><![CDATA[$this->extensions]]></code>
+      <code><![CDATA[$this->factories]]></code>
+      <code><![CDATA[$this->instances]]></code>
+      <code><![CDATA[$this->instances]]></code>
+    </PropertyTypeCoercion>
+    <RedundantCondition>
+      <code><![CDATA[$this->bindings]]></code>
+      <code><![CDATA[$this->dependencies]]></code>
+      <code><![CDATA[$this->extensions]]></code>
+      <code><![CDATA[match (true) {
+                    is_string($callback) => match (true) {
+                        str_contains($callback, '::') => (function (string $callback) {
+                            $position = mb_strpos($callback, '::');
+
+                            $class = mb_substr($callback, 0, $position);
+
+                            $method = mb_substr($callback, $position + 2);
+
+                            return $this->reflector->reflectClass($class)
+                                ->getMethod($method)
+                                ->getParameters();
+                        })($callback),
+                        default => $this->reflector->reflectFunction($callback)
+                            ->getParameters(),
+                    },
+                    $callback instanceof Closure => $this->reflector->reflectFunction($callback)
+                        ->getParameters(),
+                    is_array($callback) => match (true) {
+                        is_object($callback[0]) => $this->reflector->reflectClass($callback[0]::class)->getMethod(
+                            $callback[1]
+                        )->getParameters(),
+                        default => $this->reflector->reflectClass($callback[0])->getMethod(
+                            $callback[1]
+                        )->getParameters(),
+                    },
+                    default => $this->reflector->reflectClass($callback::class)->getMethod('__invoke')->getParameters()
+                }]]></code>
+    </RedundantCondition>
+    <RedundantPropertyInitializationCheck>
+      <code><![CDATA[new self()]]></code>
+      <code><![CDATA[self::$instance]]></code>
+    </RedundantPropertyInitializationCheck>
+    <TypeDoesNotContainNull>
+      <code><![CDATA[[]]]></code>
+    </TypeDoesNotContainNull>
+    <TypeDoesNotContainType>
+      <code><![CDATA[[]]]></code>
+      <code><![CDATA[[]]]></code>
+      <code><![CDATA[[]]]></code>
+    </TypeDoesNotContainType>
+    <UnusedParam>
+      <code><![CDATA[$data]]></code>
+    </UnusedParam>
+  </file>
+  <file src="src/Instantiator.php">
+    <MissingThrowsDocblock>
+      <code><![CDATA[build]]></code>
+      <code><![CDATA[reflectClass]]></code>
+      <code><![CDATA[throw new ClassNotInstantiableException($class);]]></code>
+      <code><![CDATA[throw new InstantiatorException($throwable->getMessage(), 0, $throwable);]]></code>
+    </MissingThrowsDocblock>
+  </file>
+  <file src="src/ParameterBuilder.php">
+    <MixedArrayAssignment>
+      <code><![CDATA[$parameters[$parameterPosition]]]></code>
+      <code><![CDATA[$parameters[$parameterPosition]]]></code>
+      <code><![CDATA[$parameters[$parameterPosition]]]></code>
+      <code><![CDATA[$parameters[$parameterPosition]]]></code>
+    </MixedArrayAssignment>
+    <MixedAssignment>
+      <code><![CDATA[$parameters[$parameterPosition]]]></code>
+      <code><![CDATA[$parameters[$parameterPosition]]]></code>
+    </MixedAssignment>
+    <MixedReturnTypeCoercion>
+      <code><![CDATA[$parameters]]></code>
+      <code><![CDATA[$parameters]]></code>
+      <code><![CDATA[$parameters]]></code>
+      <code><![CDATA[$parameters]]></code>
+      <code><![CDATA[array]]></code>
+    </MixedReturnTypeCoercion>
+    <PossiblyNullArgument>
+      <code><![CDATA[$isFunction ? $name : $reflectionParameter->getDeclaringClass()?->getName()]]></code>
+    </PossiblyNullArgument>
+  </file>
+  <file src="src/Reflector.php">
+    <ArgumentTypeCoercion>
+      <code><![CDATA[$function]]></code>
+    </ArgumentTypeCoercion>
+  </file>
+  <file src="tests/Fixture/Bar.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="tests/Fixture/Baz.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+      <code><![CDATA[bar]]></code>
+      <code><![CDATA[foo]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="tests/Fixture/CircularDependency/ClassA.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+    <PossiblyUnusedParam>
+      <code><![CDATA[$classB]]></code>
+    </PossiblyUnusedParam>
+  </file>
+  <file src="tests/Fixture/CircularDependency/ClassB.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+    <PossiblyUnusedParam>
+      <code><![CDATA[$classC]]></code>
+    </PossiblyUnusedParam>
+  </file>
+  <file src="tests/Fixture/CircularDependency/ClassC.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+    <PossiblyUnusedParam>
+      <code><![CDATA[$classX]]></code>
+    </PossiblyUnusedParam>
+  </file>
+  <file src="tests/Fixture/CircularDependency/ClassX.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+    <PossiblyUnusedParam>
+      <code><![CDATA[$classY]]></code>
+    </PossiblyUnusedParam>
+  </file>
+  <file src="tests/Fixture/CircularDependency/ClassY.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+    <PossiblyUnusedParam>
+      <code><![CDATA[$classZ]]></code>
+    </PossiblyUnusedParam>
+  </file>
+  <file src="tests/Fixture/CircularDependency/ClassZ.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+    <PossiblyUnusedParam>
+      <code><![CDATA[$classA]]></code>
+    </PossiblyUnusedParam>
+  </file>
+  <file src="tests/Fixture/ClassWithArray.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+    <PossiblyUnusedProperty>
+      <code><![CDATA[$dummyFactory]]></code>
+      <code><![CDATA[$items]]></code>
+    </PossiblyUnusedProperty>
+  </file>
+  <file src="tests/Fixture/Constructor/ArrayConstructor.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+      <code><![CDATA[value]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="tests/Fixture/Constructor/BoolConstructor.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+      <code><![CDATA[value]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="tests/Fixture/Constructor/CallableConstructor.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+      <code><![CDATA[value]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="tests/Fixture/Constructor/EmptyConstructor.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="tests/Fixture/Constructor/FloatConstructor.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+      <code><![CDATA[value]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="tests/Fixture/Constructor/IntConstructor.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+      <code><![CDATA[value]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="tests/Fixture/Constructor/IterableConstructor.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+      <code><![CDATA[value]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="tests/Fixture/Constructor/MixedConstructor.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+      <code><![CDATA[value]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="tests/Fixture/Constructor/ObjectConstructor.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+      <code><![CDATA[value]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="tests/Fixture/Constructor/OptionalConstructor.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+      <code><![CDATA[value]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="tests/Fixture/Constructor/StringConstructor.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+      <code><![CDATA[value]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="tests/Fixture/Constructor/TypelessConstructor.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+      <code><![CDATA[value]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="tests/Fixture/Dummy.php">
+    <MixedArgument>
+      <code><![CDATA[array_values($data)]]></code>
+    </MixedArgument>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+      <code><![CDATA[getDummyFactory]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="tests/Fixture/DummyFactory.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function __invoke(ContainerInterface $container, array $arguments = []): DummyInterface]]></code>
+    </MissingOverrideAttribute>
+    <MissingTemplateParam>
+      <code><![CDATA[FactoryInterface]]></code>
+    </MissingTemplateParam>
+  </file>
+  <file src="tests/Fixture/Extension/FoobarExtension.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function __invoke(ContainerInterface $container, object $service): object]]></code>
+    </MissingOverrideAttribute>
+    <MissingTemplateParam>
+      <code><![CDATA[ExtensionInterface]]></code>
+    </MissingTemplateParam>
+    <MissingThrowsDocblock>
+      <code><![CDATA[get]]></code>
+      <code><![CDATA[get]]></code>
+      <code><![CDATA[get]]></code>
+      <code><![CDATA[get]]></code>
+    </MissingThrowsDocblock>
+  </file>
+  <file src="tests/Fixture/Extension/StdClassOneExtension.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function __invoke(ContainerInterface $container, object $service): object]]></code>
+    </MissingOverrideAttribute>
+    <MissingTemplateParam>
+      <code><![CDATA[ExtensionInterface]]></code>
+    </MissingTemplateParam>
+    <MissingThrowsDocblock>
+      <code><![CDATA[get]]></code>
+      <code><![CDATA[get]]></code>
+    </MissingThrowsDocblock>
+  </file>
+  <file src="tests/Fixture/Extension/StdClassTwoExtension.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function __invoke(ContainerInterface $container, object $service): object]]></code>
+    </MissingOverrideAttribute>
+    <MissingTemplateParam>
+      <code><![CDATA[ExtensionInterface]]></code>
+    </MissingTemplateParam>
+    <MissingThrowsDocblock>
+      <code><![CDATA[get]]></code>
+      <code><![CDATA[get]]></code>
+    </MissingThrowsDocblock>
+  </file>
+  <file src="tests/Fixture/Foobar.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+    <PossiblyUnusedProperty>
+      <code><![CDATA[$count]]></code>
+    </PossiblyUnusedProperty>
+  </file>
+  <file src="tests/Fixture/GitHub.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="tests/Fixture/InvalidStdClassFactory.php">
+    <UnusedParam>
+      <code><![CDATA[$arguments]]></code>
+      <code><![CDATA[$container]]></code>
+    </UnusedParam>
+  </file>
+  <file src="tests/Fixture/ServiceProvider/FoobarServiceProvider.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function __invoke(ContainerInterface $container): void]]></code>
+    </MissingOverrideAttribute>
+  </file>
+  <file src="tests/Fixture/ServiceProvider/FoobarWithDependencyServiceProvider.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function __invoke(ContainerInterface $container): void]]></code>
+    </MissingOverrideAttribute>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="tests/Fixture/StdClassFactory.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function __invoke(ContainerInterface $container, array $arguments = []): stdClass]]></code>
+    </MissingOverrideAttribute>
+    <MissingTemplateParam>
+      <code><![CDATA[FactoryInterface]]></code>
+    </MissingTemplateParam>
+  </file>
+  <file src="tests/Fixture/TestEvent.php">
+    <InvalidOperand>
+      <code><![CDATA[time()]]></code>
+    </InvalidOperand>
+  </file>
+  <file src="tests/Fixture/TestEventListener.php">
+    <PossiblyNullReference>
+      <code><![CDATA[collect]]></code>
+    </PossiblyNullReference>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[onStatic]]></code>
+      <code><![CDATA[onStaticCallableArray]]></code>
+      <code><![CDATA[onTest]]></code>
+      <code><![CDATA[onVariadicTest]]></code>
+    </PossiblyUnusedMethod>
+    <PossiblyUnusedParam>
+      <code><![CDATA[$nullableWithDefault]]></code>
+    </PossiblyUnusedParam>
+  </file>
+  <file src="tests/Fixture/TypelessDependency.php">
+    <MissingReturnType>
+      <code><![CDATA[value]]></code>
+    </MissingReturnType>
+    <UnusedClass>
+      <code><![CDATA[TypelessDependency]]></code>
+    </UnusedClass>
+    <UnusedDocblockParam>
+      <code><![CDATA[$value]]></code>
+    </UnusedDocblockParam>
+  </file>
+  <file src="tests/Fixture/UnionTypehintWithDefaultValue.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+      <code><![CDATA[getNumber]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="tests/Fixture/UnionTypehintWithoutDefaultValue.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+      <code><![CDATA[value]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="tests/Fixture/UnresolvableParameter.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+      <code><![CDATA[value]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="tests/Fixture/functions.php">
+    <MissingParamType>
+      <code><![CDATA[$event]]></code>
+    </MissingParamType>
+    <MixedMethodCall>
+      <code><![CDATA[collect]]></code>
+    </MixedMethodCall>
+  </file>
+  <file src="tests/Unit/AbstractTestCase.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[final protected function setUp(): void]]></code>
+      <code><![CDATA[final protected function tearDown(): void]]></code>
+    </MissingOverrideAttribute>
+  </file>
+  <file src="tests/Unit/ContainerTest.php">
+    <ArgumentTypeCoercion>
+      <code><![CDATA[$class]]></code>
+      <code><![CDATA[$class]]></code>
+      <code><![CDATA[$class]]></code>
+      <code><![CDATA['class']]></code>
+      <code><![CDATA['class']]></code>
+      <code><![CDATA['class']]></code>
+      <code><![CDATA['class']]></code>
+      <code><![CDATA['tag']]></code>
+      <code><![CDATA['tag']]></code>
+      <code><![CDATA['tag']]></code>
+      <code><![CDATA['tag']]></code>
+      <code><![CDATA['tag']]></code>
+      <code><![CDATA['tag']]></code>
+      <code><![CDATA['tag']]></code>
+      <code><![CDATA['tag']]></code>
+    </ArgumentTypeCoercion>
+    <MissingClosureParamType>
+      <code><![CDATA[$event]]></code>
+    </MissingClosureParamType>
+    <MixedMethodCall>
+      <code><![CDATA[collect]]></code>
+      <code><![CDATA[value]]></code>
+    </MixedMethodCall>
+    <PossiblyInvalidArgument>
+      <code><![CDATA[$callback]]></code>
+      <code><![CDATA[$callback]]></code>
+    </PossiblyInvalidArgument>
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[ContainerTest]]></code>
+      <code><![CDATA[ContainerTest]]></code>
+      <code><![CDATA[ContainerTest]]></code>
+      <code><![CDATA[ContainerTest]]></code>
+    </PropertyNotSetInConstructor>
+    <UndefinedClass>
+      <code><![CDATA['class']]></code>
+      <code><![CDATA['class']]></code>
+      <code><![CDATA['class']]></code>
+      <code><![CDATA['class']]></code>
+      <code><![CDATA['tag']]></code>
+      <code><![CDATA['tag']]></code>
+      <code><![CDATA['tag']]></code>
+      <code><![CDATA['tag']]></code>
+      <code><![CDATA['tag']]></code>
+      <code><![CDATA['tag']]></code>
+      <code><![CDATA['tag']]></code>
+      <code><![CDATA['tag']]></code>
+    </UndefinedClass>
+    <UnevaluatedCode>
+      <code><![CDATA[self::assertSame(
+            '#BlackLivesMatter',
+            $this->container->invoke(Dummy::class, [
+                'data' => ['BlackLivesMatter'],
+                'text' => '#%s',
+            ])
+        );]]></code>
+      <code><![CDATA[self::assertSame(
+            '#BlackLivesMatter',
+            $this->container->invoke(Dummy::class, [
+                'data' => [],
+                'text' => '#BlackLivesMatter',
+            ])
+        );]]></code>
+      <code><![CDATA[self::assertSame('#BlackLivesMatter', $this->container->invoke(Dummy::class, [['#BlackLivesMatter'], '%s']));]]></code>
+      <code><![CDATA[self::assertSame('#BlackLivesMatter', $this->container->invoke(Dummy::class, [[], '#BlackLivesMatter']));]]></code>
+    </UnevaluatedCode>
+    <UnusedClosureParam>
+      <code><![CDATA[$container]]></code>
+      <code><![CDATA[$container]]></code>
+    </UnusedClosureParam>
+  </file>
+  <file src="tests/Unit/Exception/AliasNameAndServiceNameCannotBeTheSameExceptionTest.php">
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[AliasNameAndServiceNameCannotBeTheSameExceptionTest]]></code>
+      <code><![CDATA[AliasNameAndServiceNameCannotBeTheSameExceptionTest]]></code>
+      <code><![CDATA[AliasNameAndServiceNameCannotBeTheSameExceptionTest]]></code>
+      <code><![CDATA[AliasNameAndServiceNameCannotBeTheSameExceptionTest]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="tests/Unit/Exception/AliasNameMustBeNonEmptyStringExceptionTest.php">
+    <ArgumentTypeCoercion>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA['']]></code>
+    </ArgumentTypeCoercion>
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[AliasNameMustBeNonEmptyStringExceptionTest]]></code>
+      <code><![CDATA[AliasNameMustBeNonEmptyStringExceptionTest]]></code>
+      <code><![CDATA[AliasNameMustBeNonEmptyStringExceptionTest]]></code>
+      <code><![CDATA[AliasNameMustBeNonEmptyStringExceptionTest]]></code>
+    </PropertyNotSetInConstructor>
+    <UndefinedClass>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA['']]></code>
+    </UndefinedClass>
+  </file>
+  <file src="tests/Unit/Exception/CircularDependencyExceptionTest.php">
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[CircularDependencyExceptionTest]]></code>
+      <code><![CDATA[CircularDependencyExceptionTest]]></code>
+      <code><![CDATA[CircularDependencyExceptionTest]]></code>
+      <code><![CDATA[CircularDependencyExceptionTest]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="tests/Unit/Exception/ClassNotInstantiableExceptionTest.php">
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[ClassNotInstantiableExceptionTest]]></code>
+      <code><![CDATA[ClassNotInstantiableExceptionTest]]></code>
+      <code><![CDATA[ClassNotInstantiableExceptionTest]]></code>
+      <code><![CDATA[ClassNotInstantiableExceptionTest]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="tests/Unit/Exception/DontCloneContainerExceptionTest.php">
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[DontCloneContainerExceptionTest]]></code>
+      <code><![CDATA[DontCloneContainerExceptionTest]]></code>
+      <code><![CDATA[DontCloneContainerExceptionTest]]></code>
+      <code><![CDATA[DontCloneContainerExceptionTest]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="tests/Unit/Exception/DontSerializeContainerExceptionTest.php">
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[DontSerializeContainerExceptionTest]]></code>
+      <code><![CDATA[DontSerializeContainerExceptionTest]]></code>
+      <code><![CDATA[DontSerializeContainerExceptionTest]]></code>
+      <code><![CDATA[DontSerializeContainerExceptionTest]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="tests/Unit/Exception/DontUnserializeContainerExceptionTest.php">
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[DontUnserializeContainerExceptionTest]]></code>
+      <code><![CDATA[DontUnserializeContainerExceptionTest]]></code>
+      <code><![CDATA[DontUnserializeContainerExceptionTest]]></code>
+      <code><![CDATA[DontUnserializeContainerExceptionTest]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="tests/Unit/Exception/InstantiatorExceptionTest.php">
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[InstantiatorExceptionTest]]></code>
+      <code><![CDATA[InstantiatorExceptionTest]]></code>
+      <code><![CDATA[InstantiatorExceptionTest]]></code>
+      <code><![CDATA[InstantiatorExceptionTest]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="tests/Unit/Exception/ReflectorExceptionTest.php">
+    <ArgumentTypeCoercion>
+      <code><![CDATA['does-not-exist']]></code>
+      <code><![CDATA['dose-not-exist']]></code>
+    </ArgumentTypeCoercion>
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[ReflectorExceptionTest]]></code>
+      <code><![CDATA[ReflectorExceptionTest]]></code>
+      <code><![CDATA[ReflectorExceptionTest]]></code>
+      <code><![CDATA[ReflectorExceptionTest]]></code>
+    </PropertyNotSetInConstructor>
+    <UndefinedClass>
+      <code><![CDATA['does-not-exist']]></code>
+      <code><![CDATA['dose-not-exist']]></code>
+    </UndefinedClass>
+  </file>
+  <file src="tests/Unit/Exception/ServiceExtensionAlreadyRegisteredExceptionTest.php">
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[ServiceExtensionAlreadyRegisteredExceptionTest]]></code>
+      <code><![CDATA[ServiceExtensionAlreadyRegisteredExceptionTest]]></code>
+      <code><![CDATA[ServiceExtensionAlreadyRegisteredExceptionTest]]></code>
+      <code><![CDATA[ServiceExtensionAlreadyRegisteredExceptionTest]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="tests/Unit/Exception/ServiceExtensionMustBeAnInstanceOfExtensionInterfaceExceptionTest.php">
+    <InvalidArgument>
+      <code><![CDATA[stdClass::class]]></code>
+    </InvalidArgument>
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[ServiceExtensionMustBeAnInstanceOfExtensionInterfaceExceptionTest]]></code>
+      <code><![CDATA[ServiceExtensionMustBeAnInstanceOfExtensionInterfaceExceptionTest]]></code>
+      <code><![CDATA[ServiceExtensionMustBeAnInstanceOfExtensionInterfaceExceptionTest]]></code>
+      <code><![CDATA[ServiceExtensionMustBeAnInstanceOfExtensionInterfaceExceptionTest]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="tests/Unit/Exception/ServiceFactoryMustBeAnInstanceOfFactoryInterfaceExceptionTest.php">
+    <InvalidArgument>
+      <code><![CDATA[InvalidStdClassFactory::class]]></code>
+    </InvalidArgument>
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[ServiceFactoryMustBeAnInstanceOfFactoryInterfaceExceptionTest]]></code>
+      <code><![CDATA[ServiceFactoryMustBeAnInstanceOfFactoryInterfaceExceptionTest]]></code>
+      <code><![CDATA[ServiceFactoryMustBeAnInstanceOfFactoryInterfaceExceptionTest]]></code>
+      <code><![CDATA[ServiceFactoryMustBeAnInstanceOfFactoryInterfaceExceptionTest]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="tests/Unit/Exception/ServiceMustBeAnObjectExceptionTest.php">
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[ServiceMustBeAnObjectExceptionTest]]></code>
+      <code><![CDATA[ServiceMustBeAnObjectExceptionTest]]></code>
+      <code><![CDATA[ServiceMustBeAnObjectExceptionTest]]></code>
+      <code><![CDATA[ServiceMustBeAnObjectExceptionTest]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="tests/Unit/Exception/ServiceNameMustBeNonEmptyStringExceptionTest.php">
+    <ArgumentTypeCoercion>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+    </ArgumentTypeCoercion>
+    <InvalidArgument>
+      <code><![CDATA[extend]]></code>
+      <code><![CDATA[extend]]></code>
+      <code><![CDATA[factory]]></code>
+      <code><![CDATA[factory]]></code>
+    </InvalidArgument>
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[ServiceNameMustBeNonEmptyStringExceptionTest]]></code>
+      <code><![CDATA[ServiceNameMustBeNonEmptyStringExceptionTest]]></code>
+      <code><![CDATA[ServiceNameMustBeNonEmptyStringExceptionTest]]></code>
+      <code><![CDATA[ServiceNameMustBeNonEmptyStringExceptionTest]]></code>
+    </PropertyNotSetInConstructor>
+    <UndefinedClass>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['']]></code>
+    </UndefinedClass>
+  </file>
+  <file src="tests/Unit/Exception/ServiceNotFoundExceptionTest.php">
+    <ArgumentTypeCoercion>
+      <code><![CDATA['does-not-exist']]></code>
+      <code><![CDATA['does-not-exist']]></code>
+      <code><![CDATA['does-not-exist']]></code>
+      <code><![CDATA['does-not-exist']]></code>
+    </ArgumentTypeCoercion>
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[ServiceNotFoundExceptionTest]]></code>
+      <code><![CDATA[ServiceNotFoundExceptionTest]]></code>
+      <code><![CDATA[ServiceNotFoundExceptionTest]]></code>
+      <code><![CDATA[ServiceNotFoundExceptionTest]]></code>
+    </PropertyNotSetInConstructor>
+    <UndefinedClass>
+      <code><![CDATA['does-not-exist']]></code>
+      <code><![CDATA['does-not-exist']]></code>
+      <code><![CDATA['does-not-exist']]></code>
+      <code><![CDATA['does-not-exist']]></code>
+    </UndefinedClass>
+  </file>
+  <file src="tests/Unit/Exception/ServiceProviderAlreadyRegisteredExceptionTest.php">
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[ServiceProviderAlreadyRegisteredExceptionTest]]></code>
+      <code><![CDATA[ServiceProviderAlreadyRegisteredExceptionTest]]></code>
+      <code><![CDATA[ServiceProviderAlreadyRegisteredExceptionTest]]></code>
+      <code><![CDATA[ServiceProviderAlreadyRegisteredExceptionTest]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="tests/Unit/Exception/ServiceProviderMustBeAnInstanceOfServiceProviderInterfaceExceptionTest.php">
+    <InvalidArgument>
+      <code><![CDATA[self::class]]></code>
+    </InvalidArgument>
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[ServiceProviderMustBeAnInstanceOfServiceProviderInterfaceExceptionTest]]></code>
+      <code><![CDATA[ServiceProviderMustBeAnInstanceOfServiceProviderInterfaceExceptionTest]]></code>
+      <code><![CDATA[ServiceProviderMustBeAnInstanceOfServiceProviderInterfaceExceptionTest]]></code>
+      <code><![CDATA[ServiceProviderMustBeAnInstanceOfServiceProviderInterfaceExceptionTest]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="tests/Unit/Exception/ServiceTagMustBeNonEmptyStringExceptionTest.php">
+    <ArgumentTypeCoercion>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['service']]></code>
+      <code><![CDATA['service']]></code>
+      <code><![CDATA[['']]]></code>
+    </ArgumentTypeCoercion>
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[ServiceTagMustBeNonEmptyStringExceptionTest]]></code>
+      <code><![CDATA[ServiceTagMustBeNonEmptyStringExceptionTest]]></code>
+      <code><![CDATA[ServiceTagMustBeNonEmptyStringExceptionTest]]></code>
+      <code><![CDATA[ServiceTagMustBeNonEmptyStringExceptionTest]]></code>
+    </PropertyNotSetInConstructor>
+    <UndefinedClass>
+      <code><![CDATA[' ']]></code>
+      <code><![CDATA['']]></code>
+      <code><![CDATA['service']]></code>
+      <code><![CDATA['service']]></code>
+    </UndefinedClass>
+  </file>
+  <file src="tests/Unit/Exception/ServiceTagNotFoundExceptionTest.php">
+    <ArgumentTypeCoercion>
+      <code><![CDATA['tag-not-found']]></code>
+    </ArgumentTypeCoercion>
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[ServiceTagNotFoundExceptionTest]]></code>
+      <code><![CDATA[ServiceTagNotFoundExceptionTest]]></code>
+      <code><![CDATA[ServiceTagNotFoundExceptionTest]]></code>
+      <code><![CDATA[ServiceTagNotFoundExceptionTest]]></code>
+    </PropertyNotSetInConstructor>
+    <UndefinedClass>
+      <code><![CDATA['tag-not-found']]></code>
+    </UndefinedClass>
+  </file>
+  <file src="tests/Unit/Exception/UnresolvableParameterExceptionTest.php">
+    <MissingClosureParamType>
+      <code><![CDATA[$foo]]></code>
+    </MissingClosureParamType>
+    <MissingClosureReturnType>
+      <code><![CDATA[static fn ($foo) => $foo]]></code>
+    </MissingClosureReturnType>
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[UnresolvableParameterExceptionTest]]></code>
+      <code><![CDATA[UnresolvableParameterExceptionTest]]></code>
+      <code><![CDATA[UnresolvableParameterExceptionTest]]></code>
+      <code><![CDATA[UnresolvableParameterExceptionTest]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="tests/Unit/InstantiatorTest.php">
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[InstantiatorTest]]></code>
+      <code><![CDATA[InstantiatorTest]]></code>
+      <code><![CDATA[InstantiatorTest]]></code>
+      <code><![CDATA[InstantiatorTest]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="tests/Unit/ParameterBuilderTest.php">
+    <LessSpecificReturnType>
+      <code><![CDATA[object]]></code>
+    </LessSpecificReturnType>
+    <MixedArgumentTypeCoercion>
+      <code><![CDATA[$parameters]]></code>
+    </MixedArgumentTypeCoercion>
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[ParameterBuilderTest]]></code>
+      <code><![CDATA[ParameterBuilderTest]]></code>
+      <code><![CDATA[ParameterBuilderTest]]></code>
+      <code><![CDATA[ParameterBuilderTest]]></code>
+    </PropertyNotSetInConstructor>
+    <UnusedClosureParam>
+      <code><![CDATA[$foo]]></code>
+      <code><![CDATA[$foo]]></code>
+      <code><![CDATA[$foo]]></code>
+    </UnusedClosureParam>
+  </file>
+  <file src="tests/Unit/ReflectorTest.php">
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[ReflectorTest]]></code>
+      <code><![CDATA[ReflectorTest]]></code>
+      <code><![CDATA[ReflectorTest]]></code>
+      <code><![CDATA[ReflectorTest]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+</files>
