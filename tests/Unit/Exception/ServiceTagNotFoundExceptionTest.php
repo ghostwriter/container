@@ -12,6 +12,7 @@ use Ghostwriter\Container\Reflector;
 use Ghostwriter\ContainerTests\Unit\AbstractTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Throwable;
+
 use function iterator_to_array;
 
 #[CoversClass(ServiceTagNotFoundException::class)]
