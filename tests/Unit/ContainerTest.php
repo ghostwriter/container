@@ -47,6 +47,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use stdClass;
 use Throwable;
+
 use function array_key_exists;
 use function iterator_to_array;
 use function random_int;
@@ -57,123 +58,6 @@ use function random_int;
 #[CoversClass(Reflector::class)]
 final class ContainerTest extends AbstractTestCase
 {
-    /**
-     * @return Generator<string,array>
-     */
-    public static function dataProviderContainerCallables(): Generator
-    {
-        yield 'AnonymousFunctionCall' => [static function (TestEvent $testEvent): void {
-            $testEvent->collect($testEvent::class);
-        }];
-        yield 'CallableArrayInstanceMethodCall' => [[new TestEventListener(), 'onTest']];
-        yield 'CallableArrayInstanceMethodCallOnVariadic' => [[new TestEventListener(), 'onVariadicTest']];
-        yield 'CallableArrayStaticMethodCall' => [[TestEventListener::class, 'onStaticCallableArray']];
-        yield 'FunctionCall@typedFunction' => ['Ghostwriter\ContainerTests\Fixture\typedFunction'];
-        yield 'FunctionCall@typelessFunction' => ['Ghostwriter\ContainerTests\Fixture\typelessFunction'];
-        yield 'Invokable' => [new TestEventListener()];
-        yield 'StaticMethodCall' => [TestEventListener::class . '::onStatic'];
-        yield 'TypelessAnonymousFunctionCall' => [
-            static function ($event): void {
-                $event->collect($event::class);
-            },
-        ];
-    }
-
-    /**
-     * @return Generator<string,array>
-     */
-    public static function dataProviderServiceClasses(): Generator
-    {
-        yield ArrayConstructor::class => [
-            ArrayConstructor::class,
-            [
-                'value' => [],
-            ],
-        ];
-
-        yield BoolConstructor::class => [
-            BoolConstructor::class,
-            [
-                'value' => true,
-            ],
-        ];
-
-        yield CallableConstructor::class => [
-            CallableConstructor::class,
-            [
-                'value' => static fn (ContainerInterface $container): null => null,
-            ],
-        ];
-
-        yield EmptyConstructor::class => [EmptyConstructor::class];
-        yield FloatConstructor::class => [
-            FloatConstructor::class,
-            [
-                'value' => 13.37,
-            ],
-        ];
-
-        yield IntConstructor::class => [
-            IntConstructor::class,
-            [
-                'value' => 42,
-            ],
-        ];
-
-        yield IterableConstructor::class => [
-            IterableConstructor::class,
-            [
-                'value' => ['iterable'],
-            ],
-        ];
-
-        yield MixedConstructor::class => [
-            MixedConstructor::class,
-            [
-                'value' => 'mixed',
-            ],
-        ];
-
-        yield ObjectConstructor::class => [
-            ObjectConstructor::class,
-            [
-                'value' => new stdClass(),
-            ],
-        ];
-
-        yield OptionalConstructor::class => [OptionalConstructor::class];
-        yield StringConstructor::class => [
-            StringConstructor::class,
-            [
-                'value' => 'string',
-            ],
-        ];
-
-        yield TypelessConstructor::class => [
-            TypelessConstructor::class,
-            [
-                'value' => 'none',
-            ],
-        ];
-
-        yield UnionTypehintWithoutDefaultValue::class => [
-            UnionTypehintWithoutDefaultValue::class,
-            [
-                'number' => 42,
-            ],
-        ];
-
-        yield UnionTypehintWithDefaultValue::class => [UnionTypehintWithDefaultValue::class];
-        yield Foo::class => [Foo::class];
-        yield Bar::class => [Bar::class];
-        yield Baz::class => [Baz::class];
-        yield Container::class => [Container::class];
-        yield FoobarWithDependencyServiceProvider::class => [FoobarWithDependencyServiceProvider::class];
-        yield FoobarServiceProvider::class => [FoobarServiceProvider::class];
-        yield FoobarExtension::class => [FoobarExtension::class];
-        yield self::class => [self::class, ['name']];
-    }
-
     /**
      * @throws Throwable
      */
@@ -193,10 +77,7 @@ final class ContainerTest extends AbstractTestCase
     {
         $this->container->alias(ClientInterface::class, GitHubClient::class);
 
-        self::assertInstanceOf(
-            GitHubClient::class,
-            $this->container->build(ClientInterface::class)
-        );
+        self::assertInstanceOf(GitHubClient::class, $this->container->build(ClientInterface::class));
     }
 
     /**
@@ -231,15 +112,9 @@ final class ContainerTest extends AbstractTestCase
         self::assertFalse($this->container->has(GitHubClient::class));
 
         // When GitHub::class asks for ClientInterface::class, resolve GitHubClient::class.
-        $this->container->bind(
-            GitHub::class,
-            ClientInterface::class,
-            GitHubClient::class
-        );
+        $this->container->bind(GitHub::class, ClientInterface::class, GitHubClient::class);
 
-        self::assertTrue(
-            $this->container->has(GitHubClient::class)
-        );
+        self::assertTrue($this->container->has(GitHubClient::class));
 
         self::assertInstanceOf(GitHub::class, $this->container->get(GitHub::class));
 
@@ -350,30 +225,15 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testContainerExtend(): void
     {
-        $this->container->extend(
-            stdClass::class,
-            StdClassOneExtension::class
-        );
+        $this->container->extend(stdClass::class, StdClassOneExtension::class);
 
-        $this->container->extend(
-            stdClass::class,
-            StdClassTwoExtension::class
-        );
+        $this->container->extend(stdClass::class, StdClassTwoExtension::class);
 
-        self::assertInstanceOf(
-            stdClass::class,
-            $this->container->get(stdClass::class)
-        );
+        self::assertInstanceOf(stdClass::class, $this->container->get(stdClass::class));
 
-        self::assertInstanceOf(
-            stdClass::class,
-            $this->container->get(stdClass::class)->one
-        );
+        self::assertInstanceOf(stdClass::class, $this->container->get(stdClass::class)->one);
 
-        self::assertInstanceOf(
-            stdClass::class,
-            $this->container->get(stdClass::class)->two
-        );
+        self::assertInstanceOf(stdClass::class, $this->container->get(stdClass::class)->two);
     }
 
     /**
@@ -382,40 +242,19 @@ final class ContainerTest extends AbstractTestCase
     public function testContainerExtendFactory(): void
     {
         $this->container->factory(stdClass::class, StdClassFactory::class);
-        $this->container->extend(
-            stdClass::class,
-            StdClassOneExtension::class
-        );
+        $this->container->extend(stdClass::class, StdClassOneExtension::class);
 
-        $this->container->extend(
-            stdClass::class,
-            StdClassTwoExtension::class
-        );
+        $this->container->extend(stdClass::class, StdClassTwoExtension::class);
 
-        self::assertInstanceOf(
-            stdClass::class,
-            $this->container->get(stdClass::class)
-        );
+        self::assertInstanceOf(stdClass::class, $this->container->get(stdClass::class));
 
-        self::assertInstanceOf(
-            stdClass::class,
-            $this->container->get(stdClass::class)->one
-        );
+        self::assertInstanceOf(stdClass::class, $this->container->get(stdClass::class)->one);
 
-        self::assertInstanceOf(
-            stdClass::class,
-            $this->container->get(stdClass::class)->two
-        );
+        self::assertInstanceOf(stdClass::class, $this->container->get(stdClass::class)->two);
 
-        self::assertSame(
-            '#FreePalestine',
-            $this->container->get(stdClass::class)->blackLivesMatter
-        );
+        self::assertSame('#FreePalestine', $this->container->get(stdClass::class)->blackLivesMatter);
 
-        self::assertSame(
-            $this->container->get(stdClass::class),
-            $this->container->get(stdClass::class),
-        );
+        self::assertSame($this->container->get(stdClass::class), $this->container->get(stdClass::class));
     }
 
     /**
@@ -588,10 +427,7 @@ final class ContainerTest extends AbstractTestCase
     {
         $this->container->factory(stdClass::class, StdClassFactory::class);
 
-        self::assertSame(
-            '#FreePalestine',
-            $this->container->get(stdClass::class)->blackLivesMatter
-        );
+        self::assertSame('#FreePalestine', $this->container->get(stdClass::class)->blackLivesMatter);
     }
 
     /**
@@ -659,5 +495,122 @@ final class ContainerTest extends AbstractTestCase
         $this->container->untag(stdClass::class, ['tag']);
 
         self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
+    }
+
+    /**
+     * @return Generator<string,array>
+     */
+    public static function dataProviderContainerCallables(): Generator
+    {
+        yield 'AnonymousFunctionCall' => [static function (TestEvent $testEvent): void {
+            $testEvent->collect($testEvent::class);
+        }];
+        yield 'CallableArrayInstanceMethodCall' => [[new TestEventListener(), 'onTest']];
+        yield 'CallableArrayInstanceMethodCallOnVariadic' => [[new TestEventListener(), 'onVariadicTest']];
+        yield 'CallableArrayStaticMethodCall' => [[TestEventListener::class, 'onStaticCallableArray']];
+        yield 'FunctionCall@typedFunction' => ['Ghostwriter\ContainerTests\Fixture\typedFunction'];
+        yield 'FunctionCall@typelessFunction' => ['Ghostwriter\ContainerTests\Fixture\typelessFunction'];
+        yield 'Invokable' => [new TestEventListener()];
+        yield 'StaticMethodCall' => [TestEventListener::class . '::onStatic'];
+        yield 'TypelessAnonymousFunctionCall' => [
+            static function ($event): void {
+                $event->collect($event::class);
+            },
+        ];
+    }
+
+    /**
+     * @return Generator<string,array>
+     */
+    public static function dataProviderServiceClasses(): Generator
+    {
+        yield ArrayConstructor::class => [
+            ArrayConstructor::class,
+            [
+                'value' => [],
+            ],
+        ];
+
+        yield BoolConstructor::class => [
+            BoolConstructor::class,
+            [
+                'value' => true,
+            ],
+        ];
+
+        yield CallableConstructor::class => [
+            CallableConstructor::class,
+            [
+                'value' => static fn (ContainerInterface $container): null => null,
+            ],
+        ];
+
+        yield EmptyConstructor::class => [EmptyConstructor::class];
+        yield FloatConstructor::class => [
+            FloatConstructor::class,
+            [
+                'value' => 13.37,
+            ],
+        ];
+
+        yield IntConstructor::class => [
+            IntConstructor::class,
+            [
+                'value' => 42,
+            ],
+        ];
+
+        yield IterableConstructor::class => [
+            IterableConstructor::class,
+            [
+                'value' => ['iterable'],
+            ],
+        ];
+
+        yield MixedConstructor::class => [
+            MixedConstructor::class,
+            [
+                'value' => 'mixed',
+            ],
+        ];
+
+        yield ObjectConstructor::class => [
+            ObjectConstructor::class,
+            [
+                'value' => new stdClass(),
+            ],
+        ];
+
+        yield OptionalConstructor::class => [OptionalConstructor::class];
+        yield StringConstructor::class => [
+            StringConstructor::class,
+            [
+                'value' => 'string',
+            ],
+        ];
+
+        yield TypelessConstructor::class => [
+            TypelessConstructor::class,
+            [
+                'value' => 'none',
+            ],
+        ];
+
+        yield UnionTypehintWithoutDefaultValue::class => [
+            UnionTypehintWithoutDefaultValue::class,
+            [
+                'number' => 42,
+            ],
+        ];
+
+        yield UnionTypehintWithDefaultValue::class => [UnionTypehintWithDefaultValue::class];
+        yield Foo::class => [Foo::class];
+        yield Bar::class => [Bar::class];
+        yield Baz::class => [Baz::class];
+        yield Container::class => [Container::class];
+        yield FoobarWithDependencyServiceProvider::class => [FoobarWithDependencyServiceProvider::class];
+        yield FoobarServiceProvider::class => [FoobarServiceProvider::class];
+        yield FoobarExtension::class => [FoobarExtension::class];
+        yield self::class => [self::class, ['name']];
     }
 }
