@@ -18,6 +18,7 @@ use Ghostwriter\ContainerTests\Fixture\CircularDependency\ClassZ;
 use Ghostwriter\ContainerTests\Unit\AbstractTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Throwable;
+
 use function implode;
 use function sprintf;
 
