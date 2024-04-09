@@ -23,11 +23,6 @@ final class InstantiatorTest extends AbstractTestCase
      */
     public function testInstantiate(): void
     {
-        self::assertInstanceOf(
-            stdClass::class,
-            $this->instantiator->instantiate(
-                stdClass::class
-            )
-        );
+        self::assertInstanceOf(stdClass::class, $this->instantiator->instantiate(stdClass::class));
     }
 }
