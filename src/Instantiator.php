@@ -14,8 +14,7 @@ final readonly class Instantiator
     public function __construct(
         public Reflector $reflector,
         public ParameterBuilder $parameterBuilder,
-    ) {
-    }
+    ) {}
 
     /**
      * @template TService of object
