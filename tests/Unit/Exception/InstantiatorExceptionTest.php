@@ -28,9 +28,6 @@ final class InstantiatorExceptionTest extends AbstractTestCase
     {
         $this->assertException(InstantiatorException::class);
 
-        $this->instantiator->instantiate(
-            Foobar::class,
-            [null]
-        );
+        $this->instantiator->instantiate(Foobar::class, [null]);
     }
 }
