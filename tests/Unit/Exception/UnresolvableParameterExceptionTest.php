@@ -14,6 +14,7 @@ use Ghostwriter\ContainerTests\Unit\AbstractTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use ReflectionParameter;
 use Throwable;
+
 use function sprintf;
 
 #[CoversClass(UnresolvableParameterException::class)]
@@ -60,13 +61,11 @@ final class UnresolvableParameterExceptionTest extends AbstractTestCase
     {
         $this->assertException(UnresolvableParameterException::class);
 
-        $this->parameterBuilder->build(
-            [
-                new ReflectionParameter(
-                    static fn ($foo) => $foo,
-                    'foo'
-                ),
-            ]
-        );
+        $this->parameterBuilder->build([
+            new ReflectionParameter(
+                static fn ($foo) => $foo,
+                'foo'
+            ),
+        ]);
     }
 }
