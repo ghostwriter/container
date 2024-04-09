@@ -12,11 +12,6 @@ use Throwable;
 /** @see \Ghostwriter\ContainerTests\Unit\ReflectorTest */
 final readonly class Reflector
 {
-    public static function new(): self
-    {
-        return new self();
-    }
-
     /**
      * @template TClass of object
      *
@@ -47,5 +42,10 @@ final readonly class Reflector
         } catch (Throwable $throwable) {
             throw new ReflectorException($throwable->getMessage(), 0, $throwable);
         }
+    }
+
+    public static function new(): self
+    {
+        return new self();
     }
 }
