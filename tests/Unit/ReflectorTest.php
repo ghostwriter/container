@@ -25,12 +25,7 @@ final class ReflectorTest extends AbstractTestCase
      */
     public function testReflectClass(): void
     {
-        self::assertSame(
-            self::class,
-            $this->reflector
-                ->reflectClass(self::class)
-                ->getName()
-        );
+        self::assertSame(self::class, $this->reflector ->reflectClass(self::class) ->getName());
     }
 
     /**
@@ -49,11 +44,7 @@ final class ReflectorTest extends AbstractTestCase
      */
     public function testReflectFunction(): void
     {
-        self::assertTrue(
-            $this->reflector
-                ->reflectFunction(static fn (): null => null)
-                ->isStatic()
-        );
+        self::assertTrue($this->reflector ->reflectFunction(static fn (): null => null) ->isStatic());
     }
 
     /**
