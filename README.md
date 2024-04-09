@@ -28,11 +28,10 @@ Registering a service on the given container.
 ```php
 final readonly class Service
 {
-    private Dependency $dependency;
-    public function __construct(Dependency $dependency)
-    {
-        $this->dependency = $dependency;
-    }
+    public function __construct(
+        private Dependency $dependency
+    ) {}
+
     public function dependency():Dependency
     {
         return $this->dependency;
@@ -57,10 +56,10 @@ final readonly class Task implements TaskInterface {}
 
 final class Tasks
 {
-    private array $tasks;
+    private array $tasks = [];
     public function addTask(TaskInterface $task)
     {
-        $this->tasks[$task::class] = $task;
+        $this->tasks[] = $task;
     }
 }
 
@@ -115,10 +114,10 @@ final readonly class GitHub
     }
 }
 
-// When GitHub::class asks for ClientInterface::class, it should receive an instance of GraphQLClient::class.
+// When GitHub::class asks for ClientInterface::class, it would receive an instance of GraphQLClient::class.
 $container->bind(GitHub::class, ClientInterface::class, GraphQLClient::class);
 
-// When any service asks for ClientInterface::class, it should receive an instance of RestClient::class.
+// When any other service asks for ClientInterface::class, it would receive an instance of RestClient::class.
 $container->alias(ClientInterface::class, RestClient::class);
 ```
 
@@ -127,8 +126,15 @@ $container->alias(ClientInterface::class, RestClient::class);
 Registering a service extension on the container.
 
 ```php
+/**
+ * @implements ExtensionInterface<GitHubClient>
+ */
 final readonly class GitHubExtension implements ExtensionInterface
 {
+    /**
+     * @param GitHubClient $service
+     * @return GitHubClient
+     */
     public function __invoke(ContainerInterface $container, object $service): object
     {
         $service->setEnterpriseUrl(
