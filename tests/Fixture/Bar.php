@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\ContainerTests\Fixture;
+namespace Tests\Fixture;
 
-class Bar
+final readonly class Bar
 {
     public Foo $foo;
 
