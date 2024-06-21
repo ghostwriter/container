@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Attribute;
 
-// use Ghostwriter\Container\Attribute\Extension;
-// use Ghostwriter\Container\Attribute\Factory;
 use Ghostwriter\Container\Attribute\Extension;
 use Ghostwriter\Container\Attribute\Factory;
 use Ghostwriter\Container\Attribute\Inject;
