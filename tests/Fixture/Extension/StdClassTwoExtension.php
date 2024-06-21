@@ -2,15 +2,26 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\ContainerTests\Fixture\Extension;
+namespace Tests\Fixture\Extension;
 
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\ExtensionInterface;
+use Override;
 use stdClass;
+use Throwable;
 
-class StdClassTwoExtension implements ExtensionInterface
+/**
+ * @implements ExtensionInterface<stdClass>
+ */
+final readonly class StdClassTwoExtension implements ExtensionInterface
 {
-    public function __invoke(ContainerInterface $container, object $service): object
+    /**
+     * @param stdClass $service
+     *
+     * @throws Throwable
+     */
+    #[Override]
+    public function __invoke(ContainerInterface $container, object $service): stdClass
     {
         $service->two = $container->get(stdClass::class);
 
