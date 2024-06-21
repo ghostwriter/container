@@ -49,7 +49,7 @@ assert($service->dependency() instanceof Dependency); // true
 
 Registering services using attributes.
 
-#### `#[ContainerInject]`
+#### `#[Inject]`
 
 Registering a service on the container using attributes.
 
@@ -93,7 +93,7 @@ final readonly class Service
 
 Registering a service factory on the container using attributes.
 
-#### `#[ContainerFactory]`
+#### `#[Factory]`
 
 ```php
 use Ghostwriter\Container\Attribute\Factory;
@@ -119,7 +119,7 @@ final readonly class Service
 
 ---
 
-#### `#[ContainerExtension]`
+#### `#[Extension]`
 
 Registering a service extension on the container using attributes.
 
