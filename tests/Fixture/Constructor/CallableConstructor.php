@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\ContainerTests\Fixture\Constructor;
+namespace Tests\Fixture\Constructor;
 
-class CallableConstructor
+final class CallableConstructor
 {
     /** @var callable */
     public $result;
