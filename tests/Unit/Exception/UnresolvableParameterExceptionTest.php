@@ -2,26 +2,43 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\ContainerTests\Unit\Exception;
+namespace Tests\Unit\Exception;
 
+use Ghostwriter\Container\Attribute\Extension;
+use Ghostwriter\Container\Attribute\Factory;
+use Ghostwriter\Container\Attribute\Inject;
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Exception\UnresolvableParameterException;
-use Ghostwriter\Container\Instantiator;
-use Ghostwriter\Container\ParameterBuilder;
-use Ghostwriter\Container\Reflector;
-use Ghostwriter\ContainerTests\Fixture\UnresolvableParameter;
-use Ghostwriter\ContainerTests\Unit\AbstractTestCase;
+use Ghostwriter\Container\List\Aliases;
+use Ghostwriter\Container\List\Bindings;
+use Ghostwriter\Container\List\Builders;
+use Ghostwriter\Container\List\Dependencies;
+use Ghostwriter\Container\List\Extensions;
+use Ghostwriter\Container\List\Factories;
+use Ghostwriter\Container\List\Instances;
+use Ghostwriter\Container\List\Providers;
+use Ghostwriter\Container\List\Tags;
 use PHPUnit\Framework\Attributes\CoversClass;
-use ReflectionParameter;
+use Tests\Fixture\UnresolvableParameter;
+use Tests\Unit\AbstractTestCase;
 use Throwable;
 
 use function sprintf;
 
 #[CoversClass(UnresolvableParameterException::class)]
+#[CoversClass(Aliases::class)]
+#[CoversClass(Bindings::class)]
+#[CoversClass(Builders::class)]
 #[CoversClass(Container::class)]
-#[CoversClass(Instantiator::class)]
-#[CoversClass(ParameterBuilder::class)]
-#[CoversClass(Reflector::class)]
+#[CoversClass(Dependencies::class)]
+#[CoversClass(Extension::class)]
+#[CoversClass(Extensions::class)]
+#[CoversClass(Factories::class)]
+#[CoversClass(Factory::class)]
+#[CoversClass(Inject::class)]
+#[CoversClass(Instances::class)]
+#[CoversClass(Providers::class)]
+#[CoversClass(Tags::class)]
 final class UnresolvableParameterExceptionTest extends AbstractTestCase
 {
     /**
@@ -48,24 +65,9 @@ final class UnresolvableParameterExceptionTest extends AbstractTestCase
         $this->expectExceptionMessage(sprintf(
             'Unresolvable function parameter "%s" in "%s"; does not have a default value.',
             '$event',
-            'Ghostwriter\ContainerTests\Fixture\typelessFunction()',
+            'Tests\Fixture\typelessFunction()',
         ));
 
-        $this->container->call('Ghostwriter\ContainerTests\Fixture\typelessFunction');
-    }
-
-    /**
-     * @throws Throwable
-     */
-    public function testParameterBuilderBuild(): void
-    {
-        $this->assertException(UnresolvableParameterException::class);
-
-        $this->parameterBuilder->build([
-            new ReflectionParameter(
-                static fn ($foo) => $foo,
-                'foo'
-            ),
-        ]);
+        $this->container->call('Tests\Fixture\typelessFunction');
     }
 }
