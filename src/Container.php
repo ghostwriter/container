@@ -333,14 +333,15 @@ final class Container implements ContainerInterface
     }
 
     /**
-     * @param class-string<TService> $service
+     * @template TGet of object
+     *
+     * @param class-string<TGet> $service
      *
      * @throws ExceptionInterface
      * @throws NotFoundExceptionInterface
      * @throws Throwable
      *
-     * @return TService
-     *
+     * @return TGet
      */
     #[Override]
     public function get(string $service): object
@@ -348,11 +349,11 @@ final class Container implements ContainerInterface
         $class = $this->resolve($service);
 
         if (is_a($class, ContainerInterface::class, true)) {
-            /** @var TService $this */
+            /** @var TGet $this */
             return $this;
         }
 
-        /** @var TService */
+        /** @var TGet */
         return match (true) {
             default => $this->applyExtensions($class, match (true) {
                 default => match (true) {
@@ -374,14 +375,14 @@ final class Container implements ContainerInterface
                      * @throws ServiceMustBeAnObjectException
                      * @throws Throwable
                      *
-                     * @return TService
+                     * @return TGet
                      *
                      */
                     function (string $class): object {
-                        /** @var class-string<TService> $class */
+                        /** @var class-string<TGet> $class */
                         $builder = $this->builders->get($class);
 
-                        /** @var null|TService $instance */
+                        /** @var null|TGet $instance */
                         $instance = $this->call($builder);
 
                         if (! is_object($instance)) {
@@ -832,7 +833,7 @@ final class Container implements ContainerInterface
      *
      * @throws Throwable
      *
-     * @return TInstantiate|TService
+     * @return TInstantiate
      *
      */
     private function instantiate(string $service, array $arguments = []): object
