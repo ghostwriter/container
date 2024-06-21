@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\ContainerTests\Fixture;
+namespace Tests\Fixture;
 
-class TestEventListener
+final readonly class TestEventListener
 {
     public function __invoke(TestEvent $event): void
     {
@@ -23,7 +23,7 @@ class TestEventListener
         }
     }
 
-    public static function onStatic(TestEvent $event, string $nullableWithDefault = null): void
+    public static function onStatic(TestEvent $event, ?string $nullableWithDefault = null): void
     {
         $event->collect(__METHOD__);
     }
