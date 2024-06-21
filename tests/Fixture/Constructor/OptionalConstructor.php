@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\ContainerTests\Fixture\Constructor;
+namespace Tests\Fixture\Constructor;
 
-class OptionalConstructor
+final class OptionalConstructor
 {
-    /** @var mixed */
     public $result;
 
     /** @param null|mixed $value */
@@ -15,7 +14,6 @@ class OptionalConstructor
         $this->result = $value;
     }
 
-    /** @return mixed */
     public function value()
     {
         return $this->result;
