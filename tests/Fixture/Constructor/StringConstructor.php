@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\ContainerTests\Fixture\Constructor;
+namespace Tests\Fixture\Constructor;
 
-class StringConstructor
+final class StringConstructor
 {
     public string $result;
 
