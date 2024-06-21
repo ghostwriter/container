@@ -45,6 +45,106 @@ assert($service instanceof Service); // true
 assert($service->dependency() instanceof Dependency); // true
 ```
 
+### Attributes
+
+Registering services using attributes.
+
+#### `#[ContainerInject]`
+
+Registering a service on the container using attributes.
+
+```php
+use Ghostwriter\Container\Attribute\Inject;
+
+final readonly class Service
+{
+    public function __construct(
+        #[Inject(Dependency::class)]
+        private DependencyInterface $dependency
+    ) {}
+
+    public function dependency():Dependency
+    {
+        return $this->dependency;
+    }
+}
+
+// the above is equivalent to the following
+// $container->alias(Dependency::class, DependencyInterface::class);
+
+final readonly class Service
+{
+    public function __construct(
+        #[Inject(Dependency::class, Service::class)]
+        private DependencyInterface $dependency
+    ) {}
+
+    public function dependency():Dependency
+    {
+        return $this->dependency;
+    }
+}
+
+// the above is equivalent to the following
+// $container->bind(Service::class, DependencyInterface::class, Dependency::class);
+```
+
+---
+
+Registering a service factory on the container using attributes.
+
+#### `#[ContainerFactory]`
+
+```php
+use Ghostwriter\Container\Attribute\Factory;
+
+#[Factory(ServiceFactory::class)]
+final readonly class Service
+{
+    public function __construct(
+        #[Factory(DependencyFactory::class)]
+        private Dependency $dependency
+    ) {}
+
+    public function dependency():Dependency
+    {
+        return $this->dependency;
+    }
+}
+
+// the above is equivalent to the following
+// $container->factory(Dependency::class, DependencyFactory::class);
+// $container->factory(Service::class, ServiceFactory::class);
+```
+
+---
+
+#### `#[ContainerExtension]`
+
+Registering a service extension on the container using attributes.
+
+```php
+use Ghostwriter\Container\Attribute\Extension;
+
+#[Extension(ServiceExtension::class)]
+final readonly class Service
+{
+    public function __construct(
+        #[Extension(DependencyExtension::class)]
+        private Dependency $dependency
+    ) {}
+
+    public function dependency():Dependency
+    {
+        return $this->dependency;
+    }
+}
+
+// the above is equivalent to the following
+// $container->extend(Service::class, ServiceExtension::class);
+// $container->extend(Dependency::class, DependencyExtension::class);
+```
+
 ### Service Providers
 
 Registering a service provider on the container.
