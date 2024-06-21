@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\ContainerTests\Fixture;
+namespace Tests\Fixture;
 
-class UnionTypehintWithDefaultValue
+final readonly class UnionTypehintWithDefaultValue
 {
-    private int|float $number;
+    private float|int $number;
 
-    public function __construct(int|float $number = 0)
+    public function __construct(float|int $number = 0)
     {
         $this->number = $number;
     }
 
-    public function getNumber(): int|float
+    public function value(): float|int
     {
         return $this->number;
     }
