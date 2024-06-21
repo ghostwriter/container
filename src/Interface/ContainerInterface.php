@@ -110,13 +110,14 @@ interface ContainerInterface
      *
      * Returns the same instance on subsequent calls, Use `$container->build()` to create a new instance.
      *
-     * @param class-string<TService> $service
+     * @template TGet of object
      *
-     * @throws ExceptionInterface         If error while retrieving the entry
+     * @param class-string<TGet> $service
+     *
      * @throws NotFoundExceptionInterface if no entry was found for the given identifier
+     * @throws ExceptionInterface         If error while retrieving the entry
      *
-     * @return TService
-     *
+     * @return TGet
      */
     public function get(string $service): object;
 
