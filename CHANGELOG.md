@@ -4,6 +4,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [4.0.0] - 2024-06-20
+
+### Added
+
+- Class `Ghostwriter\Container\Attribute\Extension` added
+- Class `Ghostwriter\Container\Attribute\Factory` added
+- Class `Ghostwriter\Container\Attribute\Inject` added
+- Class `Ghostwriter\Container\List\Aliases` added
+- Class `Ghostwriter\Container\List\Bindings` added
+- Class `Ghostwriter\Container\List\Builders` added
+- Class `Ghostwriter\Container\List\Dependencies` added
+- Class `Ghostwriter\Container\List\Extensions` added
+- Class `Ghostwriter\Container\List\Factories` added
+- Class `Ghostwriter\Container\List\Instances` added
+- Class `Ghostwriter\Container\List\Providers` added
+- Class `Ghostwriter\Container\List\Tags` added
+- Method `purge()` added to `Ghostwriter\Container\Interface\ContainerInterface` interface
+
+### Changed
+
+- Removed the return type from `Ghostwriter\Container\Container#__clone()` method
+- Changed the name of parameter 0 of `Ghostwriter\Container\Interface\ContainerInterface#alias()` from `name` to `service`
+- Changed the name of parameter 1 of `Ghostwriter\Container\Interface\ContainerInterface#alias()` from `service` to `alias`
+- Changed the name of parameter 1 of `Ghostwriter\Container\Interface\ContainerInterface#bind()` from `abstract` to `service`
+- Changed the name of parameter 1 of `Ghostwriter\Container\Interface\ContainerInterface#factory()` from `serviceFactory` to `factory`
+
+### Removed
+
+- Class `Ghostwriter\Container\Instantiator` deleted
+- Class `Ghostwriter\Container\ParameterBuilder` deleted
+- Class `Ghostwriter\Container\Reflector` deleted
+- Class `Ghostwriter\Container\Exception\ReflectorException` deleted
+- Class `Ghostwriter\Container\Exception\ServiceExtensionAlreadyRegisteredException` deleted
+
 ## [3.0.0] - 2024-02-06
 
 ### Added
