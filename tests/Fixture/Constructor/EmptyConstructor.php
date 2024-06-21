@@ -2,11 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\ContainerTests\Fixture\Constructor;
+namespace Tests\Fixture\Constructor;
 
-class EmptyConstructor
+final class EmptyConstructor
 {
     public function __construct()
     {
+    }
+
+    public function value(): null
+    {
+        return null;
     }
 }
