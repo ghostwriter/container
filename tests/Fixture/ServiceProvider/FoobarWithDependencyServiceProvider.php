@@ -2,22 +2,24 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\ContainerTests\Fixture\ServiceProvider;
+namespace Tests\Fixture\ServiceProvider;
 
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\ServiceProviderInterface;
-use Ghostwriter\ContainerTests\Fixture\Bar;
-use Ghostwriter\ContainerTests\Fixture\Baz;
-use Ghostwriter\ContainerTests\Fixture\Dummy;
-use Ghostwriter\ContainerTests\Fixture\Extension\FoobarExtension;
-use Ghostwriter\ContainerTests\Fixture\Foo;
-use Ghostwriter\ContainerTests\Fixture\Foobar;
+use Override;
 use stdClass;
+use Tests\Fixture\Bar;
+use Tests\Fixture\Baz;
+use Tests\Fixture\Dummy;
+use Tests\Fixture\Extension\FoobarExtension;
+use Tests\Fixture\Foo;
+use Tests\Fixture\Foobar;
 use Throwable;
 
-class FoobarWithDependencyServiceProvider implements ServiceProviderInterface
+final readonly class FoobarWithDependencyServiceProvider implements ServiceProviderInterface
 {
     private Dummy $dummy;
+
     public function __construct(Dummy $dummy)
     {
         $this->dummy = $dummy;
@@ -26,6 +28,7 @@ class FoobarWithDependencyServiceProvider implements ServiceProviderInterface
     /**
      * @throws Throwable
      */
+    #[Override]
     public function __invoke(ContainerInterface $container): void
     {
         $container->set(Dummy::class, $this->dummy);
