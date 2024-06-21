@@ -7,4 +7,6 @@ namespace Ghostwriter\Container\Exception;
 use Ghostwriter\Container\Interface\ExceptionInterface;
 use InvalidArgumentException;
 
-final class ClassNotInstantiableException extends InvalidArgumentException implements ExceptionInterface {}
+final class ClassNotInstantiableException extends InvalidArgumentException implements ExceptionInterface
+{
+}
