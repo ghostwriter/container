@@ -2,14 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\ContainerTests\Fixture;
+namespace Tests\Fixture;
 
-class Foobar
+final class Foobar
 {
     public function __construct(
         public int $count,
     ) {
     }
 }
-
-
