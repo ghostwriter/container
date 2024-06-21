@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\ContainerTests\Fixture;
+namespace Tests\Fixture;
 
-class Foo
+final class Foo
 {
 }
