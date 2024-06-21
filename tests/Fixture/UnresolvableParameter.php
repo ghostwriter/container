@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\ContainerTests\Fixture;
+namespace Tests\Fixture;
 
-class UnresolvableParameter
+final readonly class UnresolvableParameter
 {
     private mixed $number;
 
