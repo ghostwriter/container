@@ -357,7 +357,14 @@ final class Container implements ContainerInterface
             default => $this->applyExtensions($class, match (true) {
                 default => match (true) {
                     class_exists($class) => $this->build($class),
-                    default => throw new ServiceNotFoundException($class),
+                    default => throw new ServiceNotFoundException(
+                        $this->dependencies->found() ?
+                        sprintf(
+                            'Service "%s" not found, required by "%s".',
+                            $class,
+                            $this->dependencies->last()
+                        ) : $class
+                    ),
                 },
 
                 $this->factories->has($class) => $this->invoke($this->factories->get($class)),
