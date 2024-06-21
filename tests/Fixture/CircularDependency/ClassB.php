@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Ghostwriter\ContainerTests\Fixture\CircularDependency;
+namespace Tests\Fixture\CircularDependency;
 
-class ClassB
+final class ClassB
 {
     public function __construct(ClassC $classC)
     {
