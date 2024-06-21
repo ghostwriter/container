@@ -7,15 +7,11 @@ namespace Ghostwriter\Container\Interface;
 /**
  * A factory is a callable object that creates an object using the given container instance.
  *
- * @template TService of object
- *
- * @return TService
+ * @template-covariant TService of object
  */
 interface FactoryInterface
 {
     /**
-     * Create a service instance using the given container.
-     *
      * @return TService
      */
     public function __invoke(ContainerInterface $container): object;
