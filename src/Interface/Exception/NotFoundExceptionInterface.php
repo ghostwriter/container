@@ -6,4 +6,6 @@ namespace Ghostwriter\Container\Interface\Exception;
 
 use Ghostwriter\Container\Interface\ExceptionInterface;
 
-interface NotFoundExceptionInterface extends ExceptionInterface {}
+interface NotFoundExceptionInterface extends ExceptionInterface
+{
+}
