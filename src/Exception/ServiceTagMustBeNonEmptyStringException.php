@@ -7,4 +7,6 @@ namespace Ghostwriter\Container\Exception;
 use Ghostwriter\Container\Interface\ExceptionInterface;
 use InvalidArgumentException;
 
-final class ServiceTagMustBeNonEmptyStringException extends InvalidArgumentException implements ExceptionInterface {}
+final class ServiceTagMustBeNonEmptyStringException extends InvalidArgumentException implements ExceptionInterface
+{
+}
