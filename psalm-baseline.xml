@@ -15,24 +15,4 @@
       <code><![CDATA[__construct]]></code>
     </PossiblyUnusedMethod>
   </file>
-  <file src="tests/Unit/ContainerTest.php">
-    <UnevaluatedCode>
-      <code><![CDATA[self::assertSame(
-            '#BlackLivesMatter',
-            $this->container->invoke(Dummy::class, [
-                'data' => ['BlackLivesMatter'],
-                'text' => '#%s',
-            ])
-        );]]></code>
-      <code><![CDATA[self::assertSame(
-            '#BlackLivesMatter',
-            $this->container->invoke(Dummy::class, [
-                'data' => [],
-                'text' => '#BlackLivesMatter',
-            ])
-        );]]></code>
-      <code><![CDATA[self::assertSame('#BlackLivesMatter', $this->container->invoke(Dummy::class, [['#BlackLivesMatter'], '%s']));]]></code>
-      <code><![CDATA[self::assertSame('#BlackLivesMatter', $this->container->invoke(Dummy::class, [[], '#BlackLivesMatter']));]]></code>
-    </UnevaluatedCode>
-  </file>
 </files>
