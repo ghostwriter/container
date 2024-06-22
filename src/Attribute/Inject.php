@@ -19,7 +19,6 @@ use Override;
 final readonly class Inject implements InjectAttributeInterface
 {
     /**
-     *
      * @param class-string<TService>       $service
      * @param null|class-string<TConcrete> $concrete
      */
