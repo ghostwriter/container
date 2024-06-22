@@ -73,10 +73,6 @@ use function trim;
 
 /**
  * @see \Tests\Unit\ContainerTest
- *
- * @template-covariant TService of object
- *
- * @implements ContainerInterface<TService>
  */
 final class Container implements ContainerInterface
 {
@@ -141,11 +137,11 @@ final class Container implements ContainerInterface
     }
 
     /**
-     * @template TAliasClass of object
-     * @template TServiceClass of object
+     * @template TService of object
+     * @template TAlias of object
      *
-     * @param class-string<TServiceClass> $service
-     * @param class-string<TAliasClass>   $alias
+     * @param class-string<TService> $service
+     * @param class-string<TAlias>   $alias
      *
      * @throws AliasNameMustBeNonEmptyStringException
      * @throws ServiceNameMustBeNonEmptyStringException
@@ -209,11 +205,11 @@ final class Container implements ContainerInterface
     }
 
     /**
-     * @template TBuild of object
+     * @template TService of object
      * @template TArgument
      *
-     * @param class-string<TBuild> $service
-     * @param array<TArgument>     $arguments
+     * @param class-string<TService> $service
+     * @param array<TArgument>       $arguments
      *
      * @throws CircularDependencyException
      * @throws ClassNotInstantiableException
@@ -223,18 +219,13 @@ final class Container implements ContainerInterface
      * @throws ServiceProviderAlreadyRegisteredException
      * @throws Throwable
      *
-     * @return TBuild
+     * @return TService
      *
      */
     #[Override]
     public function build(string $service, array $arguments = []): object
     {
         $class = $this->resolve($service);
-
-        if (is_a($class, ContainerInterface::class, true)) {
-            /** @var TBuild $this */
-            return $this;
-        }
 
         if ($this->dependencies->has($class)) {
             throw new CircularDependencyException(sprintf(
@@ -250,17 +241,17 @@ final class Container implements ContainerInterface
 
         $this->dependencies->unset($class);
 
-        /** @var TBuild */
+        /** @var TService */
         return $this->applyExtensions($class, $instance);
     }
 
     /**
-     * @template TCall of object
+     * @template TService of object
      * @template TArgument
      * @template TResult
      *
-     * @param array{0:(class-string<TCall>|TCall),1:'__invoke'|string}|callable|callable-string|Closure(TArgument...):TResult|TCall $callback
-     * @param array<TArgument>                                                                                                      $arguments
+     * @param array{0:(class-string<TService>|TService),1:'__invoke'|string}|callable|callable-string|Closure(TArgument...):TResult|TService $callback
+     * @param array<TArgument>                                                                                                               $arguments
      *
      * @throws Throwable
      *
@@ -284,10 +275,10 @@ final class Container implements ContainerInterface
     }
 
     /**
-     * @template TExtend of object
+     * @template TService of object
      *
-     * @param class-string<TExtend>                     $service
-     * @param class-string<ExtensionInterface<TExtend>> $extension
+     * @param class-string<TService>                     $service
+     * @param class-string<ExtensionInterface<TService>> $extension
      *
      * @throws ServiceNameMustBeNonEmptyStringException
      * @throws ServiceExtensionMustBeAnInstanceOfExtensionInterfaceException
@@ -309,10 +300,10 @@ final class Container implements ContainerInterface
     /**
      * Provide a FactoryInterface for a service.
      *
-     * @template TFactory of object
+     * @template TService of object
      *
-     * @param class-string<TFactory>                   $service
-     * @param class-string<FactoryInterface<TFactory>> $factory
+     * @param class-string<TService>                   $service
+     * @param class-string<FactoryInterface<TService>> $factory
      *
      * @throws ServiceNameMustBeNonEmptyStringException
      * @throws ServiceFactoryMustBeAnInstanceOfFactoryInterfaceException
@@ -333,27 +324,22 @@ final class Container implements ContainerInterface
     }
 
     /**
-     * @template TGet of object
+     * @template TService of object
      *
-     * @param class-string<TGet> $service
+     * @param class-string<TService> $service
      *
      * @throws ExceptionInterface
      * @throws NotFoundExceptionInterface
      * @throws Throwable
      *
-     * @return TGet
+     * @return TService
      */
     #[Override]
     public function get(string $service): object
     {
         $class = $this->resolve($service);
 
-        if (is_a($class, ContainerInterface::class, true)) {
-            /** @var TGet $this */
-            return $this;
-        }
-
-        /** @var TGet */
+        /** @var TService */
         return match (true) {
             default => $this->applyExtensions($class, match (true) {
                 default => match (true) {
@@ -375,14 +361,14 @@ final class Container implements ContainerInterface
                      * @throws ServiceMustBeAnObjectException
                      * @throws Throwable
                      *
-                     * @return TGet
+                     * @return TService
                      *
                      */
                     function (string $class): object {
-                        /** @var class-string<TGet> $class */
+                        /** @var class-string<TService> $class */
                         $builder = $this->builders->get($class);
 
-                        /** @var null|TGet $instance */
+                        /** @var null|TService $instance */
                         $instance = $this->call($builder);
 
                         if (! is_object($instance)) {
@@ -399,6 +385,8 @@ final class Container implements ContainerInterface
     }
 
     /**
+     * @template TService of object
+     *
      * @param class-string<TService> $service
      *
      * @throws ServiceNameMustBeNonEmptyStringException
@@ -420,12 +408,12 @@ final class Container implements ContainerInterface
     }
 
     /**
-     * @template TInvoke of object
+     * @template TService of object
      * @template TArgument
      * @template TResult
      *
-     * @param class-string<TInvoke> $invokable
-     * @param array<TArgument>      $arguments
+     * @param class-string<TService> $invokable
+     * @param array<TArgument>       $arguments
      *
      * @throws InvokableClassMustBeCallableException
      * @throws Throwable
@@ -479,7 +467,9 @@ final class Container implements ContainerInterface
         $this->dependencies = Dependencies::new();
         $this->extensions = Extensions::new();
         $this->factories = Factories::new();
-        $this->instances = Instances::new();
+        $this->instances = Instances::new([
+            ContainerInterface::class => $this,
+        ]);
         $this->providers = Providers::new();
         $this->tags = Tags::new();
     }
@@ -487,11 +477,13 @@ final class Container implements ContainerInterface
     /**
      * @template TAbstract of object
      * @template TConcrete of object
+     * @template TTag of object
      *
-     * @param class-string<TAbstract>              $abstract
-     * @param null|class-string<TConcrete>         $concrete
-     * @param array<class-string|non-empty-string> $tags
+     * @param class-string<TAbstract>   $abstract
+     * @param class-string<TConcrete>   $concrete
+     * @param array<class-string<TTag>> $tags
      *
+     * @throws NotFoundExceptionInterface
      * @throws ExceptionInterface
      */
     #[Override]
@@ -530,6 +522,8 @@ final class Container implements ContainerInterface
     }
 
     /**
+     * @template TService of object
+     *
      * @param class-string<TService> $service
      */
     #[Override]
@@ -545,11 +539,11 @@ final class Container implements ContainerInterface
     }
 
     /**
-     * @template TSet of object
+     * @template TService of object
      *
-     * @param class-string<TSet>                    $service
-     * @param Closure(ContainerInterface):TSet|TSet $value
-     * @param list<class-string|non-empty-string>   $tags
+     * @param class-string<TService>                          $service
+     * @param (Closure(ContainerInterface):TService)|TService $value
+     * @param list<non-empty-string>                          $tags
      *
      * @throws ServiceNameMustBeNonEmptyStringException
      * @throws ServiceTagMustBeNonEmptyStringException
@@ -566,19 +560,19 @@ final class Container implements ContainerInterface
             $this->tags->set($service, $tags);
         }
 
-        /** @var self<TService|TSet> $this */
-
         if (! $value instanceof Closure) {
             $this->instances->set($service, $value);
 
             return;
         }
 
-        /** @var Closure(ContainerInterface):TSet $value */
+        /** @var Closure(ContainerInterface):TService $value */
         $this->builders->set($service, $value);
     }
 
     /**
+     * @template TService of object
+     *
      * @param class-string<TService>            $service
      * @param non-empty-array<non-empty-string> $tags
      *
@@ -595,7 +589,10 @@ final class Container implements ContainerInterface
     }
 
     /**
-     * @param non-empty-string $tag
+     * @template TService of object
+     * @template TTag of object
+     *
+     * @param class-string<TTag> $tag
      *
      * @throws Throwable
      *
@@ -616,6 +613,8 @@ final class Container implements ContainerInterface
     }
 
     /**
+     * @template TService of object
+     *
      * @param class-string<TService>            $service
      * @param non-empty-array<non-empty-string> $tags
      */
@@ -626,14 +625,14 @@ final class Container implements ContainerInterface
     }
 
     /**
-     * @template TExtendService of object
+     * @template TService of object
      *
-     * @param class-string<TExtendService> $service
-     * @param TExtendService               $instance
+     * @param class-string<TService> $service
+     * @param TService               $instance
      *
      * @throws Throwable
      *
-     * @return TExtendService
+     * @return TService
      *
      */
     private function applyExtensions(string $service, object $instance): object
@@ -652,7 +651,7 @@ final class Container implements ContainerInterface
             }
 
             foreach ($extensions[$serviceName] ?? [] as $extension => $_) {
-                /** @var TExtendService $instance */
+                /** @var TService $instance */
                 $instance = $this->invoke($extension, [$this, $instance]);
             }
         }
@@ -664,6 +663,7 @@ final class Container implements ContainerInterface
 
     /**
      * @template TArgument
+     * @template TService of object
      *
      * @param array<ReflectionParameter> $reflectionParameters
      * @param array<TArgument>           $arguments
@@ -871,6 +871,8 @@ final class Container implements ContainerInterface
     }
 
     /**
+     * @template TService of object
+     *
      * @param class-string<TService>                  $class
      * @param ReflectionAttribute<AttributeInterface> $reflectionAttribute
      *
@@ -888,17 +890,21 @@ final class Container implements ContainerInterface
 
             $instance instanceof Inject => match (true) {
                 default => $this->register($class, $instance->service()),
+
                 $instance->concrete !== null => $this->bind($instance->concrete(), $class, $instance->service()),
             },
         };
     }
 
     /**
+     * @template TService of object
+     *
+     * @param ReflectionClass<TService> $reflectionClass
+     *
      * @throws Throwable
      */
     private function processReflectionClass(ReflectionClass $reflectionClass): void
     {
-        /** @var class-string<TService> $class */
         $class = $reflectionClass->getName();
 
         foreach (
@@ -912,6 +918,8 @@ final class Container implements ContainerInterface
     }
 
     /**
+     * @template TService of object
+     *
      * @param class-string<TService> $class
      *
      * @throws Throwable
@@ -962,13 +970,15 @@ final class Container implements ContainerInterface
     }
 
     /**
-     * @param class-string $service
+     * @template TService of object
+     *
+     * @param class-string<TService> $service
      *
      * @throws ServiceNameMustBeNonEmptyStringException
      * @throws DependencyNotFoundException
      * @throws BindingNotFoundException
      *
-     * @return class-string
+     * @return class-string<TService>
      *
      */
     private function resolve(string $service): string
@@ -978,6 +988,7 @@ final class Container implements ContainerInterface
         }
 
         while ($this->aliases->has($service)) {
+            /** @var class-string<TService> $service */
             $service = $this->aliases->get($service);
         }
 
@@ -985,10 +996,12 @@ final class Container implements ContainerInterface
             $concrete = $this->dependencies->last();
 
             if ($this->bindings->has($concrete, $service)) {
+                /** @var class-string<TService> */
                 return $this->bindings->get($concrete, $service);
             }
         }
 
+        /** @var class-string<TService> $service */
         return $service;
     }
 
