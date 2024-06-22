@@ -24,6 +24,11 @@ use Throwable;
 
 use function iterator_to_array;
 
+/**
+ * @psalm-suppress ArgumentTypeCoercion
+ * @psalm-suppress InvalidArgument
+ * @psalm-suppress UndefinedClass
+ */
 #[CoversClass(ServiceTagMustBeNonEmptyStringException::class)]
 #[CoversClass(Aliases::class)]
 #[CoversClass(Bindings::class)]
@@ -42,8 +47,6 @@ final class ServiceTagMustBeNonEmptyStringExceptionTest extends AbstractTestCase
 {
     /**
      * @throws Throwable
-     *
-     * @psalm-suppress InvalidArgument
      */
     public function testContainerTag(): void
     {
@@ -64,8 +67,6 @@ final class ServiceTagMustBeNonEmptyStringExceptionTest extends AbstractTestCase
 
     /**
      * @throws Throwable
-     *
-     * @psalm-suppress InvalidArgument
      */
     public function testContainerTagged(): void
     {
