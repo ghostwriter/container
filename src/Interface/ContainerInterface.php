@@ -10,19 +10,17 @@ use Throwable;
 
 /**
  * An extendable, closure based dependency injection container.
- *
- * @template-covariant TService of object
  */
 interface ContainerInterface
 {
     /**
      * Provide an alternative name for a registered service.
      *
-     * @template TAliasClass of object
-     * @template TServiceClass of object
+     * @template TService of object
+     * @template TAlias of object
      *
-     * @param class-string<TServiceClass> $service
-     * @param class-string<TAliasClass>   $alias
+     * @param class-string<TService> $service
+     * @param class-string<TAlias>   $alias
      *
      * @throws NotFoundExceptionInterface
      * @throws ExceptionInterface
@@ -71,12 +69,12 @@ interface ContainerInterface
     /**
      * Invoke the $callback with optional arguments.
      *
-     * @template TCall of object
+     * @template TService of object
      * @template TArgument
      * @template TResult
      *
-     * @param array{0:(class-string<TCall>|TCall),1:'__invoke'|string}|callable|callable-string|Closure(TArgument...):TResult|TCall $callback
-     * @param array<TArgument>                                                                                                      $arguments optional arguments passed to $callback
+     * @param array{0:(class-string<TService>|TService),1:'__invoke'|string}|callable|callable-string|Closure(TArgument...):TResult|TService $callback
+     * @param array<TArgument>                                                                                                               $arguments optional arguments passed to $callback
      *
      * @throws Throwable
      *
@@ -88,20 +86,20 @@ interface ContainerInterface
     /**
      * "Extend" a service object in the container.
      *
-     * @template TExtend of object
+     * @template TService of object
      *
-     * @param class-string<TExtend>                     $service
-     * @param class-string<ExtensionInterface<TExtend>> $extension
+     * @param class-string<TService>                     $service
+     * @param class-string<ExtensionInterface<TService>> $extension
      */
     public function extend(string $service, string $extension): void;
 
     /**
      * Provide a FactoryInterface for a service.
      *
-     * @template TFactory of object
+     * @template TService of object
      *
-     * @param class-string<TFactory>                   $service
-     * @param class-string<FactoryInterface<TFactory>> $factory
+     * @param class-string<TService>                   $service
+     * @param class-string<FactoryInterface<TService>> $factory
      */
     public function factory(string $service, string $factory): void;
 
@@ -110,19 +108,22 @@ interface ContainerInterface
      *
      * Returns the same instance on subsequent calls, Use `$container->build()` to create a new instance.
      *
-     * @template TGet of object
+     * @template TService of object
      *
-     * @param class-string<TGet> $service
+     * @param class-string<TService> $service
      *
-     * @throws NotFoundExceptionInterface if no entry was found for the given identifier
      * @throws ExceptionInterface         If error while retrieving the entry
+     * @throws NotFoundExceptionInterface if no entry was found for the given identifier
      *
-     * @return TGet
+     * @return TService
+     *
      */
     public function get(string $service): object;
 
     /**
      * Determine if a $service exists in the Container.
+     *
+     * @template TService of object
      *
      * @param class-string<TService> $service
      *
@@ -148,10 +149,6 @@ interface ContainerInterface
     public function invoke(string $invokable, array $arguments = []): mixed;
 
     /**
-     * Register a ServiceProvider class.
-     *
-     * Note: Service providers are automatically registered via `build` or `get` method.
-     *
      * @param class-string<ServiceProviderInterface> $serviceProvider
      *
      * @throws ExceptionInterface
@@ -166,10 +163,11 @@ interface ContainerInterface
      *
      * @template TAbstract of object
      * @template TConcrete of object
+     * @template TTag of object
      *
-     * @param class-string<TAbstract> $abstract
-     * @param class-string<TConcrete> $concrete
-     * @param array<non-empty-string> $tags
+     * @param class-string<TAbstract>   $abstract
+     * @param class-string<TConcrete>   $concrete
+     * @param array<class-string<TTag>> $tags
      *
      * @throws NotFoundExceptionInterface
      * @throws ExceptionInterface
@@ -179,6 +177,8 @@ interface ContainerInterface
     /**
      * Remove a service from the container.
      *
+     * @template TService of object
+     *
      * @param class-string<TService> $service
      */
     public function remove(string $service): void;
@@ -186,36 +186,49 @@ interface ContainerInterface
     /**
      * Assigns a service on the given container.
      *
-     * @template TSet of object
+     * @template TService of object
+     * @template TTag of object
      *
-     * @param class-string<TSet>                      $service
-     * @param (Closure(ContainerInterface):TSet)|TSet $value
-     * @param list<non-empty-string>                  $tags
+     * @param class-string<TService>                          $service
+     * @param (Closure(ContainerInterface):TService)|TService $value
+     * @param list<class-string<TTag>>                        $tags
      */
     public function set(string $service, callable|object $value, array $tags = []): void;
 
     /**
      * Assign a set of tags to a given service id.
      *
-     * @param class-string<TService>            $service
-     * @param non-empty-array<non-empty-string> $tags
+     * @template TService of object
+     * @template TTag of object
+     *
+     * @param class-string<TService>              $service
+     * @param non-empty-array<class-string<TTag>> $tags
      */
     public function tag(string $service, array $tags): void;
 
     /**
      * Resolve services with the given tag.
      *
-     * @param non-empty-string $tag
+     * @template TService of object
+     * @template TTag of object
+     *
+     * @param class-string<TTag> $tag
+     *
+     * @throws Throwable
      *
      * @return Generator<class-string<TService>,TService>
+     *
      */
     public function tagged(string $tag): Generator;
 
     /**
      * Remove a set of tags to a given service id.
      *
-     * @param class-string<TService>            $service
-     * @param non-empty-array<non-empty-string> $tags
+     * @template TService of object
+     * @template TTag of object
+     *
+     * @param class-string<TService>              $service
+     * @param non-empty-array<class-string<TTag>> $tags
      */
     public function untag(string $service, array $tags): void;
 }
