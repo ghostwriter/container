@@ -66,6 +66,7 @@ use function random_int;
 /**
  * @psalm-suppress ArgumentTypeCoercion
  * @psalm-suppress UndefinedClass
+ * @psalm-suppress UnevaluatedCode
  */
 #[CoversClass(Aliases::class)]
 #[CoversClass(Bindings::class)]
@@ -460,6 +461,8 @@ final class ContainerTest extends AbstractTestCase
     }
 
     /**
+     * @template TService of object
+     *
      * @throws Throwable
      */
     public function testRegisterTag(): void
@@ -469,6 +472,7 @@ final class ContainerTest extends AbstractTestCase
         $this->container->tag(Foo::class, ['tag-2']);
         $this->container->tag(stdClass::class, ['tag']);
 
+        /** @var TService $service */
         foreach ($this->container->tagged('tag') as $service) {
             self::assertInstanceOf(stdClass::class, $service);
         }
@@ -479,28 +483,34 @@ final class ContainerTest extends AbstractTestCase
     }
 
     /**
+     * @template TService of object
+     *
      * @throws Throwable
      */
     public function testSetTag(): void
     {
-        $this->container->set(stdClass::class, new stdClass(), ['tag']);
+        $this->container->set(stdClass::class, new stdClass(), [stdClass::class]);
 
-        foreach ($this->container->tagged('tag') as $service) {
+        /** @var TService $service */
+        foreach ($this->container->tagged(stdClass::class) as $service) {
             self::assertInstanceOf(stdClass::class, $service);
         }
 
-        $this->container->untag(stdClass::class, ['tag']);
+        $this->container->untag(stdClass::class, [stdClass::class]);
 
-        self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
+        self::assertCount(0, iterator_to_array($this->container->tagged(stdClass::class)));
     }
 
     /**
+     * @template TService of object
+     *
      * @throws Throwable
      */
     public function testTag(): void
     {
         $this->container->tag(stdClass::class, ['tag']);
 
+        /** @var TService $service */
         foreach ($this->container->tagged('tag') as $service) {
             self::assertInstanceOf(stdClass::class, $service);
         }
@@ -511,12 +521,15 @@ final class ContainerTest extends AbstractTestCase
     }
 
     /**
+     * @template TService of object
+     *
      * @throws Throwable
      */
     public function testTagThrows(): void
     {
         $this->container->tag(stdClass::class, ['tag']);
 
+        /** @var TService $service */
         foreach ($this->container->tagged('tag') as $service) {
             self::assertInstanceOf(stdClass::class, $service);
         }
