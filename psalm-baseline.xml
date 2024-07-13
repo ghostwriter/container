@@ -23,10 +23,4 @@
       <code><![CDATA[processReflectionParameter]]></code>
     </UnusedMethod>
   </file>
-  <file src="tests/Unit/ContainerTest.php">
-    <UnusedClosureParam>
-      <code><![CDATA[$container]]></code>
-      <code><![CDATA[$container]]></code>
-    </UnusedClosureParam>
-  </file>
 </files>
