@@ -8,6 +8,7 @@ use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Interface\Exception\NotFoundExceptionInterface;
 use Ghostwriter\Container\Interface\ExceptionInterface;
 use InvalidArgumentException;
+use Override;
 use PHPUnit\Framework\TestCase;
 use Throwable;
 
@@ -15,6 +16,7 @@ abstract class AbstractTestCase extends TestCase
 {
     protected Container $container;
 
+    #[Override]
     final protected function setUp(): void
     {
         parent::setUp();
@@ -25,6 +27,7 @@ abstract class AbstractTestCase extends TestCase
     /**
      * @throws Throwable
      */
+    #[Override]
     final protected function tearDown(): void
     {
         parent::tearDown();
