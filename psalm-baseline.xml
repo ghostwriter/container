@@ -15,4 +15,18 @@
       <code><![CDATA[__construct]]></code>
     </PossiblyUnusedMethod>
   </file>
+  <file src="src/Container.php">
+    <LessSpecificReturnType>
+      <code><![CDATA[array]]></code>
+    </LessSpecificReturnType>
+    <UnusedMethod>
+      <code><![CDATA[processReflectionParameter]]></code>
+    </UnusedMethod>
+  </file>
+  <file src="tests/Unit/ContainerTest.php">
+    <UnusedClosureParam>
+      <code><![CDATA[$container]]></code>
+      <code><![CDATA[$container]]></code>
+    </UnusedClosureParam>
+  </file>
 </files>
