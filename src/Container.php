@@ -52,6 +52,7 @@ use Override;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionFunction;
+use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
 use Throwable;
@@ -268,6 +269,8 @@ final class Container implements ContainerInterface
             is_string($callback) => $this->callString($callback),
         };
 
+        $this->processReflectionParameters(...$reflectionParameters);
+
         $parameters = $this->buildParameter($reflectionParameters, $arguments);
 
         /** @var TResult */
@@ -355,6 +358,7 @@ final class Container implements ContainerInterface
                 },
 
                 $this->factories->has($class) => $this->invoke($this->factories->get($class)),
+                $this->factories->has($service) => $this->invoke($this->factories->get($service)),
 
                 $this->builders->has($class) => (
                     /**
@@ -679,19 +683,6 @@ final class Container implements ContainerInterface
         $parameters = [];
 
         foreach ($reflectionParameters as $reflectionParameter) {
-            $reflectionType = $reflectionParameter->getType();
-
-            $isVendorClass = $reflectionType instanceof ReflectionNamedType && ! $reflectionType->isBuiltin();
-
-            $reflectionTypeName = '';
-
-            if ($isVendorClass) {
-                /** @var class-string<TService> $reflectionTypeName */
-                $reflectionTypeName = $reflectionType->getName();
-
-                $this->processReflectionParameter($reflectionTypeName, $reflectionParameter);
-            }
-
             $parameterName = $reflectionParameter->getName();
 
             $parameterPosition = $reflectionParameter->getPosition();
@@ -718,6 +709,8 @@ final class Container implements ContainerInterface
                 continue;
             }
 
+            $reflectionType = $reflectionParameter->getType();
+            $isVendorClass = $reflectionType instanceof ReflectionNamedType && ! $reflectionType->isBuiltin();
             $isDefaultValueAvailable = $reflectionParameter->isDefaultValueAvailable();
 
             if (! $isVendorClass && ! $isDefaultValueAvailable) {
@@ -735,10 +728,18 @@ final class Container implements ContainerInterface
                 ));
             }
 
-            /**
-             * @var class-string<TService> $reflectionTypeName
-             * @var TService               $service
-             */
+            if (! $isVendorClass) {
+                /** @var TArgument $argument */
+                $argument = $reflectionParameter->getDefaultValue();
+                $parameters[$parameterPosition] = $argument;
+
+                continue;
+            }
+
+            /** @var class-string<TService> $reflectionTypeName */
+            $reflectionTypeName = $reflectionType->getName();
+
+            /** @var TService $service */
             $service = match (true) {
                 default => match (true) {
                     default =>  $this->get($reflectionTypeName),
@@ -807,7 +808,7 @@ final class Container implements ContainerInterface
             function_exists($callback) => $this->reflectFunction($callback)
                 ->getParameters(),
 
-            default => (function (string $callback) {
+            default => (function (string $callback): array {
                 /**
                  * @var class-string                             $class
                  * @var '__invoke'|non-empty-string              $method
@@ -846,22 +847,13 @@ final class Container implements ContainerInterface
 
         $has = $this->has($service);
 
-        $this->processReflectionClass($reflectionClass);
+        $reflectionParameters = $this->processReflectionClass($reflectionClass);
 
         if (! $has && $this->has($service)) {
             return $this->get($service);
         }
 
-        $constructor = $reflectionClass->getConstructor();
-
-        $parameters = $constructor === null ? [] : $this->buildParameter(
-            $constructor->getParameters(),
-            $arguments
-        );
-
-        if (! $has && $this->has($service)) {
-            return $this->get($service);
-        }
+        $parameters = $this->buildParameter($reflectionParameters, $arguments);
 
         try {
             return $reflectionClass->newInstance(...$parameters);
@@ -880,18 +872,18 @@ final class Container implements ContainerInterface
      */
     private function processReflectionAttribute(string $class, ReflectionAttribute $reflectionAttribute): void
     {
-        $instance = $reflectionAttribute->newInstance();
+        $attribute = $reflectionAttribute->newInstance();
 
         match (true) {
             default => throw new ShouldNotHappenException(),
-            $instance instanceof Extension => $this->extend($class, $instance->service()),
+            $attribute instanceof Extension => $this->extend($class, $attribute->service()),
 
-            $instance instanceof Factory => $this->factory($class, $instance->service()),
+            $attribute instanceof Factory => $this->factory($class, $attribute->service()),
 
-            $instance instanceof Inject => match (true) {
-                default => $this->register($class, $instance->service()),
+            $attribute instanceof Inject => match (true) {
+                default => $this->register($class, $attribute->service()),
 
-                $instance->concrete !== null => $this->bind($instance->concrete(), $class, $instance->service()),
+                $attribute->concrete !== null => $this->bind($attribute->concrete(), $class, $attribute->service()),
             },
         };
     }
@@ -902,8 +894,11 @@ final class Container implements ContainerInterface
      * @param ReflectionClass<TService> $reflectionClass
      *
      * @throws Throwable
+     *
+     * @return list<ReflectionParameter>
+     *
      */
-    private function processReflectionClass(ReflectionClass $reflectionClass): void
+    private function processReflectionClass(ReflectionClass $reflectionClass): array
     {
         $class = $reflectionClass->getName();
 
@@ -915,6 +910,17 @@ final class Container implements ContainerInterface
         ) {
             $this->processReflectionAttribute($class, $reflectionAttribute);
         }
+
+        $constructor = $reflectionClass->getConstructor();
+        if (! $constructor instanceof ReflectionMethod) {
+            return [];
+        }
+
+        $reflectionParameters = $constructor->getParameters();
+
+        $this->processReflectionParameters(...$reflectionParameters);
+
+        return $reflectionParameters;
     }
 
     /**
@@ -933,6 +939,36 @@ final class Container implements ContainerInterface
             ) as $reflectionAttribute
         ) {
             $this->processReflectionAttribute($class, $reflectionAttribute);
+        }
+    }
+
+    /**
+     * @template TService of object
+     *
+     * @throws Throwable
+     */
+    private function processReflectionParameters(ReflectionParameter ...$reflectionParameters): void
+    {
+        foreach ($reflectionParameters as $reflectionParameter) {
+            $reflectionType = $reflectionParameter->getType();
+
+            if (! $reflectionType instanceof ReflectionNamedType) {
+                continue;
+            }
+
+            if ($reflectionType->isBuiltin()) {
+                continue;
+            }
+
+            /** @var class-string<TService> $class */
+            $class = $reflectionType->getName();
+
+            foreach ($reflectionParameter->getAttributes(
+                AttributeInterface::class,
+                ReflectionAttribute::IS_INSTANCEOF
+            ) as $reflectionAttribute) {
+                $this->processReflectionAttribute($class, $reflectionAttribute);
+            }
         }
     }
 
