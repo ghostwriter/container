@@ -19,7 +19,9 @@ use Ghostwriter\Container\List\Providers;
 use Ghostwriter\Container\List\Tags;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\Fixture\Attribute\ClassHasExtensionAttribute;
+use Tests\Fixture\Attribute\ClassHasFactoryAttribute2;
 use Tests\Fixture\Attribute\ClassParameterHasExtensionAttribute;
+use Tests\Fixture\Attribute\Foobar2;
 use Tests\Fixture\Foobar;
 use Tests\Unit\AbstractTestCase;
 
@@ -41,6 +43,7 @@ final class ExtensionTest extends AbstractTestCase
     public function testClassHasExtensionAttribute(): void
     {
         self::assertInstanceOf(Foobar::class, $this->container->get(ClassHasExtensionAttribute::class)->foobar());
+        self::assertInstanceOf(Foobar2::class, $this->container->get(ClassHasFactoryAttribute2::class)->foobar());
     }
 
     public function testClassParameterHasExtensionAttribute(): void
