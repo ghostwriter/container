@@ -21,3 +21,4 @@ final readonly class ClassHasFactoryAttribute
         return $this->foobar;
     }
 }
+
