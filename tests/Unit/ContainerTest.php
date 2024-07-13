@@ -88,11 +88,11 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testBuildParamPosition(): void
     {
-        $service = $this->container->build(ClassWithArray::class, [
+        $classWithArray = $this->container->build(ClassWithArray::class, [
             'items' => ['tag'],
         ]);
 
-        self::assertInstanceOf(ClassWithArray::class, $service);
+        self::assertInstanceOf(ClassWithArray::class, $classWithArray);
     }
 
     /**
@@ -292,20 +292,14 @@ final class ContainerTest extends AbstractTestCase
         self::assertSame('Untitled Text', $this->container->invoke(Dummy::class));
         self::assertSame('#BlackLivesMatter', $this->container->invoke(Dummy::class, [[], '#BlackLivesMatter']));
         self::assertSame('#BlackLivesMatter', $this->container->invoke(Dummy::class, [['#BlackLivesMatter'], '%s']));
-        self::assertSame(
-            '#BlackLivesMatter',
-            $this->container->invoke(Dummy::class, [
-                'data' => [],
-                'text' => '#BlackLivesMatter',
-            ])
-        );
-        self::assertSame(
-            '#BlackLivesMatter',
-            $this->container->invoke(Dummy::class, [
-                'data' => ['BlackLivesMatter'],
-                'text' => '#%s',
-            ])
-        );
+        self::assertSame('#BlackLivesMatter', $this->container->invoke(Dummy::class, [
+            'data' => [],
+            'text' => '#BlackLivesMatter',
+        ]));
+        self::assertSame('#BlackLivesMatter', $this->container->invoke(Dummy::class, [
+            'data' => ['BlackLivesMatter'],
+            'text' => '#%s',
+        ]));
     }
 
     /**
@@ -409,7 +403,7 @@ final class ContainerTest extends AbstractTestCase
             UnionTypehintWithoutDefaultValue::class,
             static fn (
                 ContainerInterface $container
-            ) => $container->build(UnionTypehintWithoutDefaultValue::class, [1])
+            ): UnionTypehintWithoutDefaultValue => $container->build(UnionTypehintWithoutDefaultValue::class, [1])
         );
         self::assertInstanceOf(
             UnionTypehintWithoutDefaultValue::class,
@@ -472,10 +466,7 @@ final class ContainerTest extends AbstractTestCase
         $this->container->tag(Foo::class, ['tag-2']);
         $this->container->tag(stdClass::class, ['tag']);
 
-        /** @var TService $service */
-        foreach ($this->container->tagged('tag') as $service) {
-            self::assertInstanceOf(stdClass::class, $service);
-        }
+        self::assertContainsOnlyInstancesOf(stdClass::class, $this->container->tagged('tag'));
 
         $this->container->untag(stdClass::class, ['tag']);
 
@@ -491,10 +482,7 @@ final class ContainerTest extends AbstractTestCase
     {
         $this->container->set(stdClass::class, new stdClass(), [stdClass::class]);
 
-        /** @var TService $service */
-        foreach ($this->container->tagged(stdClass::class) as $service) {
-            self::assertInstanceOf(stdClass::class, $service);
-        }
+        self::assertContainsOnlyInstancesOf(stdClass::class, $this->container->tagged(stdClass::class));
 
         $this->container->untag(stdClass::class, [stdClass::class]);
 
@@ -510,10 +498,7 @@ final class ContainerTest extends AbstractTestCase
     {
         $this->container->tag(stdClass::class, ['tag']);
 
-        /** @var TService $service */
-        foreach ($this->container->tagged('tag') as $service) {
-            self::assertInstanceOf(stdClass::class, $service);
-        }
+        self::assertContainsOnlyInstancesOf(stdClass::class, $this->container->tagged('tag'));
 
         $this->container->untag(stdClass::class, ['tag']);
 
@@ -529,10 +514,7 @@ final class ContainerTest extends AbstractTestCase
     {
         $this->container->tag(stdClass::class, ['tag']);
 
-        /** @var TService $service */
-        foreach ($this->container->tagged('tag') as $service) {
-            self::assertInstanceOf(stdClass::class, $service);
-        }
+        self::assertContainsOnlyInstancesOf(stdClass::class, $this->container->tagged('tag'));
 
         $this->container->untag(stdClass::class, ['tag']);
 
