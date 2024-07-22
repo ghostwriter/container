@@ -418,7 +418,7 @@ final class ContainerTest extends AbstractTestCase
     {
         $object = new stdClass();
 
-        $closure = static fn (ContainerInterface $_): stdClass => $object;
+        $closure = static fn (ContainerInterface $container): stdClass => $object;
 
         $this->container->set(stdClass::class, $closure);
 
@@ -590,7 +590,7 @@ final class ContainerTest extends AbstractTestCase
         yield CallableConstructor::class => [
             CallableConstructor::class,
             [
-                'value' => static fn (ContainerInterface $_): null => null,
+                'value' => static fn (ContainerInterface $container): null => null,
             ],
         ];
 
