@@ -1,6 +1,6 @@
 # Container
 
-[![Compliance](https://github.com/ghostwriter/container/actions/workflows/compliance.yml/badge.svg)](https://github.com/ghostwriter/container/actions/workflows/compliance.yml)
+[![Automation](https://github.com/ghostwriter/container/actions/workflows/automation.yml/badge.svg)](https://github.com/ghostwriter/container/actions/workflows/automation.yml)
 [![Supported PHP Version](https://badgen.net/packagist/php/ghostwriter/container?color=8892bf)](https://www.php.net/supported-versions)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/ghostwriter?label=Sponsor+@ghostwriter/container&logo=GitHub+Sponsors)](https://github.com/sponsors/ghostwriter)
 [![Mutation Coverage](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fghostwriter%2Fcontainer%2Fmain)](https://dashboard.stryker-mutator.io/reports/github.com/ghostwriter/container/main)
