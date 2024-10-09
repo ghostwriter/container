@@ -22,8 +22,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\Unit\AbstractTestCase;
 use Throwable;
 
-use function serialize;
-
 #[CoversClass(DontSerializeContainerException::class)]
 #[CoversClass(Aliases::class)]
 #[CoversClass(Bindings::class)]
@@ -47,6 +45,6 @@ final class DontSerializeContainerExceptionTest extends AbstractTestCase
     {
         $this->assertException(DontSerializeContainerException::class);
 
-        self::assertNull(serialize($this->container));
+        self::assertNull(\serialize($this->container));
     }
 }
