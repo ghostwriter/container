@@ -7,9 +7,6 @@ namespace Ghostwriter\Container\List;
 use Ghostwriter\Container\Exception\BindingNotFoundException;
 use Ghostwriter\Container\Interface\ListInterface;
 
-use function array_key_exists;
-use function in_array;
-
 /**
  * @template-covariant TConcrete of object
  * @template-covariant TService of object
@@ -25,10 +22,22 @@ final class Bindings implements ListInterface
     ) {
     }
 
+    /**
+     * @template TNewConcrete of object
+     * @template TNewService of object
+     * @template TNewImplementation of object
+     *
+     * @param array<class-string<TNewConcrete>,non-empty-array<class-string<TNewService>,class-string<TNewImplementation>>> $list
+     */
+    public static function new(array $list = []): self
+    {
+        return new self($list);
+    }
+
     public function contains(string $service): bool
     {
         foreach ($this->list as $services) {
-            if (in_array($service, $services, true)) {
+            if (\in_array($service, $services, true)) {
                 return true;
             }
         }
@@ -58,11 +67,11 @@ final class Bindings implements ListInterface
      */
     public function has(string $concrete, string $service): bool
     {
-        if (! array_key_exists($concrete, $this->list)) {
+        if (! \array_key_exists($concrete, $this->list)) {
             return false;
         }
 
-        return array_key_exists($service, $this->list[$concrete]);
+        return \array_key_exists($service, $this->list[$concrete]);
     }
 
     /**
@@ -77,17 +86,5 @@ final class Bindings implements ListInterface
     public function set(string $concrete, string $service, string $implementation): void
     {
         $this->list[$concrete][$service] = $implementation;
-    }
-
-    /**
-     * @template TNewConcrete of object
-     * @template TNewService of object
-     * @template TNewImplementation of object
-     *
-     * @param array<class-string<TNewConcrete>,non-empty-array<class-string<TNewService>,class-string<TNewImplementation>>> $list
-     */
-    public static function new(array $list = []): self
-    {
-        return new self($list);
     }
 }
