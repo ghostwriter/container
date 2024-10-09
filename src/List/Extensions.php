@@ -21,6 +21,16 @@ final class Extensions implements ListInterface
     }
 
     /**
+     * @template TNewService of object
+     *
+     * @param array<class-string<TNewService>,non-empty-array<class-string<ExtensionInterface<TNewService>>,bool>> $list
+     */
+    public static function new(array $list = []): self
+    {
+        return new self($list);
+    }
+
+    /**
      * @return array<class-string<TService>,array<class-string<ExtensionInterface<TService>>,bool>>
      */
     public function all(): array
@@ -46,15 +56,5 @@ final class Extensions implements ListInterface
     public function unset(string $service): void
     {
         unset($this->list[$service]);
-    }
-
-    /**
-     * @template TNewService of object
-     *
-     * @param array<class-string<TNewService>,non-empty-array<class-string<ExtensionInterface<TNewService>>,bool>> $list
-     */
-    public static function new(array $list = []): self
-    {
-        return new self($list);
     }
 }
