@@ -8,8 +8,6 @@ use Ghostwriter\Container\Exception\FactoryNotFoundException;
 use Ghostwriter\Container\Interface\FactoryInterface;
 use Ghostwriter\Container\Interface\ListInterface;
 
-use function array_key_exists;
-
 /**
  * @template-covariant TService of object
  */
@@ -21,6 +19,16 @@ final class Factories implements ListInterface
     public function __construct(
         private array $list = []
     ) {
+    }
+
+    /**
+     * @template TNewFactory of object
+     *
+     * @param array<class-string<TNewFactory>,class-string<FactoryInterface<TNewFactory>>> $list
+     */
+    public static function new(array $list = []): self
+    {
+        return new self($list);
     }
 
     /**
@@ -38,7 +46,7 @@ final class Factories implements ListInterface
      */
     public function has(string $service): bool
     {
-        return array_key_exists($service, $this->list);
+        return \array_key_exists($service, $this->list);
     }
 
     /**
@@ -59,15 +67,5 @@ final class Factories implements ListInterface
     public function unset(string $service): void
     {
         unset($this->list[$service]);
-    }
-
-    /**
-     * @template TNewFactory of object
-     *
-     * @param array<class-string<TNewFactory>,class-string<FactoryInterface<TNewFactory>>> $list
-     */
-    public static function new(array $list = []): self
-    {
-        return new self($list);
     }
 }
