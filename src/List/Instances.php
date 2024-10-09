@@ -7,8 +7,6 @@ namespace Ghostwriter\Container\List;
 use Ghostwriter\Container\Exception\InstanceNotFoundException;
 use Ghostwriter\Container\Interface\ListInterface;
 
-use function array_key_exists;
-
 /**
  * @template TService of object
  */
@@ -20,6 +18,18 @@ final class Instances implements ListInterface
     public function __construct(
         private array $list = []
     ) {
+    }
+
+    /**
+     * @template TNewService of object
+     *
+     * @param array<class-string<TNewService>,TNewService> $list
+     *
+     * @return self<TNewService>
+     */
+    public static function new(array $list = []): self
+    {
+        return new self($list);
     }
 
     /**
@@ -42,7 +52,7 @@ final class Instances implements ListInterface
      */
     public function has(string $service): bool
     {
-        return array_key_exists($service, $this->list);
+        return \array_key_exists($service, $this->list);
     }
 
     /**
@@ -63,17 +73,5 @@ final class Instances implements ListInterface
     public function unset(string $service): void
     {
         unset($this->list[$service]);
-    }
-
-    /**
-     * @template TNewService of object
-     *
-     * @param array<class-string<TNewService>,TNewService> $list
-     *
-     * @return self<TNewService>
-     */
-    public static function new(array $list = []): self
-    {
-        return new self($list);
     }
 }
