@@ -12,9 +12,6 @@ use Ghostwriter\Container\Exception\ServiceNameMustBeNonEmptyStringException;
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\ListInterface;
 
-use function array_key_exists;
-use function trim;
-
 /**
  * @template-covariant TAlias of object
  * @template-covariant TService of object
@@ -27,6 +24,21 @@ final class Aliases implements ListInterface
     public function __construct(
         private array $list
     ) {
+    }
+
+    /**
+     * @template TNewAlias of object
+     * @template TNewService of object
+     *
+     * @param non-empty-array<class-string<TNewAlias>,class-string<TNewService>> $list
+     *
+     * @return self<TNewAlias,TNewService>
+     */
+    public static function new(array $list = [
+        ContainerInterface::class => Container::class,
+    ]): self
+    {
+        return new self($list);
     }
 
     /**
@@ -46,7 +58,7 @@ final class Aliases implements ListInterface
      */
     public function has(string $alias): bool
     {
-        return array_key_exists($alias, $this->list);
+        return \array_key_exists($alias, $this->list);
     }
 
     /**
@@ -62,11 +74,11 @@ final class Aliases implements ListInterface
      */
     public function set(string $alias, string $service): void
     {
-        if (trim($alias) === '') {
+        if (\trim($alias) === '') {
             throw new AliasNameMustBeNonEmptyStringException();
         }
 
-        if (trim($service) === '') {
+        if (\trim($service) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
@@ -84,20 +96,5 @@ final class Aliases implements ListInterface
     public function unset(string $alias): void
     {
         unset($this->list[$alias]);
-    }
-
-    /**
-     * @template TNewAlias of object
-     * @template TNewService of object
-     *
-     * @param non-empty-array<class-string<TNewAlias>,class-string<TNewService>> $list
-     *
-     * @return self<TNewAlias,TNewService>
-     */
-    public static function new(array $list = [
-        ContainerInterface::class => Container::class,
-    ]): self
-    {
-        return new self($list);
     }
 }
