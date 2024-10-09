@@ -22,8 +22,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\Unit\AbstractTestCase;
 use Throwable;
 
-use function iterator_to_array;
-
 #[CoversClass(ServiceTagNotFoundException::class)]
 #[CoversClass(Aliases::class)]
 #[CoversClass(Bindings::class)]
@@ -47,7 +45,7 @@ final class ServiceTagNotFoundExceptionTest extends AbstractTestCase
     {
         $this->assertNotFoundException(ServiceTagNotFoundException::class);
 
-        iterator_to_array($this->container->tagged(self::class));
+        \iterator_to_array($this->container->tagged(self::class));
     }
 
     /**
