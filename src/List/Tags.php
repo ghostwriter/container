@@ -79,7 +79,7 @@ final class Tags implements ListInterface
     public function set(string $service, array $tags): void
     {
         foreach ($tags as $tag) {
-            if (\trim($tag) === '') {
+            if (\mb_trim($tag) === '') {
                 throw new ServiceTagMustBeNonEmptyStringException();
             }
 
