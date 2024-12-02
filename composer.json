@@ -17,12 +17,11 @@
     ],
     "homepage": "https://github.com/ghostwriter/container",
     "support": {
-        "docs": "https://github.com/ghostwriter/container",
-        "forum": "https://github.com/ghostwriter/container/discussions",
         "issues": "https://github.com/ghostwriter/container/issues",
+        "source": "https://github.com/ghostwriter/container",
+        "docs": "https://github.com/ghostwriter/container",
         "rss": "https://github.com/ghostwriter/container/releases.atom",
-        "security": "https://github.com/ghostwriter/container/security/advisories/new",
-        "source": "https://github.com/ghostwriter/container"
+        "security": "https://github.com/ghostwriter/container/security/advisories/new"
     },
     "funding": [
         {
@@ -30,14 +29,19 @@
             "url": "https://github.com/sponsors/ghostwriter"
         }
     ],
-    "_comment": "#BlackLivesMatter",
+    "_comment": [
+        "#BlackLivesMatter",
+        "#FreePalestine",
+        "#StandWithUkraine"
+    ],
     "require": {
         "php": ">=8.3"
     },
     "require-dev": {
-        "ghostwriter/coding-standard": "dev-main"
+        "ghostwriter/coding-standard": "dev-main",
+        "ghostwriter/psalm-plugin": "dev-main"
     },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
@@ -46,38 +50,43 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests"
+            "Tests\\": "tests",
+            "Ghostwriter\\ContainerTests\\Unit\\": "tests/Unit"
         },
         "files": [
             "tests/Fixture/functions.php"
+        ],
+        "exclude-from-classmap": [
+            "tests/Fixture/"
         ]
     },
     "config": {
         "allow-plugins": {
-            "ghostwriter/coding-standard": true
+            "ghostwriter/coding-standard": true,
+            "ghostwriter/handrail": true
         },
         "classmap-authoritative": false,
         "discard-changes": true,
         "optimize-autoloader": true,
+        "platform": {
+            "php": "8.3.999"
+        },
         "preferred-install": "dist",
         "prepend-autoloader": true,
         "process-timeout": 5000,
         "sort-packages": true,
-        "use-parent-dir": false,
-        "platform": {
-            "php": "8.3.999"
-        }
+        "use-parent-dir": false
     },
     "scripts": {
         "bin_ecs": "ecs check --clear-cache --no-interaction",
-        "bin_infection": "infection --ansi --show-mutations --threads=max --min-msi=0 --min-covered-msi=0",
-        "bin_phive": "phive",
-        "bin_phpunit": "phpunit --do-not-cache-result --colors=always",
-        "bin_psalm": "psalm --no-cache",
+        "bin_infection": "vendor/ghostwriter/coding-standard/tools/infection --ansi --show-mutations --threads=max --min-msi=0 --min-covered-msi=0",
+        "bin_phive": "vendor/ghostwriter/coding-standard/tools/phive",
+        "bin_phpunit": "vendor/ghostwriter/coding-standard/tools/phpunit --do-not-cache-result --colors=always",
+        "bin_psalm": "vendor/ghostwriter/coding-standard/tools/psalm --no-cache",
         "bin_rector": "rector process --no-ansi --clear-cache",
         "cache:clear": "rm -rf ./.cache/*",
         "check": [
-            "@composer validate",
+            "vendor/ghostwriter/coding-standard/tools/composer validate",
             "@ecs",
             "@test"
         ],
@@ -97,7 +106,7 @@
         "psalm:alter": "@bin_psalm --alter --allow-backwards-incompatible-changes=false --safe-types",
         "psalm:baseline": "@psalm --no-diff --set-baseline=psalm-baseline.xml",
         "psalm:dry-run": "@psalm:alter --issues=all --dry-run",
-        "psalm:fix": "@psalm:alter --issues=UnnecessaryVarAnnotation,MissingPureAnnotation,MissingImmutableAnnotation",
+        "psalm:fix": "@psalm:alter --issues=UnnecessaryVarAnnotation",
         "psalm:security": "@psalm --no-diff --taint-analysis",
         "psalm:shepherd": "@psalm --no-diff --shepherd --stats",
         "psalm:update": "@psalm --no-diff --update-baseline=psalm-baseline.xml",
