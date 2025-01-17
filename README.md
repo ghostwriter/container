@@ -5,7 +5,6 @@
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/ghostwriter?label=Sponsor+@ghostwriter/container&logo=GitHub+Sponsors)](https://github.com/sponsors/ghostwriter)
 [![Mutation Coverage](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fghostwriter%2Fcontainer%2Fmain)](https://dashboard.stryker-mutator.io/reports/github.com/ghostwriter/container/main)
 [![Code Coverage](https://codecov.io/gh/ghostwriter/container/branch/main/graph/badge.svg)](https://codecov.io/gh/ghostwriter/container)
-[![Type Coverage](https://shepherd.dev/github/ghostwriter/container/coverage.svg)](https://shepherd.dev/github/ghostwriter/container)
 [![Latest Version on Packagist](https://badgen.net/packagist/v/ghostwriter/container)](https://packagist.org/packages/ghostwriter/container)
 [![Downloads](https://badgen.net/packagist/dt/ghostwriter/container?color=blue)](https://packagist.org/packages/ghostwriter/container)
 
