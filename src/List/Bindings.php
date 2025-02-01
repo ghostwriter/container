@@ -22,7 +22,18 @@ final class Bindings implements ListInterface
      */
     public function __construct(
         private array $list = []
-    ) {
+    ) {}
+
+    /**
+     * @template TNewConcrete of object
+     * @template TNewService of object
+     * @template TNewImplementation of object
+     *
+     * @param array<class-string<TNewConcrete>,non-empty-array<class-string<TNewService>,class-string<TNewImplementation>>> $list
+     */
+    public static function new(array $list = []): self
+    {
+        return new self($list);
     }
 
     public function contains(string $service): bool
@@ -77,17 +88,5 @@ final class Bindings implements ListInterface
     public function set(string $concrete, string $service, string $implementation): void
     {
         $this->list[$concrete][$service] = $implementation;
-    }
-
-    /**
-     * @template TNewConcrete of object
-     * @template TNewService of object
-     * @template TNewImplementation of object
-     *
-     * @param array<class-string<TNewConcrete>,non-empty-array<class-string<TNewService>,class-string<TNewImplementation>>> $list
-     */
-    public static function new(array $list = []): self
-    {
-        return new self($list);
     }
 }
