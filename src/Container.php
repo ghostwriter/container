@@ -866,6 +866,8 @@ final class Container implements ContainerInterface
 
         match (true) {
             default => throw new ShouldNotHappenException(),
+            $attribute instanceof Provider => $this->provide($attribute->service()),
+
             $attribute instanceof Extension => $this->extend($class, $attribute->service()),
 
             $attribute instanceof Factory => $this->factory($class, $attribute->service()),
