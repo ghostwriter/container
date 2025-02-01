@@ -7,6 +7,8 @@ namespace Ghostwriter\Container\List;
 use Ghostwriter\Container\Interface\ListInterface;
 use Ghostwriter\Container\Interface\ServiceProviderInterface;
 
+use function array_key_exists;
+
 final class Providers implements ListInterface
 {
     /**
@@ -14,8 +16,7 @@ final class Providers implements ListInterface
      */
     public function __construct(
         private array $list = []
-    ) {
-    }
+    ) {}
 
     /**
      * @param array<class-string<ServiceProviderInterface>,bool> $list
@@ -38,7 +39,7 @@ final class Providers implements ListInterface
      */
     public function has(string $serviceProvider): bool
     {
-        return \array_key_exists($serviceProvider, $this->list);
+        return array_key_exists($serviceProvider, $this->list);
     }
 
     public function unset(string $serviceProvider): void
