@@ -9,6 +9,7 @@ use Generator;
 use Ghostwriter\Container\Attribute\Extension;
 use Ghostwriter\Container\Attribute\Factory;
 use Ghostwriter\Container\Attribute\Inject;
+use Ghostwriter\Container\Attribute\Provider;
 use Ghostwriter\Container\Exception\AliasNameAndServiceNameCannotBeTheSameException;
 use Ghostwriter\Container\Exception\AliasNameMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\BindingNotFoundException;
@@ -55,6 +56,7 @@ use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
+use Tests\Unit\ContainerTest;
 use Throwable;
 
 use function array_key_exists;
@@ -69,11 +71,11 @@ use function is_array;
 use function is_callable;
 use function is_object;
 use function is_string;
-use function sprintf;
 use function trim;
+use function sprintf;
 
 /**
- * @see \Tests\Unit\ContainerTest
+ * @see ContainerTest
  */
 final class Container implements ContainerInterface
 {
@@ -128,7 +130,7 @@ final class Container implements ContainerInterface
     /**
      * @template TMixed
      *
-     * @param array<TMixed> $_
+     * @param list<TMixed> $_
      *
      * @throws DontUnserializeContainerException
      */
@@ -210,7 +212,7 @@ final class Container implements ContainerInterface
      * @template TArgument
      *
      * @param class-string<TService> $service
-     * @param array<TArgument>       $arguments
+     * @param list<TArgument>        $arguments
      *
      * @throws CircularDependencyException
      * @throws ClassNotInstantiableException
@@ -252,7 +254,7 @@ final class Container implements ContainerInterface
      * @template TResult
      *
      * @param array{0:(class-string<TService>|TService),1:'__invoke'|string}|callable|callable-string|Closure(TArgument...):TResult|TService $callback
-     * @param array<TArgument>                                                                                                               $arguments
+     * @param list<TArgument>                                                                                                                $arguments
      *
      * @throws Throwable
      *
@@ -348,8 +350,8 @@ final class Container implements ContainerInterface
                 default => match (true) {
                     class_exists($class) => $this->build($class),
                     default => throw new ServiceNotFoundException(
-                        $this->dependencies->found() ?
-                        sprintf(
+                        $this->dependencies->found()
+                        ? sprintf(
                             'Service "%s" not found, required by "%s".',
                             $class,
                             $this->dependencies->last()
@@ -417,7 +419,7 @@ final class Container implements ContainerInterface
      * @template TResult
      *
      * @param class-string<TService> $invokable
-     * @param array<TArgument>       $arguments
+     * @param list<TArgument>        $arguments
      *
      * @throws InvokableClassMustBeCallableException
      * @throws Throwable
@@ -483,9 +485,9 @@ final class Container implements ContainerInterface
      * @template TConcrete of object
      * @template TTag of object
      *
-     * @param class-string<TAbstract>   $abstract
-     * @param class-string<TConcrete>   $concrete
-     * @param array<class-string<TTag>> $tags
+     * @param class-string<TAbstract>  $abstract
+     * @param class-string<TConcrete>  $concrete
+     * @param list<class-string<TTag>> $tags
      *
      * @throws NotFoundExceptionInterface
      * @throws ExceptionInterface
@@ -503,7 +505,7 @@ final class Container implements ContainerInterface
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
-        if ($tags !== []) {
+        if ([] !== $tags) {
             $this->tags->set($abstract, $tags);
         }
 
@@ -560,7 +562,7 @@ final class Container implements ContainerInterface
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
-        if ($tags !== []) {
+        if ([] !== $tags) {
             $this->tags->set($service, $tags);
         }
 
@@ -577,8 +579,8 @@ final class Container implements ContainerInterface
     /**
      * @template TService of object
      *
-     * @param class-string<TService>            $service
-     * @param non-empty-array<non-empty-string> $tags
+     * @param class-string<TService>           $service
+     * @param non-empty-list<non-empty-string> $tags
      *
      * @throws ExceptionInterface
      */
@@ -619,8 +621,8 @@ final class Container implements ContainerInterface
     /**
      * @template TService of object
      *
-     * @param class-string<TService>            $service
-     * @param non-empty-array<non-empty-string> $tags
+     * @param class-string<TService>           $service
+     * @param non-empty-list<non-empty-string> $tags
      */
     #[Override]
     public function untag(string $service, array $tags): void
@@ -645,7 +647,7 @@ final class Container implements ContainerInterface
 
         $extensions = $this->extensions->all();
 
-        if ($extensions === []) {
+        if ([] === $extensions) {
             return $instance;
         }
 
@@ -669,17 +671,17 @@ final class Container implements ContainerInterface
      * @template TArgument
      * @template TService of object
      *
-     * @param array<ReflectionParameter> $reflectionParameters
-     * @param array<TArgument>           $arguments
+     * @param list<ReflectionParameter> $reflectionParameters
+     * @param list<TArgument>           $arguments
      *
      * @throws Throwable
      *
-     * @return array<TArgument|TService>
+     * @return list<TArgument|TService>
      *
      */
     private function buildParameter(array $reflectionParameters = [], array $arguments = []): array
     {
-        /** @var array<TArgument|TService> $parameters */
+        /** @var list<TArgument|TService> $parameters */
         $parameters = [];
 
         foreach ($reflectionParameters as $reflectionParameter) {
@@ -706,6 +708,10 @@ final class Container implements ContainerInterface
 
                 $parameters[$parameterPosition] = $argument;
 
+                continue;
+            }
+
+            if ($reflectionParameter->isOptional()) {
                 continue;
             }
 
@@ -830,7 +836,7 @@ final class Container implements ContainerInterface
      * @template TArgument
      *
      * @param class-string<TInstantiate> $service
-     * @param array<TArgument>           $arguments
+     * @param list<TArgument>            $arguments
      *
      * @throws Throwable
      *
@@ -876,6 +882,8 @@ final class Container implements ContainerInterface
 
         match (true) {
             default => throw new ShouldNotHappenException(),
+            $attribute instanceof Provider => $this->provide($attribute->service()),
+
             $attribute instanceof Extension => $this->extend($class, $attribute->service()),
 
             $attribute instanceof Factory => $this->factory($class, $attribute->service()),
@@ -883,7 +891,7 @@ final class Container implements ContainerInterface
             $attribute instanceof Inject => match (true) {
                 default => $this->register($class, $attribute->service()),
 
-                $attribute->concrete !== null => $this->bind($attribute->concrete(), $class, $attribute->service()),
+                null !== $attribute->concrete => $this->bind($attribute->concrete(), $class, $attribute->service()),
             },
         };
     }
