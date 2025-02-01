@@ -12,6 +12,9 @@ use Ghostwriter\Container\Exception\ServiceNameMustBeNonEmptyStringException;
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\ListInterface;
 
+use function array_key_exists;
+use function trim;
+
 /**
  * @template-covariant TAlias of object
  * @template-covariant TService of object
@@ -23,8 +26,7 @@ final class Aliases implements ListInterface
      */
     public function __construct(
         private array $list
-    ) {
-    }
+    ) {}
 
     /**
      * @template TNewAlias of object
@@ -58,7 +60,7 @@ final class Aliases implements ListInterface
      */
     public function has(string $alias): bool
     {
-        return \array_key_exists($alias, $this->list);
+        return array_key_exists($alias, $this->list);
     }
 
     /**
@@ -74,11 +76,11 @@ final class Aliases implements ListInterface
      */
     public function set(string $alias, string $service): void
     {
-        if (\trim($alias) === '') {
+        if (trim($alias) === '') {
             throw new AliasNameMustBeNonEmptyStringException();
         }
 
-        if (\trim($service) === '') {
+        if (trim($service) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
