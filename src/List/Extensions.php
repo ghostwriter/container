@@ -13,17 +13,16 @@ use Ghostwriter\Container\Interface\ListInterface;
 final class Extensions implements ListInterface
 {
     /**
-     * @param array<class-string<TService>,non-empty-array<class-string<ExtensionInterface<TService>>,bool>> $list
+     * @param array<class-string<TService>,non-empty-list<class-string<ExtensionInterface<TService>>,bool>> $list
      */
     public function __construct(
         private array $list = []
-    ) {
-    }
+    ) {}
 
     /**
      * @template TNewService of object
      *
-     * @param array<class-string<TNewService>,non-empty-array<class-string<ExtensionInterface<TNewService>>,bool>> $list
+     * @param array<class-string<TNewService>,non-empty-list<class-string<ExtensionInterface<TNewService>>,bool>> $list
      */
     public static function new(array $list = []): self
     {
@@ -31,7 +30,7 @@ final class Extensions implements ListInterface
     }
 
     /**
-     * @return array<class-string<TService>,array<class-string<ExtensionInterface<TService>>,bool>>
+     * @return array<class-string<TService>,list<class-string<ExtensionInterface<TService>>,bool>>
      */
     public function all(): array
     {
