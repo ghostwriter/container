@@ -74,11 +74,11 @@ final class Aliases implements ListInterface
      */
     public function set(string $alias, string $service): void
     {
-        if (\mb_trim($alias) === '') {
+        if (\trim($alias) === '') {
             throw new AliasNameMustBeNonEmptyStringException();
         }
 
-        if (\mb_trim($service) === '') {
+        if (\trim($service) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
