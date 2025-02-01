@@ -9,6 +9,7 @@ use Generator;
 use Ghostwriter\Container\Attribute\Extension;
 use Ghostwriter\Container\Attribute\Factory;
 use Ghostwriter\Container\Attribute\Inject;
+use Ghostwriter\Container\Attribute\Provider;
 use Ghostwriter\Container\Exception\AliasNameAndServiceNameCannotBeTheSameException;
 use Ghostwriter\Container\Exception\AliasNameMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\BindingNotFoundException;
@@ -57,6 +58,21 @@ use ReflectionNamedType;
 use ReflectionParameter;
 use Tests\Unit\ContainerTest;
 use Throwable;
+
+use function array_key_exists;
+use function array_keys;
+use function class_exists;
+use function explode;
+use function function_exists;
+use function implode;
+use function interface_exists;
+use function is_a;
+use function is_array;
+use function is_callable;
+use function is_object;
+use function is_string;
+use function trim;
+use function sprintf;
 
 /**
  * @see ContainerTest
@@ -114,7 +130,7 @@ final class Container implements ContainerInterface
     /**
      * @template TMixed
      *
-     * @param array<TMixed> $_
+     * @param list<TMixed> $_
      *
      * @throws DontUnserializeContainerException
      */
@@ -137,11 +153,11 @@ final class Container implements ContainerInterface
     #[Override]
     public function alias(string $service, string $alias): void
     {
-        if (\trim($alias) === '') {
+        if (trim($alias) === '') {
             throw new AliasNameMustBeNonEmptyStringException();
         }
 
-        if (\trim($service) === '') {
+        if (trim($service) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
@@ -164,27 +180,27 @@ final class Container implements ContainerInterface
     #[Override]
     public function bind(string $concrete, string $service, string $implementation): void
     {
-        if (\trim($concrete) === '') {
+        if (trim($concrete) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
-        if (! \class_exists($concrete)) {
+        if (! class_exists($concrete)) {
             throw new ServiceNotFoundException($concrete);
         }
 
-        if (\trim($service) === '') {
+        if (trim($service) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
-        if (! \class_exists($service) && ! \interface_exists($service)) {
+        if (! class_exists($service) && ! interface_exists($service)) {
             throw new ServiceNotFoundException($service);
         }
 
-        if (\trim($implementation) === '') {
+        if (trim($implementation) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
-        if (! \class_exists($implementation) && ! \interface_exists($implementation)) {
+        if (! class_exists($implementation) && ! interface_exists($implementation)) {
             throw new ServiceNotFoundException($implementation);
         }
 
@@ -196,7 +212,7 @@ final class Container implements ContainerInterface
      * @template TArgument
      *
      * @param class-string<TService> $service
-     * @param array<TArgument>       $arguments
+     * @param list<TArgument>        $arguments
      *
      * @throws CircularDependencyException
      * @throws ClassNotInstantiableException
@@ -215,9 +231,9 @@ final class Container implements ContainerInterface
         $class = $this->resolve($service);
 
         if ($this->dependencies->has($class)) {
-            throw new CircularDependencyException(\sprintf(
+            throw new CircularDependencyException(sprintf(
                 'Class: %s -> %s',
-                \implode(' -> ', $this->dependencies->toArray()),
+                implode(' -> ', $this->dependencies->toArray()),
                 $class
             ));
         }
@@ -238,7 +254,7 @@ final class Container implements ContainerInterface
      * @template TResult
      *
      * @param array{0:(class-string<TService>|TService),1:'__invoke'|string}|callable|callable-string|Closure(TArgument...):TResult|TService $callback
-     * @param array<TArgument>                                                                                                               $arguments
+     * @param list<TArgument>                                                                                                                $arguments
      *
      * @throws Throwable
      *
@@ -251,8 +267,8 @@ final class Container implements ContainerInterface
         $reflectionParameters = match (true) {
             $callback instanceof Closure => $this->callClosure($callback),
             default => $this->callString($callback::class),
-            \is_array($callback) => $this->callArray($callback),
-            \is_string($callback) => $this->callString($callback),
+            is_array($callback) => $this->callArray($callback),
+            is_string($callback) => $this->callString($callback),
         };
 
         $this->processReflectionParameters(...$reflectionParameters);
@@ -275,11 +291,11 @@ final class Container implements ContainerInterface
     #[Override]
     public function extend(string $service, string $extension): void
     {
-        if (\trim($service) === '') {
+        if (trim($service) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
-        if (! \is_a($extension, ExtensionInterface::class, true)) {
+        if (! is_a($extension, ExtensionInterface::class, true)) {
             throw new ServiceExtensionMustBeAnInstanceOfExtensionInterfaceException($extension);
         }
 
@@ -301,11 +317,11 @@ final class Container implements ContainerInterface
     #[Override]
     public function factory(string $service, string $factory): void
     {
-        if (\trim($service) === '') {
+        if (trim($service) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
-        if (! \is_a($factory, FactoryInterface::class, true)) {
+        if (! is_a($factory, FactoryInterface::class, true)) {
             throw new ServiceFactoryMustBeAnInstanceOfFactoryInterfaceException($factory);
         }
 
@@ -332,10 +348,10 @@ final class Container implements ContainerInterface
         return match (true) {
             default => $this->applyExtensions($class, match (true) {
                 default => match (true) {
-                    \class_exists($class) => $this->build($class),
+                    class_exists($class) => $this->build($class),
                     default => throw new ServiceNotFoundException(
-                        $this->dependencies->found() ?
-                        \sprintf(
+                        $this->dependencies->found()
+                        ? sprintf(
                             'Service "%s" not found, required by "%s".',
                             $class,
                             $this->dependencies->last()
@@ -361,7 +377,7 @@ final class Container implements ContainerInterface
                         /** @var null|TService $instance */
                         $instance = $this->call($builder);
 
-                        if (! \is_object($instance)) {
+                        if (! is_object($instance)) {
                             throw new ServiceMustBeAnObjectException($class);
                         }
 
@@ -384,7 +400,7 @@ final class Container implements ContainerInterface
     #[Override]
     public function has(string $service): bool
     {
-        if (\trim($service) === '') {
+        if (trim($service) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
@@ -403,7 +419,7 @@ final class Container implements ContainerInterface
      * @template TResult
      *
      * @param class-string<TService> $invokable
-     * @param array<TArgument>       $arguments
+     * @param list<TArgument>        $arguments
      *
      * @throws InvokableClassMustBeCallableException
      * @throws Throwable
@@ -417,7 +433,7 @@ final class Container implements ContainerInterface
         /** @var Closure(TArgument...):TResult&TService $callable */
         $callable = $this->get($invokable);
 
-        if (! \is_callable($callable)) {
+        if (! is_callable($callable)) {
             throw new InvokableClassMustBeCallableException($invokable);
         }
 
@@ -435,7 +451,7 @@ final class Container implements ContainerInterface
     #[Override]
     public function provide(string $serviceProvider): void
     {
-        if (! \is_a($serviceProvider, ServiceProviderInterface::class, true)) {
+        if (! is_a($serviceProvider, ServiceProviderInterface::class, true)) {
             throw new ServiceProviderMustBeAnInstanceOfServiceProviderInterfaceException($serviceProvider);
         }
 
@@ -469,9 +485,9 @@ final class Container implements ContainerInterface
      * @template TConcrete of object
      * @template TTag of object
      *
-     * @param class-string<TAbstract>   $abstract
-     * @param class-string<TConcrete>   $concrete
-     * @param array<class-string<TTag>> $tags
+     * @param class-string<TAbstract>  $abstract
+     * @param class-string<TConcrete>  $concrete
+     * @param list<class-string<TTag>> $tags
      *
      * @throws NotFoundExceptionInterface
      * @throws ExceptionInterface
@@ -481,15 +497,15 @@ final class Container implements ContainerInterface
     {
         $concrete ??= $abstract;
 
-        if (\trim($abstract) === '') {
+        if (trim($abstract) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
-        if (\trim($concrete) === '') {
+        if (trim($concrete) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
-        if ($tags !== []) {
+        if ([] !== $tags) {
             $this->tags->set($abstract, $tags);
         }
 
@@ -542,11 +558,11 @@ final class Container implements ContainerInterface
     #[Override]
     public function set(string $service, callable|object $value, array $tags = []): void
     {
-        if (\trim($service) === '') {
+        if (trim($service) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
-        if ($tags !== []) {
+        if ([] !== $tags) {
             $this->tags->set($service, $tags);
         }
 
@@ -563,15 +579,15 @@ final class Container implements ContainerInterface
     /**
      * @template TService of object
      *
-     * @param class-string<TService>            $service
-     * @param non-empty-array<non-empty-string> $tags
+     * @param class-string<TService>           $service
+     * @param non-empty-list<non-empty-string> $tags
      *
      * @throws ExceptionInterface
      */
     #[Override]
     public function tag(string $service, array $tags): void
     {
-        if (\trim($service) === '') {
+        if (trim($service) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
@@ -592,7 +608,7 @@ final class Container implements ContainerInterface
     #[Override]
     public function tagged(string $tag): Generator
     {
-        if (\trim($tag) === '') {
+        if (trim($tag) === '') {
             throw new ServiceTagMustBeNonEmptyStringException();
         }
 
@@ -605,8 +621,8 @@ final class Container implements ContainerInterface
     /**
      * @template TService of object
      *
-     * @param class-string<TService>            $service
-     * @param non-empty-array<non-empty-string> $tags
+     * @param class-string<TService>           $service
+     * @param non-empty-list<non-empty-string> $tags
      */
     #[Override]
     public function untag(string $service, array $tags): void
@@ -631,11 +647,11 @@ final class Container implements ContainerInterface
 
         $extensions = $this->extensions->all();
 
-        if ($extensions === []) {
+        if ([] === $extensions) {
             return $instance;
         }
 
-        foreach (\array_keys($extensions) as $serviceName) {
+        foreach (array_keys($extensions) as $serviceName) {
             if (! $instance instanceof $serviceName) {
                 continue;
             }
@@ -655,17 +671,17 @@ final class Container implements ContainerInterface
      * @template TArgument
      * @template TService of object
      *
-     * @param array<ReflectionParameter> $reflectionParameters
-     * @param array<TArgument>           $arguments
+     * @param list<ReflectionParameter> $reflectionParameters
+     * @param list<TArgument>           $arguments
      *
      * @throws Throwable
      *
-     * @return array<TArgument|TService>
+     * @return list<TArgument|TService>
      *
      */
     private function buildParameter(array $reflectionParameters = [], array $arguments = []): array
     {
-        /** @var array<TArgument|TService> $parameters */
+        /** @var list<TArgument|TService> $parameters */
         $parameters = [];
 
         foreach ($reflectionParameters as $reflectionParameter) {
@@ -673,7 +689,7 @@ final class Container implements ContainerInterface
 
             $parameterPosition = $reflectionParameter->getPosition();
 
-            if (\array_key_exists($parameterName, $arguments)) {
+            if (array_key_exists($parameterName, $arguments)) {
                 /** @var TArgument $argument */
                 $argument = $arguments[$parameterName];
 
@@ -684,7 +700,7 @@ final class Container implements ContainerInterface
                 continue;
             }
 
-            if (\array_key_exists($parameterPosition, $arguments)) {
+            if (array_key_exists($parameterPosition, $arguments)) {
                 /** @var TArgument $argument */
                 $argument = $arguments[$parameterPosition];
 
@@ -707,9 +723,9 @@ final class Container implements ContainerInterface
                 $name = $reflectionParameter->getDeclaringFunction()
                     ->getName();
 
-                $isFunction = \function_exists($name);
+                $isFunction = function_exists($name);
 
-                throw new UnresolvableParameterException(\sprintf(
+                throw new UnresolvableParameterException(sprintf(
                     'Unresolvable %s parameter "$%s" in "%s%s()"; does not have a default value.',
                     $isFunction ? 'function' : 'class',
                     $parameterName,
@@ -759,7 +775,7 @@ final class Container implements ContainerInterface
     {
         $class = $callback[0];
 
-        if (\is_object($class)) {
+        if (is_object($class)) {
             $class = $class::class;
         }
 
@@ -795,7 +811,7 @@ final class Container implements ContainerInterface
     private function callString(string $callback): array
     {
         return match (true) {
-            \function_exists($callback) => $this->reflectFunction($callback)
+            function_exists($callback) => $this->reflectFunction($callback)
                 ->getParameters(),
 
             default => (function (string $callback): array {
@@ -804,7 +820,7 @@ final class Container implements ContainerInterface
                  * @var '__invoke'|non-empty-string              $method
                  * @var array{0:class-string,1:non-empty-string} $metadata
                  */
-                $metadata = \explode('::', $callback, 2);
+                $metadata = explode('::', $callback, 2);
 
                 $class = $metadata[0];
 
@@ -820,7 +836,7 @@ final class Container implements ContainerInterface
      * @template TArgument
      *
      * @param class-string<TInstantiate> $service
-     * @param array<TArgument>           $arguments
+     * @param list<TArgument>            $arguments
      *
      * @throws Throwable
      *
@@ -875,7 +891,7 @@ final class Container implements ContainerInterface
             $attribute instanceof Inject => match (true) {
                 default => $this->register($class, $attribute->service()),
 
-                $attribute->concrete !== null => $this->bind($attribute->concrete(), $class, $attribute->service()),
+                null !== $attribute->concrete => $this->bind($attribute->concrete(), $class, $attribute->service()),
             },
         };
     }
@@ -1011,7 +1027,7 @@ final class Container implements ContainerInterface
      */
     private function resolve(string $service): string
     {
-        if (\trim($service) === '') {
+        if (trim($service) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
