@@ -45,19 +45,18 @@
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
-            "Ghostwriter\\Container\\": "src"
+            "Ghostwriter\\Container\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests",
-            "Ghostwriter\\ContainerTests\\Unit\\": "tests/Unit"
+            "Tests\\Unit\\": "tests/unit/"
         },
         "files": [
-            "tests/Fixture/functions.php"
+            "tests/fixture/functions.php"
         ],
         "exclude-from-classmap": [
-            "tests/Fixture/"
+            "tests/fixture/"
         ]
     },
     "config": {
