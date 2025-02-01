@@ -28,6 +28,9 @@ use Tests\Fixture\CircularDependency\ClassZ;
 use Tests\Unit\AbstractTestCase;
 use Throwable;
 
+use function implode;
+use function sprintf;
+
 #[CoversClass(CircularDependencyException::class)]
 #[CoversClass(Aliases::class)]
 #[CoversClass(Bindings::class)]
@@ -50,9 +53,9 @@ final class CircularDependencyExceptionTest extends AbstractTestCase
     public function testContainerBuild(): void
     {
         $this->assertException(CircularDependencyException::class);
-        $this->expectExceptionMessage(\sprintf(
+        $this->expectExceptionMessage(sprintf(
             'Class: %s',
-            \implode(
+            implode(
                 ' -> ',
                 [
                     ClassA::class,
