@@ -56,7 +56,7 @@ interface ContainerInterface
      * @template TArgument
      *
      * @param class-string<TBuild> $service
-     * @param array<TArgument>     $arguments optional constructor arguments passed to build the new class instance
+     * @param list<TArgument>      $arguments optional constructor arguments passed to build the new class instance
      *
      * @throws ExceptionInterface         if there is an error while retrieving the entry
      * @throws NotFoundExceptionInterface if no entry was found for **this** identifier
@@ -74,7 +74,7 @@ interface ContainerInterface
      * @template TResult
      *
      * @param array{0:(class-string<TService>|TService),1:'__invoke'|string}|callable|callable-string|Closure(TArgument...):TResult|TService $callback
-     * @param array<TArgument>                                                                                                               $arguments optional arguments passed to $callback
+     * @param list<TArgument>                                                                                                                $arguments optional arguments passed to $callback
      *
      * @throws Throwable
      *
@@ -139,7 +139,7 @@ interface ContainerInterface
      * @template TResult
      *
      * @param class-string<TInvoke> $invokable
-     * @param array<TArgument>      $arguments
+     * @param list<TArgument>       $arguments
      *
      * @throws Throwable
      *
@@ -165,9 +165,9 @@ interface ContainerInterface
      * @template TConcrete of object
      * @template TTag of object
      *
-     * @param class-string<TAbstract>   $abstract
-     * @param class-string<TConcrete>   $concrete
-     * @param array<class-string<TTag>> $tags
+     * @param class-string<TAbstract>  $abstract
+     * @param class-string<TConcrete>  $concrete
+     * @param list<class-string<TTag>> $tags
      *
      * @throws NotFoundExceptionInterface
      * @throws ExceptionInterface
@@ -201,8 +201,8 @@ interface ContainerInterface
      * @template TService of object
      * @template TTag of object
      *
-     * @param class-string<TService>              $service
-     * @param non-empty-array<class-string<TTag>> $tags
+     * @param class-string<TService>             $service
+     * @param non-empty-list<class-string<TTag>> $tags
      */
     public function tag(string $service, array $tags): void;
 
@@ -227,8 +227,8 @@ interface ContainerInterface
      * @template TService of object
      * @template TTag of object
      *
-     * @param class-string<TService>              $service
-     * @param non-empty-array<class-string<TTag>> $tags
+     * @param class-string<TService>             $service
+     * @param non-empty-list<class-string<TTag>> $tags
      */
     public function untag(string $service, array $tags): void;
 }

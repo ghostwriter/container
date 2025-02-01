@@ -22,8 +22,7 @@ final readonly class Factory implements FactoryAttributeInterface
      */
     public function __construct(
         public string $service,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function service(): string

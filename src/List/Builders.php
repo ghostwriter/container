@@ -21,7 +21,18 @@ final class Builders implements ListInterface
      */
     public function __construct(
         private array $list = []
-    ) {
+    ) {}
+
+    /**
+     * @template TNewService of object
+     *
+     * @param array<class-string<TNewService>,Closure(ContainerInterface):TNewService> $list
+     *
+     * @return self<TNewService>
+     */
+    public static function new(array $list = []): self
+    {
+        return new self($list);
     }
 
     /**
@@ -65,17 +76,5 @@ final class Builders implements ListInterface
     public function unset(string $service): void
     {
         unset($this->list[$service]);
-    }
-
-    /**
-     * @template TNewService of object
-     *
-     * @param array<class-string<TNewService>,Closure(ContainerInterface):TNewService> $list
-     *
-     * @return self<TNewService>
-     */
-    public static function new(array $list = []): self
-    {
-        return new self($list);
     }
 }
