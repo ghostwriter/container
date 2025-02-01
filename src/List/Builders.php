@@ -9,6 +9,8 @@ use Ghostwriter\Container\Exception\BuilderNotFoundException;
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\ListInterface;
 
+use function array_key_exists;
+
 /**
  * @template-covariant TService of object
  */
@@ -19,8 +21,7 @@ final class Builders implements ListInterface
      */
     public function __construct(
         private array $list = []
-    ) {
-    }
+    ) {}
 
     /**
      * @template TNewService of object
@@ -54,7 +55,7 @@ final class Builders implements ListInterface
      */
     public function has(string $service): bool
     {
-        return \array_key_exists($service, $this->list);
+        return array_key_exists($service, $this->list);
     }
 
     /**
