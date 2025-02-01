@@ -137,11 +137,11 @@ final class Container implements ContainerInterface
     #[Override]
     public function alias(string $service, string $alias): void
     {
-        if (\mb_trim($alias) === '') {
+        if (\trim($alias) === '') {
             throw new AliasNameMustBeNonEmptyStringException();
         }
 
-        if (\mb_trim($service) === '') {
+        if (\trim($service) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
@@ -164,7 +164,7 @@ final class Container implements ContainerInterface
     #[Override]
     public function bind(string $concrete, string $service, string $implementation): void
     {
-        if (\mb_trim($concrete) === '') {
+        if (\trim($concrete) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
@@ -172,7 +172,7 @@ final class Container implements ContainerInterface
             throw new ServiceNotFoundException($concrete);
         }
 
-        if (\mb_trim($service) === '') {
+        if (\trim($service) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
@@ -180,7 +180,7 @@ final class Container implements ContainerInterface
             throw new ServiceNotFoundException($service);
         }
 
-        if (\mb_trim($implementation) === '') {
+        if (\trim($implementation) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
@@ -275,7 +275,7 @@ final class Container implements ContainerInterface
     #[Override]
     public function extend(string $service, string $extension): void
     {
-        if (\mb_trim($service) === '') {
+        if (\trim($service) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
@@ -301,7 +301,7 @@ final class Container implements ContainerInterface
     #[Override]
     public function factory(string $service, string $factory): void
     {
-        if (\mb_trim($service) === '') {
+        if (\trim($service) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
@@ -384,7 +384,7 @@ final class Container implements ContainerInterface
     #[Override]
     public function has(string $service): bool
     {
-        if (\mb_trim($service) === '') {
+        if (\trim($service) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
@@ -481,11 +481,11 @@ final class Container implements ContainerInterface
     {
         $concrete ??= $abstract;
 
-        if (\mb_trim($abstract) === '') {
+        if (\trim($abstract) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
-        if (\mb_trim($concrete) === '') {
+        if (\trim($concrete) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
@@ -542,7 +542,7 @@ final class Container implements ContainerInterface
     #[Override]
     public function set(string $service, callable|object $value, array $tags = []): void
     {
-        if (\mb_trim($service) === '') {
+        if (\trim($service) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
@@ -571,7 +571,7 @@ final class Container implements ContainerInterface
     #[Override]
     public function tag(string $service, array $tags): void
     {
-        if (\mb_trim($service) === '') {
+        if (\trim($service) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
@@ -592,7 +592,7 @@ final class Container implements ContainerInterface
     #[Override]
     public function tagged(string $tag): Generator
     {
-        if (\mb_trim($tag) === '') {
+        if (\trim($tag) === '') {
             throw new ServiceTagMustBeNonEmptyStringException();
         }
 
@@ -1011,7 +1011,7 @@ final class Container implements ContainerInterface
      */
     private function resolve(string $service): string
     {
-        if (\mb_trim($service) === '') {
+        if (\trim($service) === '') {
             throw new ServiceNameMustBeNonEmptyStringException();
         }
 
