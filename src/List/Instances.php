@@ -7,6 +7,8 @@ namespace Ghostwriter\Container\List;
 use Ghostwriter\Container\Exception\InstanceNotFoundException;
 use Ghostwriter\Container\Interface\ListInterface;
 
+use function array_key_exists;
+
 /**
  * @template TService of object
  */
@@ -17,8 +19,7 @@ final class Instances implements ListInterface
      */
     public function __construct(
         private array $list = []
-    ) {
-    }
+    ) {}
 
     /**
      * @template TNewService of object
@@ -52,7 +53,7 @@ final class Instances implements ListInterface
      */
     public function has(string $service): bool
     {
-        return \array_key_exists($service, $this->list);
+        return array_key_exists($service, $this->list);
     }
 
     /**
