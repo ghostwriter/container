@@ -7,6 +7,4 @@ namespace Ghostwriter\Container\Exception;
 use Ghostwriter\Container\Interface\ExceptionInterface;
 use InvalidArgumentException;
 
-final class CircularDependencyException extends InvalidArgumentException implements ExceptionInterface
-{
-}
+final class CircularDependencyException extends InvalidArgumentException implements ExceptionInterface {}

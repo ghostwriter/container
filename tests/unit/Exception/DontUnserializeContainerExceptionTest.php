@@ -22,6 +22,10 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\Unit\AbstractTestCase;
 use Throwable;
 
+use function mb_strlen;
+use function sprintf;
+use function unserialize;
+
 #[CoversClass(DontUnserializeContainerException::class)]
 #[CoversClass(Aliases::class)]
 #[CoversClass(Bindings::class)]
@@ -45,9 +49,9 @@ final class DontUnserializeContainerExceptionTest extends AbstractTestCase
     {
         $this->assertException(DontUnserializeContainerException::class);
 
-        \unserialize(
+        unserialize(
             // mocks a serialized Container::class
-            \sprintf('O:%s:"%s":0:{}', \mb_strlen(Container::class), Container::class)
+            sprintf('O:%s:"%s":0:{}', mb_strlen(Container::class), Container::class)
         );
     }
 }

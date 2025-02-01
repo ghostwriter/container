@@ -10,6 +10,10 @@ use Ghostwriter\Container\Exception\ServiceTagMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\ServiceTagNotFoundException;
 use Ghostwriter\Container\Interface\ListInterface;
 
+use function array_key_exists;
+use function array_keys;
+use function trim;
+
 /**
  * @template-covariant TService of object
  */
@@ -20,8 +24,7 @@ final class Tags implements ListInterface
      */
     public function __construct(
         private array $list = []
-    ) {
-    }
+    ) {}
 
     /**
      * @template TNewService of object
@@ -44,25 +47,25 @@ final class Tags implements ListInterface
      */
     public function get(string $tag): Generator
     {
-        if (! \array_key_exists($tag, $this->list)) {
+        if (! array_key_exists($tag, $this->list)) {
             throw new ServiceTagNotFoundException($tag);
         }
 
-        yield from \array_keys($this->list[$tag]);
+        yield from array_keys($this->list[$tag]);
     }
 
     /**
-     * @param class-string<TService>  $service
-     * @param array<non-empty-string> $tags
+     * @param class-string<TService> $service
+     * @param list<non-empty-string> $tags
      */
     public function remove(string $service, array $tags = []): void
     {
         foreach ($tags as $tag) {
-            if (! \array_key_exists($tag, $this->list)) {
+            if (! array_key_exists($tag, $this->list)) {
                 throw new ServiceTagNotFoundException($tag);
             }
 
-            if (! \array_key_exists($service, $this->list[$tag])) {
+            if (! array_key_exists($service, $this->list[$tag])) {
                 throw new ServiceNotFoundException($tag);
             }
 
@@ -73,8 +76,8 @@ final class Tags implements ListInterface
     /**
      * @template TSet of object
      *
-     * @param class-string<TSet>                $service
-     * @param non-empty-array<non-empty-string> $tags
+     * @param class-string<TSet>               $service
+     * @param non-empty-list<non-empty-string> $tags
      */
     public function set(string $service, array $tags): void
     {
@@ -94,7 +97,7 @@ final class Tags implements ListInterface
     public function unset(string $service): void
     {
         foreach ($this->list as $tag => $services) {
-            if (! \array_key_exists($service, $services)) {
+            if (! array_key_exists($service, $services)) {
                 continue;
             }
 

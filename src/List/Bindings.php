@@ -7,6 +7,9 @@ namespace Ghostwriter\Container\List;
 use Ghostwriter\Container\Exception\BindingNotFoundException;
 use Ghostwriter\Container\Interface\ListInterface;
 
+use function array_key_exists;
+use function in_array;
+
 /**
  * @template-covariant TConcrete of object
  * @template-covariant TService of object
@@ -19,8 +22,7 @@ final class Bindings implements ListInterface
      */
     public function __construct(
         private array $list = []
-    ) {
-    }
+    ) {}
 
     /**
      * @template TNewConcrete of object
@@ -37,7 +39,7 @@ final class Bindings implements ListInterface
     public function contains(string $service): bool
     {
         foreach ($this->list as $services) {
-            if (\in_array($service, $services, true)) {
+            if (in_array($service, $services, true)) {
                 return true;
             }
         }
@@ -67,11 +69,11 @@ final class Bindings implements ListInterface
      */
     public function has(string $concrete, string $service): bool
     {
-        if (! \array_key_exists($concrete, $this->list)) {
+        if (! array_key_exists($concrete, $this->list)) {
             return false;
         }
 
-        return \array_key_exists($service, $this->list[$concrete]);
+        return array_key_exists($service, $this->list[$concrete]);
     }
 
     /**

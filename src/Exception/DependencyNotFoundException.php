@@ -7,6 +7,4 @@ namespace Ghostwriter\Container\Exception;
 use Ghostwriter\Container\Interface\Exception\NotFoundExceptionInterface;
 use InvalidArgumentException;
 
-final class DependencyNotFoundException extends InvalidArgumentException implements NotFoundExceptionInterface
-{
-}
+final class DependencyNotFoundException extends InvalidArgumentException implements NotFoundExceptionInterface {}

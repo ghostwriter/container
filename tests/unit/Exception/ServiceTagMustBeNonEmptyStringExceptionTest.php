@@ -22,6 +22,8 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\Unit\AbstractTestCase;
 use Throwable;
 
+use function iterator_to_array;
+
 /**
  * @psalm-suppress ArgumentTypeCoercion
  * @psalm-suppress InvalidArgument
@@ -70,7 +72,7 @@ final class ServiceTagMustBeNonEmptyStringExceptionTest extends AbstractTestCase
     {
         $this->assertException(ServiceTagMustBeNonEmptyStringException::class);
 
-        \iterator_to_array($this->container->tagged(''));
+        iterator_to_array($this->container->tagged(''));
     }
 
     /**
@@ -80,6 +82,6 @@ final class ServiceTagMustBeNonEmptyStringExceptionTest extends AbstractTestCase
     {
         $this->assertException(ServiceTagMustBeNonEmptyStringException::class);
 
-        \iterator_to_array($this->container->tagged(' '));
+        iterator_to_array($this->container->tagged(' '));
     }
 }

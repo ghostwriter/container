@@ -14,7 +14,7 @@ if (! $classLoader instanceof ClassLoader) {
 
 $fixturePath = __DIR__ . \DIRECTORY_SEPARATOR . 'fixture';
 
- /**
+/**
  * when test fixtures have a single namespace (e.g. Tests\Fixture).
  *
  * @psalm-suppress UncaughtThrowInGlobalScope

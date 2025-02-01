@@ -58,6 +58,11 @@ use Tests\Fixture\UnionTypehintWithDefaultValue;
 use Tests\Fixture\UnionTypehintWithoutDefaultValue;
 use Throwable;
 
+use function array_key_exists;
+use function class_exists;
+use function iterator_to_array;
+use function random_int;
+
 /**
  * @psalm-suppress ArgumentTypeCoercion
  * @psalm-suppress UndefinedClass
@@ -159,11 +164,11 @@ final class ContainerTest extends AbstractTestCase
 
         self::assertSame($buildService, $getService);
 
-        if (! \array_key_exists('value', $arguments)) {
+        if (! array_key_exists('value', $arguments)) {
             return;
         }
 
-        self::assertTrue(\class_exists($class));
+        self::assertTrue(class_exists($class));
 
         self::assertSame($arguments['value'], $this->container->get($class)->value());
     }
@@ -203,7 +208,7 @@ final class ContainerTest extends AbstractTestCase
         $testEvent = $this->container->get(TestEvent::class);
 
         self::assertSame([], $testEvent->all());
-        $expectedCount = \random_int(10, 50);
+        $expectedCount = random_int(10, 50);
         $actual1 = $expectedCount;
         $actual2 = $expectedCount;
 
@@ -465,7 +470,7 @@ final class ContainerTest extends AbstractTestCase
 
         $this->container->untag(stdClass::class, ['tag']);
 
-        self::assertCount(0, \iterator_to_array($this->container->tagged('tag')));
+        self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
     }
 
     /**
@@ -481,7 +486,7 @@ final class ContainerTest extends AbstractTestCase
 
         $this->container->untag(stdClass::class, [stdClass::class]);
 
-        self::assertCount(0, \iterator_to_array($this->container->tagged(stdClass::class)));
+        self::assertCount(0, iterator_to_array($this->container->tagged(stdClass::class)));
     }
 
     /**
@@ -497,7 +502,7 @@ final class ContainerTest extends AbstractTestCase
 
         $this->container->untag(stdClass::class, ['tag']);
 
-        self::assertCount(0, \iterator_to_array($this->container->tagged('tag')));
+        self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
     }
 
     /**
@@ -513,7 +518,7 @@ final class ContainerTest extends AbstractTestCase
 
         $this->container->untag(stdClass::class, ['tag']);
 
-        self::assertCount(0, \iterator_to_array($this->container->tagged('tag')));
+        self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
     }
 
     /**

@@ -25,8 +25,7 @@ final readonly class Inject implements InjectAttributeInterface
     public function __construct(
         public string $service,
         public ?string $concrete = null,
-    ) {
-    }
+    ) {}
 
     /**
      * @return class-string<TConcrete>
