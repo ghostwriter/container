@@ -26,7 +26,21 @@ final class Aliases implements ListInterface
      */
     public function __construct(
         private array $list
-    ) {
+    ) {}
+
+    /**
+     * @template TNewAlias of object
+     * @template TNewService of object
+     *
+     * @param non-empty-array<class-string<TNewAlias>,class-string<TNewService>> $list
+     *
+     * @return self<TNewAlias,TNewService>
+     */
+    public static function new(array $list = [
+        ContainerInterface::class => Container::class,
+    ]): self
+    {
+        return new self($list);
     }
 
     /**
@@ -84,20 +98,5 @@ final class Aliases implements ListInterface
     public function unset(string $alias): void
     {
         unset($this->list[$alias]);
-    }
-
-    /**
-     * @template TNewAlias of object
-     * @template TNewService of object
-     *
-     * @param non-empty-array<class-string<TNewAlias>,class-string<TNewService>> $list
-     *
-     * @return self<TNewAlias,TNewService>
-     */
-    public static function new(array $list = [
-        ContainerInterface::class => Container::class,
-    ]): self
-    {
-        return new self($list);
     }
 }

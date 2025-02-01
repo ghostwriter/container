@@ -22,8 +22,7 @@ final readonly class Extension implements ExtensionAttributeInterface
      */
     public function __construct(
         public string $service,
-    ) {
-    }
+    ) {}
 
     #[Override]
     public function service(): string
