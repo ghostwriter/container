@@ -21,12 +21,21 @@ final class Dependencies implements ListInterface
      */
     public function __construct(
         private array $list = []
-    ) {
+    ) {}
+
+    /**
+     * @template TNewService of object
+     *
+     * @param array<class-string<TNewService>,bool> $list
+     */
+    public static function new(array $list = []): self
+    {
+        return new self($list);
     }
 
     public function found(): bool
     {
-        return $this->list !== [];
+        return [] !== $this->list;
     }
 
     /**
@@ -47,7 +56,7 @@ final class Dependencies implements ListInterface
      */
     public function last(): string
     {
-        if ($this->list === []) {
+        if ([] === $this->list) {
             throw new DependencyNotFoundException();
         }
 
@@ -66,7 +75,7 @@ final class Dependencies implements ListInterface
     }
 
     /**
-     * @return array<class-string<TService>>
+     * @return list<class-string<TService>>
      */
     public function toArray(): array
     {
@@ -79,15 +88,5 @@ final class Dependencies implements ListInterface
     public function unset(string $class): void
     {
         unset($this->list[$class]);
-    }
-
-    /**
-     * @template TNewService of object
-     *
-     * @param array<class-string<TNewService>,bool> $list
-     */
-    public static function new(array $list = []): self
-    {
-        return new self($list);
     }
 }

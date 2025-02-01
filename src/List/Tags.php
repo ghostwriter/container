@@ -24,7 +24,16 @@ final class Tags implements ListInterface
      */
     public function __construct(
         private array $list = []
-    ) {
+    ) {}
+
+    /**
+     * @template TNewService of object
+     *
+     * @param array<non-empty-string,non-empty-array<class-string<TNewService>,bool>> $list
+     */
+    public static function new(array $list = []): self
+    {
+        return new self($list);
     }
 
     /**
@@ -46,8 +55,8 @@ final class Tags implements ListInterface
     }
 
     /**
-     * @param class-string<TService>  $service
-     * @param array<non-empty-string> $tags
+     * @param class-string<TService> $service
+     * @param list<non-empty-string> $tags
      */
     public function remove(string $service, array $tags = []): void
     {
@@ -67,13 +76,13 @@ final class Tags implements ListInterface
     /**
      * @template TSet of object
      *
-     * @param class-string<TSet>                $service
-     * @param non-empty-array<non-empty-string> $tags
+     * @param class-string<TSet>               $service
+     * @param non-empty-list<non-empty-string> $tags
      */
     public function set(string $service, array $tags): void
     {
         foreach ($tags as $tag) {
-            if (trim($tag) === '') {
+            if (\trim($tag) === '') {
                 throw new ServiceTagMustBeNonEmptyStringException();
             }
 
@@ -94,15 +103,5 @@ final class Tags implements ListInterface
 
             unset($this->list[$tag][$service]);
         }
-    }
-
-    /**
-     * @template TNewService of object
-     *
-     * @param array<non-empty-string,non-empty-array<class-string<TNewService>,bool>> $list
-     */
-    public static function new(array $list = []): self
-    {
-        return new self($list);
     }
 }
