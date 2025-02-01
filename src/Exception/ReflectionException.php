@@ -6,6 +6,4 @@ namespace Ghostwriter\Container\Exception;
 
 use Ghostwriter\Container\Interface\ExceptionInterface;
 
-final class ReflectionException extends \ReflectionException implements ExceptionInterface
-{
-}
+final class ReflectionException extends \ReflectionException implements ExceptionInterface {}
