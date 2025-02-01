@@ -7,6 +7,10 @@ namespace Ghostwriter\Container\List;
 use Ghostwriter\Container\Exception\DependencyNotFoundException;
 use Ghostwriter\Container\Interface\ListInterface;
 
+use function array_key_exists;
+use function array_key_last;
+use function array_keys;
+
 /**
  * @template-covariant TService of object
  */
@@ -17,8 +21,7 @@ final class Dependencies implements ListInterface
      */
     public function __construct(
         private array $list = []
-    ) {
-    }
+    ) {}
 
     /**
      * @template TNewService of object
@@ -32,7 +35,7 @@ final class Dependencies implements ListInterface
 
     public function found(): bool
     {
-        return $this->list !== [];
+        return [] !== $this->list;
     }
 
     /**
@@ -42,7 +45,7 @@ final class Dependencies implements ListInterface
      */
     public function has(string $class): bool
     {
-        return \array_key_exists($class, $this->list);
+        return array_key_exists($class, $this->list);
     }
 
     /**
@@ -53,11 +56,11 @@ final class Dependencies implements ListInterface
      */
     public function last(): string
     {
-        if ($this->list === []) {
+        if ([] === $this->list) {
             throw new DependencyNotFoundException();
         }
 
-        return \array_key_last($this->list);
+        return array_key_last($this->list);
     }
 
     /**
@@ -72,11 +75,11 @@ final class Dependencies implements ListInterface
     }
 
     /**
-     * @return array<class-string<TService>>
+     * @return list<class-string<TService>>
      */
     public function toArray(): array
     {
-        return \array_keys($this->list);
+        return array_keys($this->list);
     }
 
     /**
