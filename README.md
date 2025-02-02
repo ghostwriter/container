@@ -141,6 +141,32 @@ final readonly class Service
 // $container->extend(Dependency::class, DependencyExtension::class);
 ```
 
+---
+
+#### `#[Provider]`
+
+Registering a service provider on the container using attributes.
+
+```php
+use Ghostwriter\Container\Attribute\Provider;
+
+#[Provider(ServiceProvider::class)]
+final readonly class Service
+{
+    public function __construct(
+        private DependencyInterface $dependency
+    ) {}
+
+    public function dependency():DependencyInterface
+    {
+        return $this->dependency;
+    }
+}
+
+// the above is equivalent to the following
+// $container->provide(ServiceProvider::class);
+```
+
 ### Service Providers
 
 Registering a service provider on the container.
