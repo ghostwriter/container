@@ -880,18 +880,26 @@ final class Container implements ContainerInterface
     {
         $attribute = $reflectionAttribute->newInstance();
 
+        $service = $attribute->service();
+
         match (true) {
             default => throw new ShouldNotHappenException(),
-            $attribute instanceof Provider => $this->provide($attribute->service()),
 
-            $attribute instanceof Extension => $this->extend($class, $attribute->service()),
+            $attribute instanceof Provider => match (true) {
+                default => $this->provide($service),
 
-            $attribute instanceof Factory => $this->factory($class, $attribute->service()),
+                $this->providers->has($service) => null
+            },
+
+            $attribute instanceof Extension => $this->extend($class, $service),
+
+            $attribute instanceof Factory => $this->factory($class, $service),
 
             $attribute instanceof Inject => match (true) {
-                default => $this->register($class, $attribute->service()),
 
-                null !== $attribute->concrete => $this->bind($attribute->concrete(), $class, $attribute->service()),
+                default => $this->register($class, $service),
+
+                null !== $attribute->concrete => $this->bind($attribute->concrete(), $class, $service),
             },
         };
     }
