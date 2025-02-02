@@ -12,6 +12,4 @@ use Ghostwriter\Container\Interface\FactoryInterface;
  *
  * @extends AttributeInterface<FactoryInterface<TService>>
  */
-interface FactoryAttributeInterface extends AttributeInterface
-{
-}
+interface FactoryAttributeInterface extends AttributeInterface {}
