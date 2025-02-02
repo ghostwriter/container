@@ -12,6 +12,4 @@ use Ghostwriter\Container\Interface\ExtensionInterface;
  *
  * @extends AttributeInterface<ExtensionInterface<TService>>
  */
-interface ExtensionAttributeInterface extends AttributeInterface
-{
-}
+interface ExtensionAttributeInterface extends AttributeInterface {}
