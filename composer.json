@@ -37,9 +37,7 @@
         "php": ">=8.3"
     },
     "require-dev": {
-        "ghostwriter/coding-standard": "@dev",
-        "ghostwriter/psalm-plugin": "@dev",
-        "ghostwriter/testify": "@dev"
+        "ghostwriter/coding-standard": "@dev"
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
