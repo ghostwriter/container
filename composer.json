@@ -70,7 +70,7 @@
         "discard-changes": true,
         "optimize-autoloader": true,
         "platform": {
-            "php": "8.3.999"
+            "php": "8.4.999"
         },
         "platform-check": true,
         "preferred-install": "dist",

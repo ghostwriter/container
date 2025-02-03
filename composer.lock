@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c9a88d7b1d473ec69f9db5941717ad97",
+    "content-hash": "96a6272783306f9b4fcf26050fda3690",
     "packages": [],
     "packages-dev": [
         {
@@ -1820,18 +1820,38 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/ghostwriter/coding-standard.git",
-                "reference": "227c9ecb393528e237c58d9c910a7fe981ca88aa"
+                "reference": "6bac146b7a0936516fcca8d3f1c70f9f40f09f27"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ghostwriter/coding-standard/zipball/227c9ecb393528e237c58d9c910a7fe981ca88aa",
-                "reference": "227c9ecb393528e237c58d9c910a7fe981ca88aa",
+                "url": "https://api.github.com/repos/ghostwriter/coding-standard/zipball/6bac146b7a0936516fcca8d3f1c70f9f40f09f27",
+                "reference": "6bac146b7a0936516fcca8d3f1c70f9f40f09f27",
                 "shasum": ""
             },
             "require": {
                 "composer-plugin-api": "^2.6.0",
                 "composer-runtime-api": "^2.2.2",
                 "composer/composer": "^2.8.5",
+                "composer/semver": "^3.4.3",
+                "ext-ctype": "*",
+                "ext-curl": "*",
+                "ext-dom": "*",
+                "ext-filter": "*",
+                "ext-gd": "*",
+                "ext-hash": "*",
+                "ext-iconv": "*",
+                "ext-intl": "*",
+                "ext-json": "*",
+                "ext-libxml": "*",
+                "ext-mbstring": "*",
+                "ext-openssl": "*",
+                "ext-phar": "*",
+                "ext-readline": "*",
+                "ext-session": "*",
+                "ext-simplexml": "*",
+                "ext-tokenizer": "*",
+                "ext-xml": "*",
+                "ext-xmlwriter": "*",
                 "mockery/mockery": "^1.6.12",
                 "php": "^8.2",
                 "phpunit/phpunit": "^11.5.6",
@@ -1897,24 +1917,24 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-02-03T14:34:44+00:00"
+            "time": "2025-02-03T18:39:13+00:00"
         },
         {
             "name": "ghostwriter/config",
-            "version": "0.4.1",
+            "version": "1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ghostwriter/config.git",
-                "reference": "bcbe21a32abd8e2788c58e74a9bb82b676b4be5f"
+                "reference": "f2e1aa3cfe936244deb3128e081997f93576b910"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ghostwriter/config/zipball/bcbe21a32abd8e2788c58e74a9bb82b676b4be5f",
-                "reference": "bcbe21a32abd8e2788c58e74a9bb82b676b4be5f",
+                "url": "https://api.github.com/repos/ghostwriter/config/zipball/f2e1aa3cfe936244deb3128e081997f93576b910",
+                "reference": "f2e1aa3cfe936244deb3128e081997f93576b910",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.1 <8.4"
+                "php": ">=8.4"
             },
             "require-dev": {
                 "ghostwriter/coding-standard": "dev-main"
@@ -1944,10 +1964,9 @@
                 "ghostwriter"
             ],
             "support": {
-                "docs": "https://github.com/ghostwriter/config",
-                "forum": "https://github.com/ghostwriter/config/discussions",
                 "issues": "https://github.com/ghostwriter/config/issues",
                 "rss": "https://github.com/ghostwriter/config/releases.atom",
+                "security": "https://github.com/ghostwriter/config/security/advisories/new",
                 "source": "https://github.com/ghostwriter/config"
             },
             "funding": [
@@ -1956,7 +1975,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2023-07-11T10:18:30+00:00"
+            "time": "2025-01-07T22:42:43+00:00"
         },
         {
             "name": "ghostwriter/event-dispatcher",
@@ -2154,28 +2173,30 @@
         },
         {
             "name": "ghostwriter/testify",
-            "version": "0.1.0",
+            "version": "1.0.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ghostwriter/testify.git",
-                "reference": "521ce8427315003b8a6834064dfac3408f51224d"
+                "reference": "f83c938e3e3130896920148ee85ff8b483bfd9d9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ghostwriter/testify/zipball/521ce8427315003b8a6834064dfac3408f51224d",
-                "reference": "521ce8427315003b8a6834064dfac3408f51224d",
+                "url": "https://api.github.com/repos/ghostwriter/testify/zipball/f83c938e3e3130896920148ee85ff8b483bfd9d9",
+                "reference": "f83c938e3e3130896920148ee85ff8b483bfd9d9",
                 "shasum": ""
             },
             "require": {
                 "ghostwriter/case-converter": "^1.0.0",
-                "ghostwriter/config": "^0.4.1",
-                "ghostwriter/container": "^4.0.3",
+                "ghostwriter/config": "^1.0.0",
+                "ghostwriter/container": "^4.0.5",
                 "ghostwriter/event-dispatcher": "^5.0.2",
                 "ghostwriter/filesystem": "^0.1.1",
-                "php": ">=8.3"
+                "nikic/php-parser": "^5.4.0",
+                "php": ">=8.4"
             },
             "require-dev": {
-                "ghostwriter/coding-standard": "dev-main"
+                "ghostwriter/coding-standard": "dev-main",
+                "ghostwriter/psalm-plugin": "dev-main"
             },
             "bin": [
                 "bin/testify"
@@ -2207,8 +2228,6 @@
                 "testing"
             ],
             "support": {
-                "docs": "https://github.com/ghostwriter/testify",
-                "forum": "https://github.com/ghostwriter/testify/discussions",
                 "issues": "https://github.com/ghostwriter/testify/issues",
                 "rss": "https://github.com/ghostwriter/testify/releases.atom",
                 "security": "https://github.com/ghostwriter/testify/security/advisories/new",
@@ -2220,7 +2239,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-10-10T16:46:54+00:00"
+            "time": "2025-02-02T01:27:11+00:00"
         },
         {
             "name": "hamcrest/hamcrest-php",
@@ -6553,7 +6572,7 @@
     },
     "platform-dev": {},
     "platform-overrides": {
-        "php": "8.3.999"
+        "php": "8.4.999"
     },
     "plugin-api-version": "2.6.0"
 }
