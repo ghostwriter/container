@@ -5,40 +5,25 @@ declare(strict_types=1);
 namespace Ghostwriter\Container\Attribute;
 
 use Attribute;
-use Ghostwriter\Container\Exception\ShouldNotHappenException;
-use Ghostwriter\Container\Interface\Attribute\InjectAttributeInterface;
+use Ghostwriter\Container\Interface\AttributeInterface;
 use Override;
 
-/**
- * @template TService of object
- * @template TConcrete of object
- *
- * @implements InjectAttributeInterface<TService,TConcrete>
- */
 #[Attribute(Attribute::TARGET_PARAMETER)]
-final readonly class Inject implements InjectAttributeInterface
+final readonly class Inject implements AttributeInterface
 {
     /**
-     * @param class-string<TService>       $service
-     * @param null|class-string<TConcrete> $concrete
+     * @param class-string $name
      */
     public function __construct(
-        public string $service,
-        public ?string $concrete = null,
+        public string $name,
     ) {}
 
     /**
-     * @return class-string<TConcrete>
+     * @return class-string
      */
     #[Override]
-    public function concrete(): string
+    public function name(): string
     {
-        return $this->concrete ?? throw new ShouldNotHappenException();
-    }
-
-    #[Override]
-    public function service(): string
-    {
-        return $this->service;
+        return $this->name;
     }
 }
