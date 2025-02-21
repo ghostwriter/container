@@ -32,10 +32,10 @@ final readonly class FoobarWithDependencyServiceProvider implements ServiceProvi
     public function __invoke(ContainerInterface $container): void
     {
         $container->set(Dummy::class, $this->dummy);
-        $container->register(Foobar::class, stdClass::class);
-        $container->register(Foo::class);
-        $container->register(Bar::class);
-        $container->register(Baz::class);
-        $container->set(Foobar::class, $container->get(FoobarExtension::class));
+        $container->alias(stdClass::class, Foobar::class);
+        $container->set(Foo::class, $container->get(Foo::class));
+        $container->set(Bar::class, $container->get(Bar::class));
+        $container->set(Baz::class, $container->get(Baz::class));
+        $container->set(Foobar::class, $container->get(Foobar::class));
     }
 }
