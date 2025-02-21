@@ -18,6 +18,9 @@ use Ghostwriter\Container\List\Factories;
 use Ghostwriter\Container\List\Instances;
 use Ghostwriter\Container\List\Providers;
 use Ghostwriter\Container\List\Tags;
+use Ghostwriter\Container\Name\Alias;
+use Ghostwriter\Container\Name\Service;
+use Ghostwriter\Container\Name\Tag;
 use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 use Tests\Unit\AbstractTestCase;
@@ -41,6 +44,9 @@ use Throwable;
 #[CoversClass(Instances::class)]
 #[CoversClass(Providers::class)]
 #[CoversClass(Tags::class)]
+#[CoversClass(Service::class)]
+#[CoversClass(Tag::class)]
+#[CoversClass(Alias::class)]
 final class ServiceNotFoundExceptionTest extends AbstractTestCase
 {
     /**
@@ -71,6 +77,18 @@ final class ServiceNotFoundExceptionTest extends AbstractTestCase
         $this->assertNotFoundException(ServiceNotFoundException::class);
 
         $this->container->bind(stdClass::class, stdClass::class, 'does-not-exist');
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testContainerBuild(): void
+    {
+        $this->assertNotFoundException(ServiceNotFoundException::class);
+
+        $this->container->define(stdClass::class, fn (): object => $this->container->build('does-not-exist'));
+
+        $this->container->get(stdClass::class);
     }
 
     /**
