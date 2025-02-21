@@ -18,6 +18,8 @@ use Ghostwriter\Container\List\Factories;
 use Ghostwriter\Container\List\Instances;
 use Ghostwriter\Container\List\Providers;
 use Ghostwriter\Container\List\Tags;
+use Ghostwriter\Container\Name\Factory as FactoryName;
+use Ghostwriter\Container\Name\Service as ServiceName;
 use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 use Tests\Fixture\InvalidStdClassFactory;
@@ -38,6 +40,8 @@ use Throwable;
 #[CoversClass(Instances::class)]
 #[CoversClass(Providers::class)]
 #[CoversClass(Tags::class)]
+#[CoversClass(ServiceName::class)]
+#[CoversClass(FactoryName::class)]
 final class ServiceFactoryMustBeAnInstanceOfFactoryInterfaceExceptionTest extends AbstractTestCase
 {
     /**
