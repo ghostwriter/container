@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace Ghostwriter\Container\Interface;
 
-/**
- * @template TService of object
- */
 interface AttributeInterface
 {
     /**
-     * @return class-string<TService>
+     * @return class-string
      */
-    public function service(): string;
+    public function name(): string;
 }
