@@ -22,7 +22,7 @@ final readonly class DummyFactory implements FactoryInterface
      * @throws ExceptionInterface
      */
     #[Override]
-    public function __invoke(ContainerInterface $container, array $arguments = []): DummyInterface
+    public function __invoke(ContainerInterface $container): DummyInterface
     {
         return new Dummy($this);
     }
