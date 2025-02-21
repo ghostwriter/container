@@ -19,6 +19,13 @@ use Ghostwriter\Container\List\Factories;
 use Ghostwriter\Container\List\Instances;
 use Ghostwriter\Container\List\Providers;
 use Ghostwriter\Container\List\Tags;
+use Ghostwriter\Container\Name\Alias as AliasName;
+use Ghostwriter\Container\Name\Extension as ExtensionName;
+use Ghostwriter\Container\Name\Factory as FactoryName;
+use Ghostwriter\Container\Name\Provider;
+use Ghostwriter\Container\Name\Service;
+use Ghostwriter\Container\Name\Tag;
+use PDO;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionParameter;
@@ -40,11 +47,9 @@ use Tests\Fixture\Constructor\OptionalConstructor;
 use Tests\Fixture\Constructor\StringConstructor;
 use Tests\Fixture\Constructor\TypelessConstructor;
 use Tests\Fixture\Dummy;
-use Tests\Fixture\DummyInterface;
 use Tests\Fixture\Extension\FoobarExtension;
 use Tests\Fixture\Extension\StdClassOneExtension;
 use Tests\Fixture\Extension\StdClassTwoExtension;
-use Tests\Fixture\Factory\DummyFactory;
 use Tests\Fixture\Factory\StdClassFactory;
 use Tests\Fixture\Foo;
 use Tests\Fixture\Foobar;
@@ -73,7 +78,7 @@ use function random_int;
 #[CoversClass(Builders::class)]
 #[CoversClass(Container::class)]
 #[CoversClass(Dependencies::class)]
-#[CoversClass(Extension::class)]
+#[CoversClass(ExtensionName::class)]
 #[CoversClass(Extensions::class)]
 #[CoversClass(Factories::class)]
 #[CoversClass(Factory::class)]
@@ -81,6 +86,12 @@ use function random_int;
 #[CoversClass(Instances::class)]
 #[CoversClass(Providers::class)]
 #[CoversClass(Tags::class)]
+#[CoversClass(Tag::class)]
+#[CoversClass(Service::class)]
+#[CoversClass(AliasName::class)]
+#[CoversClass(Provider::class)]
+#[CoversClass(FactoryName::class)]
+#[CoversClass(Extension::class)]
 final class ContainerTest extends AbstractTestCase
 {
     /**
@@ -118,13 +129,13 @@ final class ContainerTest extends AbstractTestCase
 
         self::assertTrue($this->container->has(stdClass::class));
 
-        self::assertFalse($this->container->has('class'));
+        self::assertFalse($this->container->has(PDO::class));
 
-        $this->container->alias(stdClass::class, 'class');
+        $this->container->alias(stdClass::class, PDO::class);
 
-        self::assertTrue($this->container->has('class'));
+        self::assertTrue($this->container->has(PDO::class));
 
-        self::assertSame($std, $this->container->get('class'));
+        self::assertSame($std, $this->container->get(PDO::class));
     }
 
     /**
@@ -212,7 +223,7 @@ final class ContainerTest extends AbstractTestCase
         $actual1 = $expectedCount;
         $actual2 = $expectedCount;
 
-        self::assertCount(0, $testEvent->all());
+        self::assertEmpty($testEvent->all());
 
         while ($actual1--) {
             $this->container->call($callback, [$testEvent]);
@@ -234,6 +245,37 @@ final class ContainerTest extends AbstractTestCase
     public function testContainerConstruct(): void
     {
         self::assertSame($this->container, $this->container);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testContainerDefineAndGetFactory(): void
+    {
+        $this->container->define(
+            UnionTypehintWithoutDefaultValue::class,
+            static fn (
+                ContainerInterface $container
+            ): UnionTypehintWithoutDefaultValue => $container->build(UnionTypehintWithoutDefaultValue::class, [1])
+        );
+        self::assertInstanceOf(
+            UnionTypehintWithoutDefaultValue::class,
+            $this->container->get(UnionTypehintWithoutDefaultValue::class)
+        );
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testContainerDefineClosure(): void
+    {
+        $object = new stdClass();
+
+        $closure = static fn (ContainerInterface $container): stdClass => $object;
+
+        $this->container->define(stdClass::class, $closure, ['tag']);
+
+        self::assertSame($object, $this->container->get(stdClass::class));
     }
 
     /**
@@ -324,26 +366,9 @@ final class ContainerTest extends AbstractTestCase
 
         self::assertTrue($this->container->has(stdClass::class));
 
-        $this->container->purge();
+        $this->container->clear();
 
         self::assertFalse($this->container->has(stdClass::class));
-    }
-
-    /**
-     * @throws Throwable
-     */
-    public function testContainerRegisterBind(): void
-    {
-        self::assertFalse($this->container->has(Dummy::class));
-        self::assertFalse($this->container->has(DummyInterface::class));
-        self::assertFalse($this->container->has(DummyFactory::class));
-
-        $this->container->register(DummyInterface::class, Dummy::class, [DummyInterface::class]);
-        $this->container->register(DummyFactory::class);
-
-        self::assertTrue($this->container->has(Dummy::class));
-        self::assertTrue($this->container->has(DummyInterface::class));
-        self::assertTrue($this->container->has(DummyFactory::class));
     }
 
     /**
@@ -397,37 +422,6 @@ final class ContainerTest extends AbstractTestCase
     /**
      * @throws Throwable
      */
-    public function testContainerSetAndGetFactory(): void
-    {
-        $this->container->set(
-            UnionTypehintWithoutDefaultValue::class,
-            static fn (
-                ContainerInterface $container
-            ): UnionTypehintWithoutDefaultValue => $container->build(UnionTypehintWithoutDefaultValue::class, [1])
-        );
-        self::assertInstanceOf(
-            UnionTypehintWithoutDefaultValue::class,
-            $this->container->get(UnionTypehintWithoutDefaultValue::class)
-        );
-    }
-
-    /**
-     * @throws Throwable
-     */
-    public function testContainerSetClosure(): void
-    {
-        $object = new stdClass();
-
-        $closure = static fn (ContainerInterface $container): stdClass => $object;
-
-        $this->container->set(stdClass::class, $closure);
-
-        self::assertSame($object, $this->container->get(stdClass::class));
-    }
-
-    /**
-     * @throws Throwable
-     */
     public function testContainerSetObject(): void
     {
         $object = new stdClass();
@@ -449,7 +443,7 @@ final class ContainerTest extends AbstractTestCase
 
     public function testPurgeContainerInterfaceAliasExists(): void
     {
-        $this->container->purge();
+        $this->container->clear();
 
         self::assertTrue($this->container->has(ContainerInterface::class));
     }
@@ -470,7 +464,7 @@ final class ContainerTest extends AbstractTestCase
 
         $this->container->untag(stdClass::class, ['tag']);
 
-        self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
+        self::assertEmpty(iterator_to_array($this->container->tagged('tag')));
     }
 
     /**
@@ -486,7 +480,7 @@ final class ContainerTest extends AbstractTestCase
 
         $this->container->untag(stdClass::class, [stdClass::class]);
 
-        self::assertCount(0, iterator_to_array($this->container->tagged(stdClass::class)));
+        self::assertEmpty(iterator_to_array($this->container->tagged(stdClass::class)));
     }
 
     /**
@@ -502,7 +496,7 @@ final class ContainerTest extends AbstractTestCase
 
         $this->container->untag(stdClass::class, ['tag']);
 
-        self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
+        self::assertEmpty(iterator_to_array($this->container->tagged('tag')));
     }
 
     /**
@@ -518,7 +512,7 @@ final class ContainerTest extends AbstractTestCase
 
         $this->container->untag(stdClass::class, ['tag']);
 
-        self::assertCount(0, iterator_to_array($this->container->tagged('tag')));
+        self::assertEmpty(iterator_to_array($this->container->tagged('tag')));
     }
 
     /**
@@ -559,11 +553,8 @@ final class ContainerTest extends AbstractTestCase
         yield 'Invokable' => [new TestEventListener()];
         yield 'StaticMethodCall' => [TestEventListener::class . '::onStatic'];
         yield 'TypelessAnonymousFunctionCall' => [
-            /**
-             * @param TestEvent $event
-             */
-            static function ($event): void {
-                $event->collect($event::class);
+            static function (TestEvent $testEvent): void {
+                $testEvent->collect($testEvent::class);
             },
         ];
     }
@@ -573,6 +564,7 @@ final class ContainerTest extends AbstractTestCase
      */
     public static function dataProviderServiceClasses(): Generator
     {
+        yield ContainerInterface::class => [ContainerInterface::class, []];
         yield ArrayConstructor::class => [
             ArrayConstructor::class,
             [
