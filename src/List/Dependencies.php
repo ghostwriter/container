@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Ghostwriter\Container\List;
 
 use Ghostwriter\Container\Exception\DependencyNotFoundException;
+use Ghostwriter\Container\Exception\ShouldNotHappenException;
 use Ghostwriter\Container\Interface\ListInterface;
+use Ghostwriter\Container\Name\Service;
 
 use function array_key_exists;
 use function array_key_last;
@@ -20,7 +22,7 @@ final class Dependencies implements ListInterface
      * @param array<class-string<TService>,bool> $list
      */
     public function __construct(
-        private array $list = []
+        private array $list = [],
     ) {}
 
     /**
@@ -33,19 +35,25 @@ final class Dependencies implements ListInterface
         return new self($list);
     }
 
-    public function found(): bool
+    public function clear(): void
     {
-        return [] !== $this->list;
+        $this->list = [];
     }
 
     /**
-     * @param class-string<TService> $class
      *
      * @psalm-assert-if-true class-string<TService> $this->list[$class]
      */
-    public function has(string $class): bool
+    public function has(string $service): bool
     {
-        return array_key_exists($class, $this->list);
+        $serviceName = Service::new($service);
+
+        return array_key_exists($serviceName->toString(), $this->list);
+    }
+
+    public function isEmpty(): bool
+    {
+        return [] === $this->list;
     }
 
     /**
@@ -57,21 +65,25 @@ final class Dependencies implements ListInterface
     public function last(): string
     {
         if ([] === $this->list) {
-            throw new DependencyNotFoundException();
+            throw new ShouldNotHappenException();
         }
 
         return array_key_last($this->list);
     }
 
+    public function missing(): bool
+    {
+        return [] !== $this->list;
+    }
+
     /**
      * @template TSet of object
      *
-     * @param class-string<TSet> $class
      */
-    public function set(string $class): void
+    public function set(string $serviceName): void
     {
         /** @var self<TService|TSet> $this */
-        $this->list[$class] = true;
+        $this->list[Service::new($serviceName)->toString()] = true;
     }
 
     /**
@@ -82,11 +94,8 @@ final class Dependencies implements ListInterface
         return array_keys($this->list);
     }
 
-    /**
-     * @param class-string<TService> $class
-     */
-    public function unset(string $class): void
+    public function unset(string $serviceName): void
     {
-        unset($this->list[$class]);
+        unset($this->list[Service::new($serviceName)->toString()]);
     }
 }
