@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Ghostwriter\Container\List;
 
 use Closure;
+use Ghostwriter\Container\Exception\BuilderAlreadyExistsException;
 use Ghostwriter\Container\Exception\BuilderNotFoundException;
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\ListInterface;
+use Ghostwriter\Container\Name\Service;
 
 use function array_key_exists;
 
@@ -17,16 +19,16 @@ use function array_key_exists;
 final class Builders implements ListInterface
 {
     /**
-     * @param array<class-string<TService>,Closure(ContainerInterface):TService> $list
+     * @param Closure $list
      */
     public function __construct(
-        private array $list = []
+        private array $list = [],
     ) {}
 
     /**
      * @template TNewService of object
      *
-     * @param array<class-string<TNewService>,Closure(ContainerInterface):TNewService> $list
+     * @param Closure $list
      *
      * @return self<TNewService>
      */
@@ -35,39 +37,45 @@ final class Builders implements ListInterface
         return new self($list);
     }
 
+    public function clear(): void
+    {
+        $this->list = [];
+    }
+
     /**
      * @param class-string<TService> $service
      *
      * @throws BuilderNotFoundException
      *
      * @return Closure(ContainerInterface):TService
-     *
      */
     public function get(string $service): Closure
     {
-        return $this->list[$service] ?? throw new BuilderNotFoundException($service);
+        return $this->list[Service::new($service)->toString()]
+            ?? throw new BuilderNotFoundException($service);
     }
 
     /**
      * @param class-string<TService> $service
-     *
-     * @psalm-assert-if-true class-string<TService> $this->list[$service]
      */
     public function has(string $service): bool
     {
-        return array_key_exists($service, $this->list);
+        return array_key_exists(Service::new($service)->toString(), $this->list);
     }
 
     /**
      * @template TSet of object
      *
-     * @param class-string<TSet>               $service
      * @param Closure(ContainerInterface):TSet $value
      */
     public function set(string $service, Closure $value): void
     {
+        if ($this->has($service)) {
+            throw new BuilderAlreadyExistsException($service);
+        }
+
         /** @var self<TService|TSet> $this */
-        $this->list[$service] = $value;
+        $this->list[Service::new($service)->toString()] = $value;
     }
 
     /**
@@ -75,6 +83,6 @@ final class Builders implements ListInterface
      */
     public function unset(string $service): void
     {
-        unset($this->list[$service]);
+        unset($this->list[Service::new($service)->toString()]);
     }
 }
