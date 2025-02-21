@@ -9,7 +9,7 @@ final class OptionalConstructor
     public $result;
 
     /** @param null|mixed $value */
-    public function __construct($value = null)
+    public function __construct(mixed $value = null)
     {
         $this->result = $value;
     }
