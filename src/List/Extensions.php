@@ -6,6 +6,8 @@ namespace Ghostwriter\Container\List;
 
 use Ghostwriter\Container\Interface\ExtensionInterface;
 use Ghostwriter\Container\Interface\ListInterface;
+use Ghostwriter\Container\Name\Extension;
+use Ghostwriter\Container\Name\Service;
 
 /**
  * @template-covariant TService of object
@@ -16,7 +18,7 @@ final class Extensions implements ListInterface
      * @param array<class-string<TService>,non-empty-list<class-string<ExtensionInterface<TService>>,bool>> $list
      */
     public function __construct(
-        private array $list = []
+        private array $list = [],
     ) {}
 
     /**
@@ -37,23 +39,18 @@ final class Extensions implements ListInterface
         return $this->list;
     }
 
-    /**
-     * @template TSet of object
-     *
-     * @param class-string<TSet>                     $service
-     * @param class-string<ExtensionInterface<TSet>> $extension
-     */
-    public function set(string $service, string $extension): void
+    public function clear(): void
     {
-        /** @var self<TService|TSet> $this */
-        $this->list[$service][$extension] = true;
+        $this->list = [];
     }
 
-    /**
-     * @param class-string<TService> $service
-     */
+    public function set(string $service, string $extension): void
+    {
+        $this->list[Service::new($service)->toString()][Extension::new($extension)->toString()] = true;
+    }
+
     public function unset(string $service): void
     {
-        unset($this->list[$service]);
+        unset($this->list[Service::new($service)->toString()]);
     }
 }
