@@ -16,18 +16,18 @@ use Override;
 final readonly class Provider implements AttributeInterface
 {
     /**
-     * @param class-string<ServiceProviderInterface> $class
+     * @param class-string<ServiceProviderInterface> $name
      */
     public function __construct(
-        public string $class,
+        public string $name,
     ) {}
 
     /**
      * @return class-string<ServiceProviderInterface>
      */
     #[Override]
-    public function service(): string
+    public function name(): string
     {
-        return $this->class;
+        return $this->name;
     }
 }
