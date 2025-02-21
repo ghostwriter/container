@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Fixture\Attribute;
+namespace Tests\Fixture\Attribute\Inject;
 
 use Ghostwriter\Container\Attribute\Inject;
 use Tests\Fixture\ClientInterface;
