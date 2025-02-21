@@ -7,7 +7,7 @@ namespace Tests\Fixture\Factory;
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\FactoryInterface;
 use Override;
-use Tests\Fixture\Attribute\ClassHasFactoryAttribute;
+use Tests\Fixture\Attribute\Factory\ClassHasFactoryAttribute;
 use Tests\Fixture\Foobar;
 use Throwable;
 
