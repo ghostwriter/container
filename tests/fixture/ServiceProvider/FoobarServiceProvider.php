@@ -22,9 +22,9 @@ final readonly class FoobarServiceProvider implements ServiceProviderInterface
     #[Override]
     public function __invoke(ContainerInterface $container): void
     {
-        $container->register(Foobar::class, stdClass::class);
-        $container->register(Foo::class);
-        $container->register(Bar::class);
-        $container->register(Baz::class);
+        $container->alias(stdClass::class, Foobar::class);
+        $container->set(Foo::class, $container->build(Foo::class));
+        $container->set(Bar::class, $container->build(Bar::class));
+        $container->set(Baz::class, $container->build(Baz::class));
     }
 }
