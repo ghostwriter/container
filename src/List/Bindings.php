@@ -6,9 +6,9 @@ namespace Ghostwriter\Container\List;
 
 use Ghostwriter\Container\Exception\BindingNotFoundException;
 use Ghostwriter\Container\Interface\ListInterface;
+use Ghostwriter\Container\Name\Service;
 
-use function array_key_exists;
-use function in_array;
+use function sprintf;
 
 /**
  * @template-covariant TConcrete of object
@@ -21,7 +21,7 @@ final class Bindings implements ListInterface
      * @param array<class-string<TConcrete>,non-empty-array<class-string<TService>,class-string<TImplementation>>> $list
      */
     public function __construct(
-        private array $list = []
+        private array $list = [],
     ) {}
 
     /**
@@ -36,10 +36,21 @@ final class Bindings implements ListInterface
         return new self($list);
     }
 
+    public function clear(): void
+    {
+        $this->list = [];
+    }
+
     public function contains(string $service): bool
     {
+        $serviceName = Service::new($service)->toString();
+
         foreach ($this->list as $services) {
-            if (in_array($service, $services, true)) {
+            foreach ($services as $service => $implementation) {
+                if ($service !== $serviceName && $serviceName !== $implementation) {
+                    continue;
+                }
+
                 return true;
             }
         }
@@ -50,8 +61,6 @@ final class Bindings implements ListInterface
     /**
      * @template TGet of object
      *
-     * @param class-string<TGet> $service
-     *
      * @throws BindingNotFoundException
      *
      * @return class-string<TImplementation>
@@ -59,34 +68,33 @@ final class Bindings implements ListInterface
      */
     public function get(string $concrete, string $service): string
     {
-        return $this->list[$concrete][$service] ?? throw new BindingNotFoundException();
+        $concreteName = Service::new($concrete);
+        $serviceName = Service::new($service);
+
+        return $this->list[$concreteName->toString()][$serviceName->toString()] ?? throw new BindingNotFoundException(
+            sprintf('Binding not found for %s in %s', $serviceName->toString(), $concreteName->toString())
+        );
     }
 
     /**
      * @template THas of object
      *
-     * @param class-string<THas> $service
      */
     public function has(string $concrete, string $service): bool
     {
-        if (! array_key_exists($concrete, $this->list)) {
-            return false;
-        }
+        $concreteName = Service::new($concrete);
+        $serviceName = Service::new($service);
 
-        return array_key_exists($service, $this->list[$concrete]);
+        return isset($this->list[$concreteName->toString()][$serviceName->toString()]);
     }
 
-    /**
-     * @template TSetConcrete of object
-     * @template TSetService of object
-     * @template TSetImplementation of object
-     *
-     * @param class-string<TSetConcrete>       $concrete
-     * @param class-string<TSetService>        $service
-     * @param class-string<TSetImplementation> $implementation
-     */
     public function set(string $concrete, string $service, string $implementation): void
     {
-        $this->list[$concrete][$service] = $implementation;
+        $concreteName = Service::new($concrete);
+        $serviceName = Service::new($service);
+        $implementationName = Service::new($implementation);
+
+        // when $concreteName needs $serviceName give it $implementation
+        $this->list[$concreteName->toString()][$serviceName->toString()] = $implementationName->toString();
     }
 }
