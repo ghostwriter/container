@@ -7,7 +7,7 @@ namespace Tests\Fixture\Extension;
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\ExtensionInterface;
 use Override;
-use Tests\Fixture\Attribute\ClassParameterHasExtensionAttribute;
+use Tests\Fixture\Attribute\Extension\ClassParameterHasExtensionAttribute;
 use Tests\Fixture\Foobar;
 
 /**
