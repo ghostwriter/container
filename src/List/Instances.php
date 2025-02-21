@@ -6,6 +6,7 @@ namespace Ghostwriter\Container\List;
 
 use Ghostwriter\Container\Exception\InstanceNotFoundException;
 use Ghostwriter\Container\Interface\ListInterface;
+use Ghostwriter\Container\Name\Service;
 
 use function array_key_exists;
 
@@ -18,7 +19,7 @@ final class Instances implements ListInterface
      * @param array<class-string<TService>,TService> $list
      */
     public function __construct(
-        private array $list = []
+        private array $list = [],
     ) {}
 
     /**
@@ -33,27 +34,28 @@ final class Instances implements ListInterface
         return new self($list);
     }
 
-    /**
-     * @param class-string<TService> $service
-     *
-     * @throws InstanceNotFoundException
-     *
-     * @return TService
-     *
-     */
-    public function get(string $service): object
+    public function clear(): void
     {
-        return $this->list[$service] ?? throw new InstanceNotFoundException($service);
+        $this->list = [];
     }
 
     /**
-     * @param class-string<TService> $service
+     * @throws InstanceNotFoundException
      *
+     * @return TService
+     */
+    public function get(string $service): object
+    {
+        return $this->list[Service::new($service)->toString()]
+            ?? throw new InstanceNotFoundException($service);
+    }
+
+    /**
      * @psalm-assert-if-true class-string<TService> $this->list[$service]
      */
     public function has(string $service): bool
     {
-        return array_key_exists($service, $this->list);
+        return array_key_exists(Service::new($service)->toString(), $this->list);
     }
 
     /**
@@ -64,15 +66,12 @@ final class Instances implements ListInterface
      */
     public function set(string $service, object $value): void
     {
-        /** @var self<TService|TSet> $this */
-        $this->list[$service] = $value;
+        /** @var self<class-string<TSet>,TSet> $this */
+        $this->list[Service::new($service)->toString()] = $value;
     }
 
-    /**
-     * @param class-string<TService> $service
-     */
     public function unset(string $service): void
     {
-        unset($this->list[$service]);
+        unset($this->list[Service::new($service)->toString()]);
     }
 }
