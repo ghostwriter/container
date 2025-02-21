@@ -18,6 +18,8 @@ use Ghostwriter\Container\List\Factories;
 use Ghostwriter\Container\List\Instances;
 use Ghostwriter\Container\List\Providers;
 use Ghostwriter\Container\List\Tags;
+use Ghostwriter\Container\Name\Extension as ExtensionName;
+use Ghostwriter\Container\Name\Service as ServiceName;
 use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 use Tests\Unit\AbstractTestCase;
@@ -29,7 +31,7 @@ use Throwable;
 #[CoversClass(Builders::class)]
 #[CoversClass(Container::class)]
 #[CoversClass(Dependencies::class)]
-#[CoversClass(Extension::class)]
+#[CoversClass(ExtensionName::class)]
 #[CoversClass(Extensions::class)]
 #[CoversClass(Factories::class)]
 #[CoversClass(Factory::class)]
@@ -37,6 +39,8 @@ use Throwable;
 #[CoversClass(Instances::class)]
 #[CoversClass(Providers::class)]
 #[CoversClass(Tags::class)]
+#[CoversClass(ServiceName::class)]
+#[CoversClass(Extension::class)]
 final class ServiceExtensionMustBeAnInstanceOfExtensionInterfaceExceptionTest extends AbstractTestCase
 {
     /**
