@@ -18,6 +18,8 @@ use Ghostwriter\Container\List\Factories;
 use Ghostwriter\Container\List\Instances;
 use Ghostwriter\Container\List\Providers;
 use Ghostwriter\Container\List\Tags;
+use Ghostwriter\Container\Name\Alias;
+use Ghostwriter\Container\Name\Service;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\Fixture\UnresolvableParameter;
 use Tests\Unit\AbstractTestCase;
@@ -26,6 +28,7 @@ use Throwable;
 use function sprintf;
 
 #[CoversClass(UnresolvableParameterException::class)]
+#[CoversClass(Alias::class)]
 #[CoversClass(Aliases::class)]
 #[CoversClass(Bindings::class)]
 #[CoversClass(Builders::class)]
@@ -39,6 +42,7 @@ use function sprintf;
 #[CoversClass(Instances::class)]
 #[CoversClass(Providers::class)]
 #[CoversClass(Tags::class)]
+#[CoversClass(Service::class)]
 final class UnresolvableParameterExceptionTest extends AbstractTestCase
 {
     /**
