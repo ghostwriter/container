@@ -7,10 +7,10 @@ namespace Tests\Fixture\Extension;
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\ExtensionInterface;
 use Override;
-use Tests\Fixture\Attribute\ClassHasExtensionAttribute;
-use Tests\Fixture\Attribute\ClassRequiresExtensionAttribute;
+use Tests\Fixture\Attribute\Extension\ClassRequiresExtensionAttribute;
 use Tests\Fixture\Foobar;
 use Throwable;
+
 use function time;
 
 /**
@@ -26,7 +26,7 @@ final readonly class ClassRequiresExtensionAttributeExtension implements Extensi
     #[Override]
     public function __invoke(ContainerInterface $container, object $service): ClassRequiresExtensionAttribute
     {
-        $service->setFoobar(new Foobar(time()));
+        $service->setFoobar($container->get(Foobar::class));
 
         return $service;
     }
