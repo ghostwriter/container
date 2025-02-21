@@ -32,7 +32,7 @@ abstract class AbstractTestCase extends TestCase
     {
         parent::tearDown();
 
-        $this->container->purge();
+        $this->container->clear();
     }
 
     /**
