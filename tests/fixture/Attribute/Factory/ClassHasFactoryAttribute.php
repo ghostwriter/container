@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Fixture\Attribute;
+namespace Tests\Fixture\Attribute\Factory;
 
 use Ghostwriter\Container\Attribute\Factory;
 use Tests\Fixture\Factory\ClassHasFactoryAttributeFactory;
