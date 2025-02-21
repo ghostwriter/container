@@ -5,28 +5,26 @@ declare(strict_types=1);
 namespace Ghostwriter\Container\Attribute;
 
 use Attribute;
-use Ghostwriter\Container\Interface\Attribute\ExtensionAttributeInterface;
+use Ghostwriter\Container\Interface\AttributeInterface;
 use Ghostwriter\Container\Interface\ExtensionInterface;
 use Override;
 
-/**
- * @template-covariant TService of object
- *
- * @implements ExtensionAttributeInterface<ExtensionInterface<TService>>
- */
-#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_PARAMETER | Attribute::IS_REPEATABLE)]
-final readonly class Extension implements ExtensionAttributeInterface
+#[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
+final readonly class Extension implements AttributeInterface
 {
     /**
-     * @param class-string<ExtensionInterface<TService>> $service
+     * @param class-string<ExtensionInterface> $name
      */
     public function __construct(
-        public string $service,
+        public string $name,
     ) {}
 
+    /**
+     * @return class-string
+     */
     #[Override]
-    public function service(): string
+    public function name(): string
     {
-        return $this->service;
+        return $this->name;
     }
 }
