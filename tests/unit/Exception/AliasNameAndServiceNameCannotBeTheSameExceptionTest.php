@@ -18,6 +18,8 @@ use Ghostwriter\Container\List\Factories;
 use Ghostwriter\Container\List\Instances;
 use Ghostwriter\Container\List\Providers;
 use Ghostwriter\Container\List\Tags;
+use Ghostwriter\Container\Name\Alias;
+use Ghostwriter\Container\Name\Service;
 use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 use Tests\Unit\AbstractTestCase;
@@ -37,6 +39,8 @@ use Throwable;
 #[CoversClass(Instances::class)]
 #[CoversClass(Providers::class)]
 #[CoversClass(Tags::class)]
+#[CoversClass(Alias::class)]
+#[CoversClass(Service::class)]
 final class AliasNameAndServiceNameCannotBeTheSameExceptionTest extends AbstractTestCase
 {
     /**
