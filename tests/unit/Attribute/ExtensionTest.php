@@ -17,13 +17,16 @@ use Ghostwriter\Container\List\Factories;
 use Ghostwriter\Container\List\Instances;
 use Ghostwriter\Container\List\Providers;
 use Ghostwriter\Container\List\Tags;
+use Ghostwriter\Container\Name\Alias;
+use Ghostwriter\Container\Name\Extension as ExtensionName;
+use Ghostwriter\Container\Name\Factory as FactoryName;
+use Ghostwriter\Container\Name\Service as ServiceName;
 use PHPUnit\Framework\Attributes\CoversClass;
-use Tests\Fixture\Attribute\ClassHasExtensionAttribute;
-use Tests\Fixture\Attribute\ClassHasFactoryAttribute2;
-use Tests\Fixture\Attribute\ClassParameterHasExtensionAttribute;
-use Tests\Fixture\Attribute\Foobar2;
+use Tests\Fixture\Attribute\Extension\ClassHasExtensionAttribute;
+use Tests\Fixture\Attribute\Extension\ClassParameterHasExtensionAttribute;
 use Tests\Fixture\Foobar;
 use Tests\Unit\AbstractTestCase;
+use Throwable;
 
 #[CoversClass(Aliases::class)]
 #[CoversClass(Bindings::class)]
@@ -38,14 +41,23 @@ use Tests\Unit\AbstractTestCase;
 #[CoversClass(Instances::class)]
 #[CoversClass(Providers::class)]
 #[CoversClass(Tags::class)]
+#[CoversClass(ServiceName::class)]
+#[CoversClass(FactoryName::class)]
+#[CoversClass(Alias::class)]
+#[CoversClass(ExtensionName::class)]
 final class ExtensionTest extends AbstractTestCase
 {
+    /**
+     * @throws Throwable
+     */
     public function testClassHasExtensionAttribute(): void
     {
         self::assertInstanceOf(Foobar::class, $this->container->get(ClassHasExtensionAttribute::class)->foobar());
-        self::assertInstanceOf(Foobar2::class, $this->container->get(ClassHasFactoryAttribute2::class)->foobar());
     }
 
+    /**
+     * @throws Throwable
+     */
     public function testClassParameterHasExtensionAttribute(): void
     {
         self::assertInstanceOf(
