@@ -11,9 +11,10 @@ use Ghostwriter\Container\Exception\AliasNotFoundException;
 use Ghostwriter\Container\Exception\ServiceNameMustBeNonEmptyStringException;
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\ListInterface;
+use Ghostwriter\Container\Name\Alias;
+use Ghostwriter\Container\Name\Service;
 
-use function array_key_exists;
-use function trim;
+use function in_array;
 
 /**
  * @template-covariant TAlias of object
@@ -22,81 +23,71 @@ use function trim;
 final class Aliases implements ListInterface
 {
     /**
-     * @param non-empty-array<class-string<TAlias>,class-string<TService>> $list
+     * @param array<TService,TAlias> $list
      */
     public function __construct(
-        private array $list
+        private array $list = [
+            Container::class => ContainerInterface::class,
+        ],
     ) {}
 
-    /**
-     * @template TNewAlias of object
-     * @template TNewService of object
-     *
-     * @param non-empty-array<class-string<TNewAlias>,class-string<TNewService>> $list
-     *
-     * @return self<TNewAlias,TNewService>
-     */
-    public static function new(array $list = [
-        ContainerInterface::class => Container::class,
-    ]): self
+    public static function new(): self
     {
-        return new self($list);
+        return new self();
+    }
+
+    public function clear(): void
+    {
+        $this->list = [
+            Container::class => ContainerInterface::class,
+        ];
     }
 
     /**
-     * @param class-string<TAlias> $alias
-     *
      * @return class-string<TService>
      */
-    public function get(string $alias): string
+    public function get(string $service): string
     {
-        return $this->list[$alias] ?? throw new AliasNotFoundException($alias);
+        $alias = Alias::new($service)->toString();
+
+        foreach ($this->list as $serviceName => $aliasName) {
+            if ($aliasName === $alias) {
+                return $serviceName;
+            }
+        }
+
+        throw new AliasNotFoundException($service);
     }
 
-    /**
-     * @param class-string<TAlias> $alias
-     *
-     * @psalm-assert-if-true class-string<TAlias> $this->list[$alias]
-     */
-    public function has(string $alias): bool
+    public function has(string $service): bool
     {
-        return array_key_exists($alias, $this->list);
+        return in_array(Service::new($service)->toString(), $this->list, true);
     }
 
     /**
      * @template TSetAlias of object
      * @template TSetService of object
      *
-     * @param class-string<TSetAlias>   $alias
-     * @param class-string<TSetService> $service
-     *
      * @throws AliasNameMustBeNonEmptyStringException
      * @throws ServiceNameMustBeNonEmptyStringException
      * @throws AliasNameAndServiceNameCannotBeTheSameException
      */
-    public function set(string $alias, string $service): void
+    public function set(string $service, string $alias): void
     {
-        if (trim($alias) === '') {
-            throw new AliasNameMustBeNonEmptyStringException();
-        }
+        $alias = Alias::new($alias)->toString();
 
-        if (trim($service) === '') {
-            throw new ServiceNameMustBeNonEmptyStringException();
-        }
+        $service = Service::new($service)->toString();
 
         if ($alias === $service) {
             throw new AliasNameAndServiceNameCannotBeTheSameException($alias);
         }
 
         /** @var self<TAlias|TSetAlias,TService|TSetService> $this */
-        $this->list[$alias] = $service;
+        $this->list[$service] = $alias;
     }
 
-    /**
-     * @param class-string<TAlias> $alias
-     */
-    public function unset(string $alias): void
+    public function unset(string $service): void
     {
-        unset($this->list[$alias]);
+        unset($this->list[Service::new($service)->toString()]);
     }
 }
