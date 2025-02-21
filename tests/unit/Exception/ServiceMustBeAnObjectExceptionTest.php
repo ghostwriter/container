@@ -18,6 +18,8 @@ use Ghostwriter\Container\List\Factories;
 use Ghostwriter\Container\List\Instances;
 use Ghostwriter\Container\List\Providers;
 use Ghostwriter\Container\List\Tags;
+use Ghostwriter\Container\Name\Alias;
+use Ghostwriter\Container\Name\Service;
 use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 use Tests\Unit\AbstractTestCase;
@@ -36,7 +38,9 @@ use Throwable;
 #[CoversClass(Inject::class)]
 #[CoversClass(Instances::class)]
 #[CoversClass(Providers::class)]
+#[CoversClass(Service::class)]
 #[CoversClass(Tags::class)]
+#[CoversClass(Alias::class)]
 final class ServiceMustBeAnObjectExceptionTest extends AbstractTestCase
 {
     /**
@@ -46,7 +50,7 @@ final class ServiceMustBeAnObjectExceptionTest extends AbstractTestCase
     {
         $this->assertException(ServiceMustBeAnObjectException::class);
 
-        $this->container->set(stdClass::class, static fn (): false => false);
+        $this->container->define(stdClass::class, static fn (): false => false);
 
         $this->container->get(stdClass::class);
     }
