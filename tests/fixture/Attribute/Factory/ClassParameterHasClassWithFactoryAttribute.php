@@ -2,16 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Tests\Fixture\Attribute;
+namespace Tests\Fixture\Attribute\Factory;
 
-use Ghostwriter\Container\Attribute\Factory;
-use Tests\Fixture\Factory\FoobarFactory;
 use Tests\Fixture\Foobar;
 
-final readonly class ClassParameterHasFactoryAttribute
+final readonly class ClassParameterHasClassWithFactoryAttribute
 {
     public function __construct(
-        #[Factory(FoobarFactory::class)]
         private Foobar $foobar
     ) {
     }
