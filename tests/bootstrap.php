@@ -14,18 +14,9 @@ if (! $classLoader instanceof ClassLoader) {
 
 $fixturePath = __DIR__ . \DIRECTORY_SEPARATOR . 'fixture';
 
-/**
- * when test fixtures have a single namespace (e.g. Tests\Fixture).
- *
- * @psalm-suppress UncaughtThrowInGlobalScope
- */
-$classLoader->addPsr4('Tests\\Fixture\\', $fixturePath);
-
-/**
- * when test fixtures have multiple namespaces.
- *
- * @psalm-suppress UncaughtThrowInGlobalScope
- */
-// $classLoader->addPsr4('', $fixturePath);
+if (\is_dir($fixturePath)) {
+    /** @psalm-suppress UncaughtThrowInGlobalScope */
+    $classLoader->addPsr4('Tests\\Fixture\\', $fixturePath);
+}
 
 return $classLoader;
