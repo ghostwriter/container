@@ -18,6 +18,7 @@ use Ghostwriter\Container\List\Factories;
 use Ghostwriter\Container\List\Instances;
 use Ghostwriter\Container\List\Providers;
 use Ghostwriter\Container\List\Tags;
+use Ghostwriter\Container\Name\Provider;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\Unit\AbstractTestCase;
 use Throwable;
@@ -36,6 +37,7 @@ use Throwable;
 #[CoversClass(Instances::class)]
 #[CoversClass(Providers::class)]
 #[CoversClass(Tags::class)]
+#[CoversClass(Provider::class)]
 final class ServiceProviderMustBeAnInstanceOfServiceProviderInterfaceExceptionTest extends AbstractTestCase
 {
     /**
