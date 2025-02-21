@@ -6,13 +6,13 @@ namespace Ghostwriter\Container\List;
 
 use Generator;
 use Ghostwriter\Container\Exception\ServiceNotFoundException;
-use Ghostwriter\Container\Exception\ServiceTagMustBeNonEmptyStringException;
 use Ghostwriter\Container\Exception\ServiceTagNotFoundException;
 use Ghostwriter\Container\Interface\ListInterface;
+use Ghostwriter\Container\Name\Service;
+use Ghostwriter\Container\Name\Tag;
 
 use function array_key_exists;
 use function array_keys;
-use function trim;
 
 /**
  * @template-covariant TService of object
@@ -23,7 +23,7 @@ final class Tags implements ListInterface
      * @param array<non-empty-string,non-empty-array<class-string<TService>,bool>> $list
      */
     public function __construct(
-        private array $list = []
+        private array $list = [],
     ) {}
 
     /**
@@ -36,17 +36,20 @@ final class Tags implements ListInterface
         return new self($list);
     }
 
+    public function clear(): void
+    {
+        $this->list = [];
+    }
+
     /**
-     * @param non-empty-string $tag
-     *
      * @throws ServiceTagNotFoundException
      *
      * @return Generator<class-string<TService>>
-     *
-     *
      */
     public function get(string $tag): Generator
     {
+        $tag = Tag::new($tag)->toString();
+
         if (! array_key_exists($tag, $this->list)) {
             throw new ServiceTagNotFoundException($tag);
         }
@@ -54,12 +57,18 @@ final class Tags implements ListInterface
         yield from array_keys($this->list[$tag]);
     }
 
+    public function has(string $tag): bool
+    {
+        return array_key_exists(Tag::new($tag)->toString(), $this->list);
+    }
+
     /**
-     * @param class-string<TService> $service
      * @param list<non-empty-string> $tags
      */
     public function remove(string $service, array $tags = []): void
     {
+        $service = Service::new($service)->toString();
+
         foreach ($tags as $tag) {
             if (! array_key_exists($tag, $this->list)) {
                 throw new ServiceTagNotFoundException($tag);
@@ -76,32 +85,34 @@ final class Tags implements ListInterface
     /**
      * @template TSet of object
      *
-     * @param class-string<TSet>               $service
      * @param non-empty-list<non-empty-string> $tags
      */
     public function set(string $service, array $tags): void
     {
-        foreach ($tags as $tag) {
-            if (\trim($tag) === '') {
-                throw new ServiceTagMustBeNonEmptyStringException();
-            }
+        $serviceName = Service::new($service);
 
+        $service = $serviceName->toString();
+
+        foreach ($tags as $tag) {
             /** @var self<TService|TSet> $this */
-            $this->list[$tag][$service] = true;
+            $this->list[Tag::new($tag)->toString()][$service] = true;
         }
     }
 
-    /**
-     * @param class-string<TService> $service
-     */
     public function unset(string $service): void
     {
+        $service = Service::new($service)->toString();
+
         foreach ($this->list as $tag => $services) {
             if (! array_key_exists($service, $services)) {
                 continue;
             }
 
             unset($this->list[$tag][$service]);
+
+            if ([] === $this->list[$tag]) {
+                unset($this->list[$tag]);
+            }
         }
     }
 }
