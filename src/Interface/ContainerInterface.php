@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ghostwriter\Container\Interface;
 
+use Closure;
 use Generator;
 use Ghostwriter\Container\Interface\Exception\NotFoundExceptionInterface;
 use Throwable;
@@ -83,6 +84,20 @@ interface ContainerInterface
      */
     public function call(callable $callback, array $arguments = []): mixed;
 
+    public function clear(): void;
+
+    /**
+     * Define a service builder on the given container.
+     *
+     * @template TService of object
+     * @template TTag of object
+     *
+     * @param class-string<TService>                $service
+     * @param callable(ContainerInterface):TService $value
+     * @param list<class-string<TTag>>              $tags
+     */
+    public function define(string $service, callable $value, array $tags = []): void;
+
     /**
      * "Extend" a service object in the container.
      *
@@ -156,24 +171,6 @@ interface ContainerInterface
      */
     public function provide(string $serviceProvider): void;
 
-    public function purge(): void;
-
-    /**
-     * Bind abstract classes or interfaces to concrete implementations.
-     *
-     * @template TAbstract of object
-     * @template TConcrete of object
-     * @template TTag of object
-     *
-     * @param class-string<TAbstract>  $abstract
-     * @param class-string<TConcrete>  $concrete
-     * @param list<class-string<TTag>> $tags
-     *
-     * @throws NotFoundExceptionInterface
-     * @throws ExceptionInterface
-     */
-    public function register(string $abstract, ?string $concrete = null, array $tags = []): void;
-
     /**
      * Remove a service from the container.
      *
@@ -189,11 +186,11 @@ interface ContainerInterface
      * @template TService of object
      * @template TTag of object
      *
-     * @param class-string<TService>                          $service
-     * @param (Closure(ContainerInterface):TService)|TService $value
-     * @param list<class-string<TTag>>                        $tags
+     * @param class-string<TService>   $service
+     * @param TService                 $value
+     * @param list<class-string<TTag>> $tags
      */
-    public function set(string $service, callable|object $value, array $tags = []): void;
+    public function set(string $service, object $value, array $tags = []): void;
 
     /**
      * Assign a set of tags to a given service id.
