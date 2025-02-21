@@ -54,12 +54,10 @@ use Ghostwriter\Container\Attribute\Inject;
 
 final readonly class Service
 {
-    public function __construct(
+    public function __invoke(
         #[Inject(Dependency::class)]
-        private DependencyInterface $dependency
-    ) {}
-
-    public function dependency():Dependency
+        DependencyInterface $dependency
+    ): Dependency
     {
         return $this->dependency;
     }
@@ -71,7 +69,7 @@ final readonly class Service
 final readonly class Service
 {
     public function __construct(
-        #[Inject(Dependency::class, Service::class)]
+        #[Inject(Dependency::class)]
         private DependencyInterface $dependency
     ) {}
 
@@ -98,7 +96,6 @@ use Ghostwriter\Container\Attribute\Factory;
 final readonly class Service
 {
     public function __construct(
-        #[Factory(DependencyFactory::class)]
         private Dependency $dependency
     ) {}
 
@@ -108,8 +105,6 @@ final readonly class Service
     }
 }
 
-// the above is equivalent to the following
-// $container->factory(Dependency::class, DependencyFactory::class);
 // $container->factory(Service::class, ServiceFactory::class);
 ```
 
@@ -126,7 +121,6 @@ use Ghostwriter\Container\Attribute\Extension;
 final readonly class Service
 {
     public function __construct(
-        #[Extension(DependencyExtension::class)]
         private Dependency $dependency
     ) {}
 
@@ -138,7 +132,6 @@ final readonly class Service
 
 // the above is equivalent to the following
 // $container->extend(Service::class, ServiceExtension::class);
-// $container->extend(Dependency::class, DependencyExtension::class);
 ```
 
 ---
@@ -189,9 +182,13 @@ final readonly class TasksServiceProvider implements ServiceProviderInterface
 {
     public function __invoke(ContainerInterface $container)
     {
-        $container->alias(TaskInterface::class, Task::class);
-
-        $container->set(Tasks::class, static function (Container $container) {
+        $container->alias(Task::class, TaskInterface::class);
+        
+        // "set" the service instance
+        $container->set(FirstTask::class, new FirstTask(), [Task::class]);
+        
+        // "define" the service builder
+        $container->define(Tasks::class, static function (Container $container) {
             /** @var Tasks $tasks */
             $tasks = $container->build(Tasks::class);
 
@@ -201,6 +198,7 @@ final readonly class TasksServiceProvider implements ServiceProviderInterface
 
             return $tasks;
         }, [Tasks::class, 'tasks']);
+        
     }
 }
 
@@ -216,13 +214,11 @@ assert($service instanceof Task); // true
 Registering a Contextual Bindings on the container.
 
 ```php
-interface ClientInterface { }
+interface ClientInterface {}
 
-final readonly class RestClient implements ClientInterface {
-}
+final readonly class RestClient implements ClientInterface {}
 
-final readonly class GraphQLClient implements ClientInterface {
-}
+final readonly class GraphQLClient implements ClientInterface {}
 
 final readonly class GitHub
 {
