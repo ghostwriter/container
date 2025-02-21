@@ -7,6 +7,8 @@ namespace Ghostwriter\Container\List;
 use Ghostwriter\Container\Exception\FactoryNotFoundException;
 use Ghostwriter\Container\Interface\FactoryInterface;
 use Ghostwriter\Container\Interface\ListInterface;
+use Ghostwriter\Container\Name\Factory;
+use Ghostwriter\Container\Name\Service;
 
 use function array_key_exists;
 
@@ -19,7 +21,7 @@ final class Factories implements ListInterface
      * @param array<class-string<TService>,class-string<FactoryInterface<TService>>> $list
      */
     public function __construct(
-        private array $list = []
+        private array $list = [],
     ) {}
 
     /**
@@ -32,41 +34,35 @@ final class Factories implements ListInterface
         return new self($list);
     }
 
+    public function clear(): void
+    {
+        $this->list = [];
+    }
+
     /**
-     * @param class-string<TService> $service
+     * @template TGetService of object
      *
-     * @return class-string<FactoryInterface<TService>>
+     * @throws FactoryNotFoundException
+     *
+     * @return class-string<FactoryInterface<TGetService>>
      */
     public function get(string $service): string
     {
-        return $this->list[$service] ?? throw new FactoryNotFoundException($service);
+        return $this->list[Service::new($service)->toString()] ?? throw new FactoryNotFoundException($service);
     }
 
-    /**
-     * @param class-string<TService> $service
-     */
     public function has(string $service): bool
     {
-        return array_key_exists($service, $this->list);
+        return array_key_exists(Service::new($service)->toString(), $this->list);
     }
 
-    /**
-     * @template TSet of object
-     *
-     * @param class-string<TSet>                   $service
-     * @param class-string<FactoryInterface<TSet>> $factory
-     */
     public function set(string $service, string $factory): void
     {
-        /** @var self<TService|TSet> $this */
-        $this->list[$service] = $factory;
+        $this->list[Service::new($service)->toString()] = Factory::new($factory)->toString();
     }
 
-    /**
-     * @param class-string<TService> $service
-     */
     public function unset(string $service): void
     {
-        unset($this->list[$service]);
+        unset($this->list[Service::new($service)->toString()]);
     }
 }
