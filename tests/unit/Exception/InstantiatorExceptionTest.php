@@ -18,8 +18,10 @@ use Ghostwriter\Container\List\Factories;
 use Ghostwriter\Container\List\Instances;
 use Ghostwriter\Container\List\Providers;
 use Ghostwriter\Container\List\Tags;
+use Ghostwriter\Container\Name\Alias;
+use Ghostwriter\Container\Name\Service;
 use PHPUnit\Framework\Attributes\CoversClass;
-use Tests\Fixture\Foobar;
+use Tests\Fixture\FoobarWithoutFactoryAttribute;
 use Tests\Unit\AbstractTestCase;
 use Throwable;
 
@@ -37,6 +39,8 @@ use Throwable;
 #[CoversClass(Instances::class)]
 #[CoversClass(Providers::class)]
 #[CoversClass(Tags::class)]
+#[CoversClass(Service::class)]
+#[CoversClass(Alias::class)]
 final class InstantiatorExceptionTest extends AbstractTestCase
 {
     /**
@@ -46,6 +50,18 @@ final class InstantiatorExceptionTest extends AbstractTestCase
     {
         $this->assertException(InstantiatorException::class);
 
-        $this->container->build(Foobar::class, [null]);
+        $this->container->build(FoobarWithoutFactoryAttribute::class, [null]);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testInstantiatorInstantiateWithNamedParameterThrowsInstantiatorException(): void
+    {
+        $this->assertException(InstantiatorException::class);
+
+        $this->container->build(FoobarWithoutFactoryAttribute::class, [
+            'count' => null,
+        ]);
     }
 }
