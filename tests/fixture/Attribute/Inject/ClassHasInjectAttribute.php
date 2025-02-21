@@ -1,19 +1,17 @@
 <?php
 
-namespace Tests\Fixture\Attribute;
+namespace Tests\Fixture\Attribute\Inject;
 
-use Ghostwriter\Container\Attribute\Factory;
 use Ghostwriter\Container\Attribute\Inject;
+use Tests\Fixture\Attribute\Factory\Foobar2;
+use Tests\Fixture\Attribute\Foobar2Interface;
 
-final readonly class ClassHasFactoryAttribute2
+final readonly class ClassHasInjectAttribute
 {
     public function __construct(
         #[Inject(Foobar2::class)]
-        #[Factory(Foobar2Factory::class)]
         private Foobar2Interface $foobar
-    )
-    {
-    }
+    ) {}
 
     public function foobar(): Foobar2Interface
     {
