@@ -34,9 +34,7 @@
         "#StandWithUkraine"
     ],
     "require": {
-        "php": ">=8.4"
-    },
-    "require-dev": {
+        "php": ">=8.4",
         "ghostwriter/coding-standard": "dev-main"
     },
     "minimum-stability": "stable",
