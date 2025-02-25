@@ -4,8 +4,9 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d81e43a0674ddc669f7fba2824a14f54",
-    "packages": [
+    "content-hash": "b09e2614e510638cb6d6e4a907e72b18",
+    "packages": [],
+    "packages-dev": [
         {
             "name": "composer/ca-bundle",
             "version": "1.5.5",
@@ -650,18 +651,18 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/ghostwriter/coding-standard.git",
-                "reference": "c8944b9eeda6a09b79aa8c3314190b20a4d35c5b"
+                "reference": "3ea929a51fe02b1ea0abc6c1f0c07d5b4f915b03"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ghostwriter/coding-standard/zipball/c8944b9eeda6a09b79aa8c3314190b20a4d35c5b",
-                "reference": "c8944b9eeda6a09b79aa8c3314190b20a4d35c5b",
+                "url": "https://api.github.com/repos/ghostwriter/coding-standard/zipball/3ea929a51fe02b1ea0abc6c1f0c07d5b4f915b03",
+                "reference": "3ea929a51fe02b1ea0abc6c1f0c07d5b4f915b03",
                 "shasum": ""
             },
             "require": {
                 "composer-plugin-api": "^2.6.0",
                 "composer-runtime-api": "^2.2.2",
-                "composer/composer": "2.8.6",
+                "composer/composer": "^2.8.6",
                 "composer/semver": "^3.4.3",
                 "ext-ctype": "*",
                 "ext-curl": "*",
@@ -687,7 +688,7 @@
                 "ext-zlib": "*",
                 "mockery/mockery": "^1.6.12",
                 "php": "^8.4",
-                "phpunit/phpunit": "12.0.5",
+                "phpunit/phpunit": "^12.0.5",
                 "symfony/var-dumper": "^7.2.3"
             },
             "conflict": {
@@ -751,7 +752,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-02-25T16:36:58+00:00"
+            "time": "2025-02-25T16:53:32+00:00"
         },
         {
             "name": "hamcrest/hamcrest-php",
@@ -4026,7 +4027,6 @@
             "time": "2024-03-03T12:36:25+00:00"
         }
     ],
-    "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
@@ -4035,7 +4035,7 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=8.4"
+        "php": "^8.4"
     },
     "platform-dev": [],
     "platform-overrides": {
