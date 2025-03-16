@@ -51,11 +51,11 @@
             "Tests\\Unit\\": "tests/Unit/"
         },
         "files": [
-            "tests/fixture/functions.php",
+            "tests/Fixture/functions.php",
             "tests/bootstrap.php"
         ],
         "exclude-from-classmap": [
-            "tests/fixture/"
+            "tests/Fixture/"
         ]
     },
     "config": {
