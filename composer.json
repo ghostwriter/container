@@ -37,7 +37,11 @@
         "php": "^8.4"
     },
     "require-dev": {
-        "ghostwriter/coding-standard": "dev-main"
+        "ghostwriter/coding-standard": "dev-main",
+        "psr/container": "^1.1 || ^2.0"
+    },
+    "provide": {
+        "psr/container-implementation": "*"
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
