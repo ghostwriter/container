@@ -54,20 +54,6 @@ use Ghostwriter\Container\Attribute\Inject;
 
 final readonly class Service
 {
-    public function __invoke(
-        #[Inject(Dependency::class)]
-        DependencyInterface $dependency
-    ): Dependency
-    {
-        return $this->dependency;
-    }
-}
-
-// the above is equivalent to the following
-// $container->alias(Dependency::class, DependencyInterface::class);
-
-final readonly class Service
-{
     public function __construct(
         #[Inject(Dependency::class)]
         private DependencyInterface $dependency
@@ -78,6 +64,8 @@ final readonly class Service
         return $this->dependency;
     }
 }
+
+// when "Service::class" asks for "DependencyInterface::class" inject an instance of "Dependency::class"
 
 // the above is equivalent to the following
 // $container->bind(Service::class, DependencyInterface::class, Dependency::class);
@@ -104,7 +92,7 @@ final readonly class Service
         return $this->dependency;
     }
 }
-
+// the above is equivalent to the following
 // $container->factory(Service::class, ServiceFactory::class);
 ```
 
@@ -129,7 +117,6 @@ final readonly class Service
         return $this->dependency;
     }
 }
-
 // the above is equivalent to the following
 // $container->extend(Service::class, ServiceExtension::class);
 ```
@@ -264,7 +251,7 @@ final readonly class GitHubExtension implements ExtensionInterface
 }
 
 $container->alias(GitHubClientInterface::class, GitHubClient::class);
-$container->extend(GitHubClientInterface::class, $container->get(GitHubExtention::class));
+$container->extend(GitHubClientInterface::class, GitHubExtention::class);
 ```
 
 ### Service Factory
