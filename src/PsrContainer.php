@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ghostwriter\Container;
 
 use Ghostwriter\Container\Interface\ContainerInterface;
+use Override;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
 use Psr\Container\NotFoundExceptionInterface as PsrNotFoundExceptionInterface;
 use RuntimeException;
@@ -30,6 +31,7 @@ final readonly class PsrContainer implements PsrContainerInterface
      *
      * @return TObject
      */
+    #[Override]
     public function get(string $id): mixed
     {
         try {
@@ -43,6 +45,7 @@ final readonly class PsrContainer implements PsrContainerInterface
         }
     }
 
+    #[Override]
     public function has(string $id): bool
     {
         return $this->container->has($id);
