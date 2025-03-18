@@ -13,6 +13,8 @@ use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\ListInterface;
 use Ghostwriter\Container\Name\Alias;
 use Ghostwriter\Container\Name\Service;
+use Ghostwriter\Container\PsrContainer;
+use Psr\Container\ContainerInterface as PsrContainerInterface;
 
 use function in_array;
 
@@ -23,12 +25,18 @@ use function in_array;
 final class Aliases implements ListInterface
 {
     /**
+     * @var array<TService,TAlias>
+     */
+    public const array DEFAULT = [
+        Container::class => ContainerInterface::class,
+        PsrContainer::class => PsrContainerInterface::class,
+    ];
+
+    /**
      * @param array<TService,TAlias> $list
      */
     public function __construct(
-        private array $list = [
-            Container::class => ContainerInterface::class,
-        ],
+        private array $list = self::DEFAULT,
     ) {}
 
     public static function new(): self
@@ -38,9 +46,7 @@ final class Aliases implements ListInterface
 
     public function clear(): void
     {
-        $this->list = [
-            Container::class => ContainerInterface::class,
-        ];
+        $this->list = self::DEFAULT;
     }
 
     /**
