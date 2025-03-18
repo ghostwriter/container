@@ -121,17 +121,17 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testContainerAlias(): void
     {
-        self::assertFalse($this->container->has(stdClass::class));
+        self::assertFalse($this->container->has(GitHub::class));
 
-        $std = new stdClass();
+        $std = new GitHub($this->createMock(ClientInterface::class));
 
-        $this->container->set(stdClass::class, $std);
+        $this->container->set(GitHub::class, $std);
 
-        self::assertTrue($this->container->has(stdClass::class));
+        self::assertTrue($this->container->has(GitHub::class));
 
         self::assertFalse($this->container->has(PDO::class));
 
-        $this->container->alias(stdClass::class, PDO::class);
+        $this->container->alias(GitHub::class, PDO::class);
 
         self::assertTrue($this->container->has(PDO::class));
 
