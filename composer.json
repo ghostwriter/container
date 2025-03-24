@@ -94,7 +94,7 @@
         "check": [
             "@cache:clear",
             "@bin_composer validate",
-            "@composer-normalize",
+            "@normalize",
             "@ecs",
             "@test"
         ],
@@ -104,6 +104,11 @@
         "infection": [
             "@xdebug",
             "@bin_infection"
+        ],
+        "normalize": "@bin_normalize --no-cache --diff --no-check-lock --no-scripts --no-plugins",
+        "phive": [
+            "@bin_phive update --force-accept-unsigned",
+            "@bin_phive purge"
         ],
         "phpunit": [
             "@xdebug",
