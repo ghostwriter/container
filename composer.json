@@ -40,12 +40,12 @@
     "require-dev": {
         "ext-xdebug": "*",
         "ghostwriter/coding-standard": "dev-main",
-        "infection/infection": "*",
-        "mockery/mockery": "*",
-        "phpunit/phpunit": "*",
+        "infection/infection": "~0.30.3",
+        "mockery/mockery": "~1.6.12",
+        "phpunit/phpunit": "~12.2.7",
         "psr/container": "~1.1.2 || ~2.0.2",
-        "symfony/var-dumper": "*",
-        "vimeo/psalm": "*"
+        "symfony/var-dumper": "~7.3.1",
+        "vimeo/psalm": "~6.12.1"
     },
     "provide": {
         "psr/container-implementation": "*"
