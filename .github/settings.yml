@@ -3,7 +3,6 @@
   "description": "Provides an extensible Dependency Injection Service Container for Automated Object Composition, Interception, and Lifetime Management."
   "homepage": "https://github.com/ghostwriter/container"
   "topics": "container, dependency-injection, ghostwriter, php, psr-11, service-container"
-  "private": false
   "has_issues": true
   "has_projects": false
   "has_wiki": false
