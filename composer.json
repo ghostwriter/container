@@ -94,7 +94,6 @@
         "bin_phive": "vendor/ghostwriter/coding-standard/tools/phar/phive",
         "bin_phpunit": "vendor/bin/phpunit --do-not-cache-result --colors=always",
         "bin_psalm": "vendor/ghostwriter/coding-standard/tools/phar/psalm --no-cache",
-        "bin_rector": "rector process --clear-cache --no-ansi",
         "cache:clear": "rm -rf ./.cache/*",
         "check": [
             "@cache:clear",
