@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "995e9ca69bf38c0378e6aaceb70ea5eb",
+    "content-hash": "25406400bd1fa8fbf52d352e8c79b3d1",
     "packages": [],
     "packages-dev": [
         {
@@ -1872,12 +1872,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/ghostwriter/coding-standard.git",
-                "reference": "53d9149"
+                "reference": "42bc5377685afd75db208f70f5eb9277c926db5f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ghostwriter/coding-standard/zipball/53d9149",
-                "reference": "53d9149",
+                "url": "https://api.github.com/repos/ghostwriter/coding-standard/zipball/42bc5377685afd75db208f70f5eb9277c926db5f",
+                "reference": "42bc5377685afd75db208f70f5eb9277c926db5f",
                 "shasum": ""
             },
             "require": {
@@ -2034,7 +2034,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-08-28T09:41:39+00:00"
+            "time": "2025-08-28T14:39:24+00:00"
         },
         {
             "name": "ghostwriter/config",
