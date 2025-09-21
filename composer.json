@@ -42,7 +42,7 @@
         "ghostwriter/coding-standard": "dev-main",
         "mockery/mockery": "^1.6.12",
         "phpunit/phpunit": "^12.3.12",
-        "psr/container": "~2.0.2",
+        "psr/container": "^2.0.2",
         "symfony/var-dumper": "^7.3.3"
     },
     "provide": {
