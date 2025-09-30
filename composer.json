@@ -56,14 +56,17 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\Unit\\": "tests/Unit/"
+            "Tests\\PHPT\\": "tests/PHPT/",
+            "Tests\\Unit\\": "tests/Unit/",
+            "\\": "tests/Fixture/"
         },
         "files": [
             "tests/Fixture/functions.php",
             "tests/bootstrap.php"
         ],
         "exclude-from-classmap": [
-            "tests/Fixture/"
+            "/tests/",
+            "/tests/Fixture/"
         ]
     },
     "config": {
