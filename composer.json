@@ -56,8 +56,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\PHPT\\": "tests/PHPT/",
-            "Tests\\Unit\\": "tests/Unit/",
+            "": "tests/Fixture/",
+            "Tests\\": "tests/",
             "\\": "tests/Fixture/"
         },
         "files": [
