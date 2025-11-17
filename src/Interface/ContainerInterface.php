@@ -4,29 +4,31 @@ declare(strict_types=1);
 
 namespace Ghostwriter\Container\Interface;
 
-use Closure;
-use Generator;
 use Ghostwriter\Container\Interface\Exception\NotFoundExceptionInterface;
+use Ghostwriter\Container\Interface\Service\DefinitionInterface;
+use Ghostwriter\Container\Interface\Service\ExtensionInterface;
+use Ghostwriter\Container\Interface\Service\FactoryInterface;
+use Psr\Container\ContainerInterface as PsrContainerInterface;
 use Throwable;
 
 /**
  * An extendable, closure based dependency injection container.
  */
-interface ContainerInterface
+interface ContainerInterface extends PsrContainerInterface
 {
     /**
-     * Provide an alternative name for a registered service.
+     * Provide an alternative name for a service.
      *
      * @template TService of object
      * @template TAlias of object
      *
-     * @param class-string<TService> $service
+     * @param class-string<TService> $id
      * @param class-string<TAlias>   $alias
      *
      * @throws NotFoundExceptionInterface
-     * @throws ExceptionInterface
+     * @throws ContainerExceptionInterface
      */
-    public function alias(string $service, string $alias): void;
+    public function alias(string $id, string $alias): void;
 
     /**
      * Provide contextual binding for the given concrete class.
@@ -42,13 +44,13 @@ interface ContainerInterface
      * @template TBindImplementation of object
      *
      * @param class-string<TBindConcrete>       $concrete
-     * @param class-string<TBindAbstract>       $service
+     * @param class-string<TBindAbstract>       $abstract
      * @param class-string<TBindImplementation> $implementation
      *
      * @throws NotFoundExceptionInterface
-     * @throws ExceptionInterface
+     * @throws ContainerExceptionInterface
      */
-    public function bind(string $concrete, string $service, string $implementation): void;
+    public function bind(string $concrete, string $abstract, string $implementation): void;
 
     /**
      * Create an object using the given Container to resolve dependencies.
@@ -56,95 +58,15 @@ interface ContainerInterface
      * @template TBuild of object
      * @template TArgument
      *
-     * @param class-string<TBuild> $service
+     * @param class-string<TBuild> $id
      * @param list<TArgument>      $arguments optional constructor arguments passed to build the new class instance
      *
-     * @throws ExceptionInterface         if there is an error while retrieving the entry
-     * @throws NotFoundExceptionInterface if no entry was found for **this** identifier
+     * @throws NotFoundExceptionInterface  if no entry was found for **this** identifier
+     * @throws ContainerExceptionInterface if there is an error while retrieving the entry
      *
      * @return TBuild
-     *
      */
-    public function build(string $service, array $arguments = []): object;
-
-    /**
-     * Invoke the $callback with optional arguments.
-     *
-     * @template TService of object
-     * @template TArgument
-     * @template TResult
-     *
-     * @param array{0:(class-string<TService>|TService),1:'__invoke'|string}|callable|callable-string|Closure(TArgument...):TResult|TService $callback
-     * @param list<TArgument>                                                                                                                $arguments optional arguments passed to $callback
-     *
-     * @throws Throwable
-     *
-     * @return TResult
-     *
-     */
-    public function call(callable $callback, array $arguments = []): mixed;
-
-    public function clear(): void;
-
-    /**
-     * Define a service builder on the given container.
-     *
-     * @template TService of object
-     * @template TTag of object
-     *
-     * @param class-string<TService>                $service
-     * @param callable(ContainerInterface):TService $value
-     * @param list<class-string<TTag>>              $tags
-     */
-    public function define(string $service, callable $value, array $tags = []): void;
-
-    /**
-     * "Extend" a service object in the container.
-     *
-     * @template TService of object
-     *
-     * @param class-string<TService>                     $service
-     * @param class-string<ExtensionInterface<TService>> $extension
-     */
-    public function extend(string $service, string $extension): void;
-
-    /**
-     * Provide a FactoryInterface for a service.
-     *
-     * @template TService of object
-     *
-     * @param class-string<TService>                   $service
-     * @param class-string<FactoryInterface<TService>> $factory
-     */
-    public function factory(string $service, string $factory): void;
-
-    /**
-     * Instantiate and return the service with the given id.
-     *
-     * Returns the same instance on subsequent calls, Use `$container->build()` to create a new instance.
-     *
-     * @template TService of object
-     *
-     * @param class-string<TService> $service
-     *
-     * @throws ExceptionInterface         If error while retrieving the entry
-     * @throws NotFoundExceptionInterface if no entry was found for the given identifier
-     *
-     * @return TService
-     *
-     */
-    public function get(string $service): object;
-
-    /**
-     * Determine if a $service exists in the Container.
-     *
-     * @template TService of object
-     *
-     * @param class-string<TService> $service
-     *
-     * @psalm-assert-if-true class-string<TService> $service
-     */
-    public function has(string $service): bool;
+    public function build(string $id, array $arguments = []): object;
 
     /**
      * Invoke a callable string with optional arguments.
@@ -153,79 +75,87 @@ interface ContainerInterface
      * @template TArgument
      * @template TResult
      *
-     * @param class-string<TInvoke> $invokable
-     * @param list<TArgument>       $arguments
+     * @param (array{0:(class-string<TInvoke>|TInvoke),1:'__invoke'|string}|callable|callable-string|(Closure(TArgument...):TResult)|TInvoke) $callable
+     * @param array<non-empty-string,TArgument>                                                                                               $arguments
      *
      * @throws Throwable
      *
      * @return TResult
      *
      */
-    public function invoke(string $invokable, array $arguments = []): mixed;
+    public function call(callable|string $callable, array $arguments = []): mixed;
 
     /**
-     * @param class-string<ServiceProviderInterface> $serviceProvider
+     * @param class-string<DefinitionInterface> $definition
      *
-     * @throws ExceptionInterface
+     * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function provide(string $serviceProvider): void;
+    public function define(string $definition): void;
+
+    /**
+     * "Extend" a service object in the container.
+     *
+     * @template TService of object
+     *
+     * @param class-string<TService>                     $id
+     * @param class-string<ExtensionInterface<TService>> $extension
+     */
+    public function extend(string $id, string $extension): void;
+
+    /**
+     * Provide a FactoryInterface for a service.
+     *
+     * @template TService of object
+     *
+     * @param class-string<TService>                   $id
+     * @param class-string<FactoryInterface<TService>> $factory
+     */
+    public function factory(string $id, string $factory): void;
+
+    /**
+     * Instantiate and return the service with the given id.
+     *
+     * Returns the same instance on subsequent calls, Use `$container->build()` to create a new instance.
+     *
+     * @template TService of object
+     *
+     * @param class-string<TService> $id
+     *
+     * @throws NotFoundExceptionInterface  if no entry was found for the given identifier
+     * @throws ContainerExceptionInterface If error while retrieving the entry
+     *
+     * @return TService
+     */
+    public function get(string $id): object;
+
+    /**
+     * Determine if a $id exists in the Container.
+     *
+     * @template TService of object
+     *
+     * @param class-string<TService> $id
+     *
+     * @psalm-assert-if-true class-string<TService> $id
+     */
+    public function has(string $id): bool;
+
+    public function reset(): void;
+
+    /**
+     * @template TService of object
+     *
+     * @param class-string<TService> $id
+     * @param TService               $value
+     */
+    public function set(string $id, object $value): void;
 
     /**
      * Remove a service from the container.
      *
      * @template TService of object
      *
-     * @param class-string<TService> $service
+     * @param class-string<TService> $id
      */
-    public function remove(string $service): void;
-
-    /**
-     * Assigns a service on the given container.
-     *
-     * @template TService of object
-     * @template TTag of object
-     *
-     * @param class-string<TService>   $service
-     * @param TService                 $value
-     * @param list<class-string<TTag>> $tags
-     */
-    public function set(string $service, object $value, array $tags = []): void;
-
-    /**
-     * Assign a set of tags to a given service id.
-     *
-     * @template TService of object
-     * @template TTag of object
-     *
-     * @param class-string<TService>             $service
-     * @param non-empty-list<class-string<TTag>> $tags
-     */
-    public function tag(string $service, array $tags): void;
-
-    /**
-     * Resolve services with the given tag.
-     *
-     * @template TService of object
-     * @template TTag of object
-     *
-     * @param class-string<TTag> $tag
-     *
-     * @throws Throwable
-     *
-     * @return Generator<class-string<TService>,TService>
-     *
-     */
-    public function tagged(string $tag): Generator;
-
-    /**
-     * Remove a set of tags to a given service id.
-     *
-     * @template TService of object
-     * @template TTag of object
-     *
-     * @param class-string<TService>             $service
-     * @param non-empty-list<class-string<TTag>> $tags
-     */
-    public function untag(string $service, array $tags): void;
+    public function unset(string $id): void;
 }

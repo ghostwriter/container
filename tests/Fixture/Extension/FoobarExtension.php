@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Fixture\Extension;
 
 use Ghostwriter\Container\Interface\ContainerInterface;
-use Ghostwriter\Container\Interface\ExtensionInterface;
+use Ghostwriter\Container\Interface\Service\ExtensionInterface;
 use Override;
 use Tests\Fixture\Bar;
 use Tests\Fixture\Foo;
@@ -23,12 +23,10 @@ final readonly class FoobarExtension implements ExtensionInterface
      * @throws Throwable
      */
     #[Override]
-    public function __invoke(ContainerInterface $container, object $service): Foobar
+    public function __invoke(ContainerInterface $container, object $service): void
     {
         $service->foo = $container->get(Foo::class);
 
         $service->bar = $container->get(Bar::class);
-
-        return $service;
     }
 }

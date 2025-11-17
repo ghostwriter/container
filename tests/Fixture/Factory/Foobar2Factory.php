@@ -3,7 +3,7 @@
 namespace Tests\Fixture\Factory;
 
 use Ghostwriter\Container\Interface\ContainerInterface;
-use Ghostwriter\Container\Interface\FactoryInterface;
+use Ghostwriter\Container\Interface\Service\FactoryInterface;
 use Tests\Fixture\Attribute\Factory\Foobar2;
 use Tests\Fixture\Attribute\Foobar2Interface;
 

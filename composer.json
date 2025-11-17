@@ -35,14 +35,14 @@
         "#StopGenocide"
     ],
     "require": {
-        "php": "~8.4.0 || ~8.5.0"
+        "php": "~8.4.0 || ~8.5.0",
+        "psr/container": "^2.0.2"
     },
     "require-dev": {
         "ext-xdebug": "*",
         "ghostwriter/coding-standard": "dev-main",
         "mockery/mockery": "^1.6.12",
         "phpunit/phpunit": "^12.4.3",
-        "psr/container": "^2.0.2",
         "symfony/var-dumper": "^7.3.5"
     },
     "provide": {
@@ -82,6 +82,13 @@
         "process-timeout": 5000,
         "sort-packages": true,
         "use-parent-dir": false
+    },
+    "extra": {
+        "ghostwriter": {
+            "container": {
+                "definition": "Ghostwriter\\Container\\Service\\Definition\\ContainerDefinition"
+            }
+        }
     },
     "scripts": {
         "cache:clear": "rm -rf ./.cache/*",

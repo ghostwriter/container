@@ -6,8 +6,8 @@ namespace Tests\Fixture\Factory;
 
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\Exception\NotFoundExceptionInterface;
-use Ghostwriter\Container\Interface\ExceptionInterface;
-use Ghostwriter\Container\Interface\FactoryInterface;
+use Ghostwriter\Container\Interface\ContainerExceptionInterface;
+use Ghostwriter\Container\Interface\Service\FactoryInterface;
 use Override;
 use Tests\Fixture\Dummy;
 use Tests\Fixture\DummyInterface;
@@ -19,7 +19,7 @@ final readonly class DummyFactory implements FactoryInterface
 {
     /**
      * @throws NotFoundExceptionInterface
-     * @throws ExceptionInterface
+     * @throws ContainerExceptionInterface
      */
     #[Override]
     public function __invoke(ContainerInterface $container): DummyInterface

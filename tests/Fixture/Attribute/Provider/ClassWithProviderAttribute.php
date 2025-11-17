@@ -2,11 +2,11 @@
 
 namespace Tests\Fixture\Attribute\Provider;
 
+use Definition\FoobarWithDependencyDefinition;
 use Ghostwriter\Container\Attribute\Provider;
 use Tests\Fixture\Dummy;
-use Tests\Fixture\ServiceProvider\FoobarWithDependencyServiceProvider;
 
-#[Provider(FoobarWithDependencyServiceProvider::class)]
+#[Provider(FoobarWithDependencyDefinition::class)]
 final readonly class ClassWithProviderAttribute {
     public function __construct(
         private Dummy $dummy

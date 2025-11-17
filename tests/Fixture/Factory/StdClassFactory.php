@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Fixture\Factory;
 
 use Ghostwriter\Container\Interface\ContainerInterface;
-use Ghostwriter\Container\Interface\FactoryInterface;
+use Ghostwriter\Container\Interface\Service\FactoryInterface;
 use Override;
 use stdClass;
 

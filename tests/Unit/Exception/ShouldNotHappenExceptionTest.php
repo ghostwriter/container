@@ -4,38 +4,23 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Exception;
 
-use Ghostwriter\Container\Attribute\Extension;
-use Ghostwriter\Container\Attribute\Factory;
-use Ghostwriter\Container\Attribute\Inject;
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Exception\ShouldNotHappenException;
-use Ghostwriter\Container\List\Aliases;
-use Ghostwriter\Container\List\Bindings;
-use Ghostwriter\Container\List\Builders;
-use Ghostwriter\Container\List\Dependencies;
-use Ghostwriter\Container\List\Extensions;
-use Ghostwriter\Container\List\Factories;
-use Ghostwriter\Container\List\Instances;
-use Ghostwriter\Container\List\Providers;
-use Ghostwriter\Container\List\Tags;
+use Ghostwriter\Container\Interface\ContainerExceptionInterface;
+use Ghostwriter\Container\Interface\ContainerInterface;
+use Ghostwriter\Container\Interface\Service\DefinitionInterface;
+use Ghostwriter\Container\Service\Definition\ComposerExtraDefinition;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClassesThatImplementInterface;
+use Tests\Unit\AbstractTestCase;
 
 #[CoversClass(ShouldNotHappenException::class)]
-#[CoversClass(Aliases::class)]
-#[CoversClass(Bindings::class)]
-#[CoversClass(Builders::class)]
+#[CoversClass(ComposerExtraDefinition::class)]
 #[CoversClass(Container::class)]
-#[CoversClass(Dependencies::class)]
-#[CoversClass(Extension::class)]
-#[CoversClass(Extensions::class)]
-#[CoversClass(Factories::class)]
-#[CoversClass(Factory::class)]
-#[CoversClass(Inject::class)]
-#[CoversClass(Instances::class)]
-#[CoversClass(Providers::class)]
-#[CoversClass(Tags::class)]
-final class ShouldNotHappenExceptionTest extends TestCase
+#[CoversClassesThatImplementInterface(ContainerInterface::class)]
+#[CoversClassesThatImplementInterface(ContainerExceptionInterface::class)]
+#[CoversClassesThatImplementInterface(DefinitionInterface::class)]
+final class ShouldNotHappenExceptionTest extends AbstractTestCase
 {
     public function testExample(): void
     {

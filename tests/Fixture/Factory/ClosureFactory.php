@@ -6,7 +6,7 @@ namespace Tests\Fixture\Factory;
 
 use Closure;
 use Ghostwriter\Container\Interface\ContainerInterface;
-use Ghostwriter\Container\Interface\FactoryInterface;
+use Ghostwriter\Container\Interface\Service\FactoryInterface;
 use Throwable;
 
 final readonly class ClosureFactory implements FactoryInterface

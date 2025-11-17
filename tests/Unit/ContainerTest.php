@@ -5,29 +5,17 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use Generator;
-use Ghostwriter\Container\Attribute\Extension;
-use Ghostwriter\Container\Attribute\Factory;
-use Ghostwriter\Container\Attribute\Inject;
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Interface\ContainerInterface;
-use Ghostwriter\Container\List\Aliases;
-use Ghostwriter\Container\List\Bindings;
-use Ghostwriter\Container\List\Builders;
-use Ghostwriter\Container\List\Dependencies;
-use Ghostwriter\Container\List\Extensions;
-use Ghostwriter\Container\List\Factories;
-use Ghostwriter\Container\List\Instances;
-use Ghostwriter\Container\List\Providers;
-use Ghostwriter\Container\List\Tags;
-use Ghostwriter\Container\Name\Alias as AliasName;
-use Ghostwriter\Container\Name\Extension as ExtensionName;
-use Ghostwriter\Container\Name\Factory as FactoryName;
-use Ghostwriter\Container\Name\Provider;
-use Ghostwriter\Container\Name\Service;
-use Ghostwriter\Container\Name\Tag;
+use Ghostwriter\Container\Interface\ContainerExceptionInterface;
+use Ghostwriter\Container\Interface\Service\DefinitionInterface;
+use Ghostwriter\Container\Service\Definition\ComposerExtraDefinition;
+use Ghostwriter\Container\Service\Definition\ContainerDefinition;
 use PDO;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversClassesThatImplementInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Psr\Container\ContainerInterface as PsrContainerInterface;
 use ReflectionParameter;
 use stdClass;
 use Tests\Fixture\Bar;
@@ -55,43 +43,22 @@ use Tests\Fixture\Foo;
 use Tests\Fixture\Foobar;
 use Tests\Fixture\GitHub;
 use Tests\Fixture\GitHubClient;
-use Tests\Fixture\ServiceProvider\FoobarServiceProvider;
-use Tests\Fixture\ServiceProvider\FoobarWithDependencyServiceProvider;
+use Tests\Fixture\Definition\FoobarDefinition;
+use Tests\Fixture\Definition\FoobarWithDependencyDefinition;
 use Tests\Fixture\TestEvent;
 use Tests\Fixture\TestEventListener;
 use Tests\Fixture\UnionTypehintWithDefaultValue;
 use Tests\Fixture\UnionTypehintWithoutDefaultValue;
 use Throwable;
-
 use function array_key_exists;
-use function class_exists;
-use function iterator_to_array;
 use function random_int;
 
-/**
- * @psalm-suppress ArgumentTypeCoercion
- * @psalm-suppress UndefinedClass
- * @psalm-suppress UnevaluatedCode
- */
-#[CoversClass(Aliases::class)]
-#[CoversClass(Bindings::class)]
-#[CoversClass(Builders::class)]
+#[CoversClass(ComposerExtraDefinition::class)]
+#[CoversClass(ContainerDefinition::class)]
 #[CoversClass(Container::class)]
-#[CoversClass(Dependencies::class)]
-#[CoversClass(ExtensionName::class)]
-#[CoversClass(Extensions::class)]
-#[CoversClass(Factories::class)]
-#[CoversClass(Factory::class)]
-#[CoversClass(Inject::class)]
-#[CoversClass(Instances::class)]
-#[CoversClass(Providers::class)]
-#[CoversClass(Tags::class)]
-#[CoversClass(Tag::class)]
-#[CoversClass(Service::class)]
-#[CoversClass(AliasName::class)]
-#[CoversClass(Provider::class)]
-#[CoversClass(FactoryName::class)]
-#[CoversClass(Extension::class)]
+#[CoversClassesThatImplementInterface(ContainerInterface::class)]
+#[CoversClassesThatImplementInterface(ContainerExceptionInterface::class)]
+#[CoversClassesThatImplementInterface(DefinitionInterface::class)]
 final class ContainerTest extends AbstractTestCase
 {
     /**
@@ -143,13 +110,15 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testContainerBind(): void
     {
-        self::assertFalse($this->container->has(GitHub::class));
         self::assertFalse($this->container->has(ClientInterface::class));
-        self::assertFalse($this->container->has(GitHubClient::class));
+        self::assertFalse($this->container->has(GitHub::class));
+        self::assertTrue($this->container->has(GitHubClient::class));
 
         // When GitHub::class asks for ClientInterface::class, resolve GitHubClient::class.
         $this->container->bind(GitHub::class, ClientInterface::class, GitHubClient::class);
 
+        self::assertFalse($this->container->has(ClientInterface::class));
+        self::assertTrue($this->container->has(GitHub::class));
         self::assertTrue($this->container->has(GitHubClient::class));
 
         self::assertInstanceOf(GitHub::class, $this->container->get(GitHub::class));
@@ -169,43 +138,29 @@ final class ContainerTest extends AbstractTestCase
     #[DataProvider('dataProviderServiceClasses')]
     public function testContainerBuild(string $class, array $arguments = []): void
     {
-        $buildService = $this->container->build($class, $arguments);
+        $instance = $this->container->build($class, $arguments);
 
-        $getService = $this->container->get($class);
-
-        self::assertSame($buildService, $getService);
+        self::assertInstanceOf($class, $instance);
 
         if (! array_key_exists('value', $arguments)) {
             return;
         }
 
-        self::assertTrue(class_exists($class));
-
-        self::assertSame($arguments['value'], $this->container->get($class)->value());
+        self::assertSame($arguments['value'], $instance->value());
     }
 
     /**
      * @throws Throwable
      */
-    public function testContainerBuildServiceProviderDoesNotRegisterServiceProvider(): void
+    public function testContainerBuildDefinitionDoesNotRegisterDefinition(): void
     {
-        $foobarServiceProvider = $this->container->build(FoobarServiceProvider::class);
-        self::assertInstanceOf(FoobarServiceProvider::class, $foobarServiceProvider);
+        $foobarDefinition = $this->container->build(FoobarDefinition::class);
+        self::assertInstanceOf(FoobarDefinition::class, $foobarDefinition);
 
-        $second = $this->container->build(FoobarServiceProvider::class);
-        self::assertInstanceOf(FoobarServiceProvider::class, $second);
+        $second = $this->container->build(FoobarDefinition::class);
+        self::assertInstanceOf(FoobarDefinition::class, $second);
 
-        self::assertNotSame($foobarServiceProvider, $second);
-
-        self::assertFalse($this->container->has(Foo::class));
-        self::assertFalse($this->container->has(Bar::class));
-        self::assertFalse($this->container->has(Baz::class));
-
-        $this->container->provide(FoobarServiceProvider::class);
-
-        self::assertTrue($this->container->has(Foo::class));
-        self::assertTrue($this->container->has(Bar::class));
-        self::assertTrue($this->container->has(Baz::class));
+        self::assertNotSame($foobarDefinition, $second);
     }
 
     /**
@@ -237,45 +192,12 @@ final class ContainerTest extends AbstractTestCase
 
         self::assertCount($expectedCount * 2, $testEvent->all());
 
-        $this->container->tag(TestEvent::class, ['tag']);
-
-        $this->container->remove(TestEvent::class);
+        $this->container->unset(TestEvent::class);
     }
 
     public function testContainerConstruct(): void
     {
         self::assertSame($this->container, $this->container);
-    }
-
-    /**
-     * @throws Throwable
-     */
-    public function testContainerDefineAndGetFactory(): void
-    {
-        $this->container->define(
-            UnionTypehintWithoutDefaultValue::class,
-            static fn (
-                ContainerInterface $container
-            ): UnionTypehintWithoutDefaultValue => $container->build(UnionTypehintWithoutDefaultValue::class, [1])
-        );
-        self::assertInstanceOf(
-            UnionTypehintWithoutDefaultValue::class,
-            $this->container->get(UnionTypehintWithoutDefaultValue::class)
-        );
-    }
-
-    /**
-     * @throws Throwable
-     */
-    public function testContainerDefineClosure(): void
-    {
-        $object = new stdClass();
-
-        $closure = static fn (ContainerInterface $container): stdClass => $object;
-
-        $this->container->define(stdClass::class, $closure, ['tag']);
-
-        self::assertSame($object, $this->container->get(stdClass::class));
     }
 
     /**
@@ -331,14 +253,14 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testContainerInvokeDefaultValueAvailable(): void
     {
-        self::assertSame('Untitled Text', $this->container->invoke(Dummy::class));
-        self::assertSame('#BlackLivesMatter', $this->container->invoke(Dummy::class, [[], '#BlackLivesMatter']));
-        self::assertSame('#BlackLivesMatter', $this->container->invoke(Dummy::class, [['#BlackLivesMatter'], '%s']));
-        self::assertSame('#BlackLivesMatter', $this->container->invoke(Dummy::class, [
+        self::assertSame('Untitled Text', $this->container->call(Dummy::class));
+        self::assertSame('#BlackLivesMatter', $this->container->call(Dummy::class, [[], '#BlackLivesMatter']));
+        self::assertSame('#BlackLivesMatter', $this->container->call(Dummy::class, [['#BlackLivesMatter'], '%s']));
+        self::assertSame('#BlackLivesMatter', $this->container->call(Dummy::class, [
             'data' => [],
             'text' => '#BlackLivesMatter',
         ]));
-        self::assertSame('#BlackLivesMatter', $this->container->invoke(Dummy::class, [
+        self::assertSame('#BlackLivesMatter', $this->container->call(Dummy::class, [
             'data' => ['BlackLivesMatter'],
             'text' => '#%s',
         ]));
@@ -347,9 +269,9 @@ final class ContainerTest extends AbstractTestCase
     /**
      * @throws Throwable
      */
-    public function testContainerProvideServiceProvider(): void
+    public function testContainerProvideDefinition(): void
     {
-        $this->container->provide(FoobarServiceProvider::class);
+        $this->container->define(FoobarDefinition::class);
 
         self::assertTrue($this->container->has(Foo::class));
         self::assertTrue($this->container->has(Bar::class));
@@ -360,15 +282,18 @@ final class ContainerTest extends AbstractTestCase
     /**
      * @throws Throwable
      */
-    public function testContainerPurge(): void
+    public function testContainerResetClass(): void
     {
-        $this->container->set(stdClass::class, static fn (): stdClass => new stdClass());
+        $instance = new stdClass();
+        $this->container->set(stdClass::class, $instance);
 
         self::assertTrue($this->container->has(stdClass::class));
+        self::assertSame($instance, $this->container->get(stdClass::class));
 
-        $this->container->clear();
+        $this->container->reset();
 
-        self::assertFalse($this->container->has(stdClass::class));
+        self::assertTrue($this->container->has(stdClass::class));
+        self::assertNotSame($instance, $this->container->get(stdClass::class));
     }
 
     /**
@@ -376,19 +301,36 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testContainerRemove(): void
     {
-        $this->container->provide(FoobarServiceProvider::class);
+        $this->container->define(FoobarDefinition::class);
 
         self::assertTrue($this->container->has(Foo::class));
+        $foo = $this->container->get(Foo::class);
+        self::assertSame($foo, $this->container->get(Foo::class));
+
         self::assertTrue($this->container->has(Bar::class));
+        $bar = $this->container->get(Bar::class);
+        self::assertSame($bar, $this->container->get(Bar::class));
+
         self::assertTrue($this->container->has(Baz::class));
 
-        $this->container->remove(Foo::class);
-        $this->container->remove(Bar::class);
-        $this->container->remove(Baz::class);
+        $baz = $this->container->get(Baz::class);
+        self::assertSame($baz, $this->container->get(Baz::class));
 
-        self::assertFalse($this->container->has(Foo::class));
-        self::assertFalse($this->container->has(Bar::class));
-        self::assertFalse($this->container->has(Baz::class));
+        $this->container->unset(Foo::class);
+        $this->container->unset(Bar::class);
+        $this->container->unset(Baz::class);
+
+        self::assertTrue($this->container->has(Foo::class));
+        $fooAfterUnset = $this->container->get(Foo::class);
+        self::assertNotSame($foo, $fooAfterUnset);
+
+        self::assertTrue($this->container->has(Bar::class));
+        $barAfterUnset = $this->container->get(Bar::class);
+        self::assertNotSame($bar, $barAfterUnset);
+
+        self::assertTrue($this->container->has(Baz::class));
+        $bazAfterUnset = $this->container->get(Baz::class);
+        self::assertNotSame($baz, $bazAfterUnset);
     }
 
     /**
@@ -396,7 +338,7 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testContainerReset(): void
     {
-        $this->container->provide(FoobarServiceProvider::class);
+        $this->container->define(FoobarDefinition::class);
 
         self::assertTrue($this->container->has(Foo::class));
         self::assertTrue($this->container->has(Bar::class));
@@ -443,7 +385,7 @@ final class ContainerTest extends AbstractTestCase
 
     public function testPurgeContainerInterfaceAliasExists(): void
     {
-        $this->container->clear();
+        $this->container->reset();
 
         self::assertTrue($this->container->has(ContainerInterface::class));
     }
@@ -453,67 +395,18 @@ final class ContainerTest extends AbstractTestCase
      *
      * @throws Throwable
      */
-    public function testRegisterTag(): void
+    public function testGhostwriterContainerCanInstantiatePsrContainer(): void
     {
-        $this->container->tag(stdClass::class, ['first-tag']);
-
-        $this->container->tag(Foo::class, ['tag-2']);
-        $this->container->tag(stdClass::class, ['tag']);
-
-        self::assertContainsOnlyInstancesOf(stdClass::class, $this->container->tagged('tag'));
-
-        $this->container->untag(stdClass::class, ['tag']);
-
-        self::assertEmpty(iterator_to_array($this->container->tagged('tag')));
+        self::assertInstanceOf(Container::class, $this->container->get(PsrContainerInterface::class));
     }
 
-    /**
-     * @template TService of object
-     *
-     * @throws Throwable
-     */
-    public function testSetTag(): void
+    public function testImplementsPsrContainerInterface(): void
     {
-        $this->container->set(stdClass::class, new stdClass(), [stdClass::class]);
-
-        self::assertContainsOnlyInstancesOf(stdClass::class, $this->container->tagged(stdClass::class));
-
-        $this->container->untag(stdClass::class, [stdClass::class]);
-
-        self::assertEmpty(iterator_to_array($this->container->tagged(stdClass::class)));
+        self::assertInstanceOf(PsrContainerInterface::class, Container::getInstance());
     }
 
-    /**
-     * @template TService of object
-     *
-     * @throws Throwable
-     */
-    public function testTag(): void
-    {
-        $this->container->tag(stdClass::class, ['tag']);
 
-        self::assertContainsOnlyInstancesOf(stdClass::class, $this->container->tagged('tag'));
 
-        $this->container->untag(stdClass::class, ['tag']);
-
-        self::assertEmpty(iterator_to_array($this->container->tagged('tag')));
-    }
-
-    /**
-     * @template TService of object
-     *
-     * @throws Throwable
-     */
-    public function testTagThrows(): void
-    {
-        $this->container->tag(stdClass::class, ['tag']);
-
-        self::assertContainsOnlyInstancesOf(stdClass::class, $this->container->tagged('tag'));
-
-        $this->container->untag(stdClass::class, ['tag']);
-
-        self::assertEmpty(iterator_to_array($this->container->tagged('tag')));
-    }
 
     /**
      * @throws Throwable
@@ -560,7 +453,7 @@ final class ContainerTest extends AbstractTestCase
     }
 
     /**
-     * @return Generator<class-string<ArrayConstructor|Bar|Baz|BoolConstructor|CallableConstructor|EmptyConstructor|FloatConstructor|Foo|FoobarExtension|FoobarServiceProvider|FoobarWithDependencyServiceProvider|IntConstructor|IterableConstructor|MixedConstructor|ObjectConstructor|OptionalConstructor|self|StringConstructor|TypelessConstructor|UnionTypehintWithDefaultValue|UnionTypehintWithoutDefaultValue>,array>
+     * @return Generator<class-string<ArrayConstructor|Bar|Baz|BoolConstructor|CallableConstructor|EmptyConstructor|FloatConstructor|Foo|FoobarExtension|FoobarDefinition|FoobarWithDependencyDefinition|IntConstructor|IterableConstructor|MixedConstructor|ObjectConstructor|OptionalConstructor|self|StringConstructor|TypelessConstructor|UnionTypehintWithDefaultValue|UnionTypehintWithoutDefaultValue>,array>
      */
     public static function dataProviderServiceClasses(): Generator
     {
@@ -648,8 +541,8 @@ final class ContainerTest extends AbstractTestCase
         yield Foo::class => [Foo::class];
         yield Bar::class => [Bar::class];
         yield Baz::class => [Baz::class];
-        yield FoobarWithDependencyServiceProvider::class => [FoobarWithDependencyServiceProvider::class];
-        yield FoobarServiceProvider::class => [FoobarServiceProvider::class];
+        yield FoobarWithDependencyDefinition::class => [FoobarWithDependencyDefinition::class];
+        yield FoobarDefinition::class => [FoobarDefinition::class];
         yield FoobarExtension::class => [FoobarExtension::class];
         yield self::class => [self::class, ['name']];
     }
