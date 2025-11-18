@@ -7,7 +7,7 @@ namespace Tests\Unit;
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Interface\ContainerExceptionInterface;
 use Ghostwriter\Container\Interface\ContainerInterface;
-use Ghostwriter\Container\Interface\Exception\NotFoundExceptionInterface;
+use Ghostwriter\Container\Interface\Exception\ContainerNotFoundExceptionInterface;
 use InvalidArgumentException;
 use Mockery;
 use Override;
@@ -47,7 +47,7 @@ abstract class AbstractTestCase extends TestCase
     /** @param class-string<Throwable> $expected */
     final public function assertNotFoundException(string $expected): void
     {
-        $this->expectException(NotFoundExceptionInterface::class);
+        $this->expectException(ContainerNotFoundExceptionInterface::class);
         $this->assertException($expected);
     }
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Ghostwriter\Container\Interface;
 
-use Ghostwriter\Container\Interface\Exception\NotFoundExceptionInterface;
+use Ghostwriter\Container\Interface\Exception\ContainerNotFoundExceptionInterface;
 use Ghostwriter\Container\Interface\Service\DefinitionInterface;
 use Ghostwriter\Container\Interface\Service\ExtensionInterface;
 use Ghostwriter\Container\Interface\Service\FactoryInterface;
@@ -25,7 +25,7 @@ interface ContainerInterface extends PsrContainerInterface
      * @param class-string<TService> $id
      * @param class-string<TAlias>   $alias
      *
-     * @throws NotFoundExceptionInterface
+     * @throws ContainerNotFoundExceptionInterface
      * @throws ContainerExceptionInterface
      */
     public function alias(string $id, string $alias): void;
@@ -47,7 +47,7 @@ interface ContainerInterface extends PsrContainerInterface
      * @param class-string<TBindAbstract>       $abstract
      * @param class-string<TBindImplementation> $implementation
      *
-     * @throws NotFoundExceptionInterface
+     * @throws ContainerNotFoundExceptionInterface
      * @throws ContainerExceptionInterface
      */
     public function bind(string $concrete, string $abstract, string $implementation): void;
@@ -61,8 +61,8 @@ interface ContainerInterface extends PsrContainerInterface
      * @param class-string<TBuild> $id
      * @param list<TArgument>      $arguments optional constructor arguments passed to build the new class instance
      *
-     * @throws NotFoundExceptionInterface  if no entry was found for **this** identifier
-     * @throws ContainerExceptionInterface if there is an error while retrieving the entry
+     * @throws ContainerExceptionInterface         if there is an error while retrieving the entry
+     * @throws ContainerNotFoundExceptionInterface if no entry was found for **this** identifier
      *
      * @return TBuild
      */
@@ -89,7 +89,7 @@ interface ContainerInterface extends PsrContainerInterface
      * @param class-string<DefinitionInterface> $definition
      *
      * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
+     * @throws ContainerNotFoundExceptionInterface
      */
     public function define(string $definition): void;
 
@@ -122,8 +122,8 @@ interface ContainerInterface extends PsrContainerInterface
      *
      * @param class-string<TService> $id
      *
-     * @throws NotFoundExceptionInterface  if no entry was found for the given identifier
-     * @throws ContainerExceptionInterface If error while retrieving the entry
+     * @throws ContainerExceptionInterface         If error while retrieving the entry
+     * @throws ContainerNotFoundExceptionInterface if no entry was found for the given identifier
      *
      * @return TService
      */

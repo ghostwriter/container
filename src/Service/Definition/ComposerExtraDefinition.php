@@ -70,7 +70,7 @@ final class ComposerExtraDefinition implements DefinitionInterface
             if ($parentDirectory === $currentDirectory) {
                 throw new ShouldNotHappenException(sprintf(
                     'Could not find %s in any parent directory.',
-                     $filename
+                    $filename
                 ));
             }
 
