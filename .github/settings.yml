@@ -1,13 +1,4 @@
 "milestones":
-  - "title": "5.0.2"
-    "description": "Patch release – targeting 5.0.x branch (semantic version: 5.0.2)"
-    "state": "closed"
-  - "title": "5.1.0"
-    "description": "Minor release – targeting 5.1.x branch (semantic version: 5.1.0)"
-    "state": "closed"
-  - "title": "6.0.0"
-    "description": "Major release – targeting 6.0.x branch (semantic version: 6.0.0)"
-    "state": "closed"
   - "title": "6.1.0"
     "description": "Minor release – targeting 6.1.x branch (semantic version: 6.1.0)"
     "state": "open"
@@ -16,6 +7,9 @@
     "state": "open"
   - "title": "6.0.1"
     "description": "Patch release – targeting 6.0.x branch (semantic version: 6.0.1)"
+    "state": "closed"
+  - "title": "6.0.2"
+    "description": "Patch release – targeting 6.0.x branch (semantic version: 6.0.2)"
     "state": "open"
 "repository":
   "name": "container"
