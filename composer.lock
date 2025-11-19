@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7c5e2e36a94450184027ee3512d432cc",
+    "content-hash": "38e6c5a19e910a1fbb73f37fe3775e0c",
     "packages": [
         {
             "name": "psr/container",
@@ -688,61 +688,42 @@
         {
             "name": "ghostwriter/coding-standard",
             "version": "dev-main",
-            "dist": {
-                "type": "path",
-                "url": "/Volumes/workspace/ghostwriter/coding-standard",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ghostwriter/coding-standard.git",
                 "reference": "46849294832c94b5c26574a0e825000f4a8b69ae"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ghostwriter/coding-standard/zipball/46849294832c94b5c26574a0e825000f4a8b69ae",
+                "reference": "46849294832c94b5c26574a0e825000f4a8b69ae",
+                "shasum": ""
             },
             "require": {
                 "composer-plugin-api": "~2.9.0",
                 "composer-runtime-api": "~2.2.2",
                 "composer/composer": "^2.9.1",
-                "ext-apcu": "*",
-                "ext-bcmath": "*",
                 "ext-ctype": "*",
                 "ext-curl": "*",
                 "ext-dom": "*",
-                "ext-ds": "*",
-                "ext-event": "*",
-                "ext-exif": "*",
-                "ext-fileinfo": "*",
                 "ext-filter": "*",
                 "ext-gd": "*",
-                "ext-gettext": "*",
                 "ext-hash": "*",
                 "ext-iconv": "*",
-                "ext-igbinary": "*",
                 "ext-intl": "*",
                 "ext-json": "*",
                 "ext-libxml": "*",
                 "ext-mbstring": "*",
-                "ext-memcache": "*",
-                "ext-mysqli": "*",
                 "ext-openssl": "*",
-                "ext-pcntl": "*",
-                "ext-pdo": "*",
-                "ext-pdo_mysql": "*",
-                "ext-pdo_pgsql": "*",
-                "ext-pdo_sqlite": "*",
-                "ext-pgsql": "*",
                 "ext-phar": "*",
-                "ext-posix": "*",
-                "ext-protobuf": "*",
                 "ext-readline": "*",
-                "ext-redis": "*",
                 "ext-session": "*",
                 "ext-simplexml": "*",
                 "ext-sockets": "*",
                 "ext-sodium": "*",
-                "ext-sqlite3": "*",
                 "ext-tokenizer": "*",
                 "ext-xml": "*",
-                "ext-xmlreader": "*",
                 "ext-xmlwriter": "*",
-                "ext-xsl": "*",
-                "ext-yaml": "*",
-                "ext-zend-opcache": "*",
-                "ext-zip": "*",
                 "ext-zlib": "*",
                 "php": "~8.4.0 || ~8.5.0",
                 "symfony/console": "^7.3.6"
@@ -757,6 +738,7 @@
                 "phpunit/phpunit": "^12.4.3",
                 "symfony/var-dumper": "^7.3.5"
             },
+            "default-branch": true,
             "bin": [
                 "tools/phar/composer-normalize",
                 "tools/phar/composer-require-checker",
@@ -816,123 +798,16 @@
                         ]
                     }
                 },
+                "plugin-optional": false,
                 "plugin-modifies-downloads": false,
-                "plugin-modifies-install-path": false,
-                "plugin-optional": false
+                "plugin-modifies-install-path": false
             },
             "autoload": {
                 "psr-4": {
                     "Ghostwriter\\CodingStandard\\": "src/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "": "tests/Fixture/",
-                    "Tests\\": "tests/"
-                },
-                "files": [
-                    "functions.php",
-                    "tests/bootstrap.php"
-                ],
-                "exclude-from-classmap": [
-                    "/tests/"
-                ]
-            },
-            "scripts": {
-                "bin_composer": [
-                    "tools/phar/composer"
-                ],
-                "bin_infection": [
-                    "tools/phar/infection --ansi --min-covered-msi=0 --min-msi=0 --show-mutations --threads=max"
-                ],
-                "bin_normalize": [
-                    "tools/phar/composer-normalize"
-                ],
-                "bin_phive": [
-                    "tools/phar/phive"
-                ],
-                "bin_phpunit": [
-                    "tools/phar/phpunit --do-not-cache-result --colors=always"
-                ],
-                "bin_psalm": [
-                    "tools/phar/psalm --no-cache"
-                ],
-                "cache:clear": [
-                    "rm -rf ./.cache/*"
-                ],
-                "check": [
-                    "@cache:clear",
-                    "@bin_composer validate",
-                    "@test"
-                ],
-                "docker": [
-                    "@docker:build",
-                    "@docker:run"
-                ],
-                "docker:build": [
-                    "docker buildx build --pull --tag workspace ."
-                ],
-                "docker:run": [
-                    "docker run -v $(PWD):/github/workspace -w=/github/workspace -e GITHUB_DEBUG=1 -e GITHUB_WORKSPACE=/github/workspace -e GITHUB_TOKEN=github-token -e SIGNING_SECRET_KEY=secret-key workspace"
-                ],
-                "git:submodule:update": [
-                    "git submodule update --depth=1 --init --recursive --recommend-shallow --remote"
-                ],
-                "infection": [
-                    "@xdebug",
-                    "@bin_infection"
-                ],
-                "normalize": [
-                    "@bin_normalize --no-cache --diff --no-check-lock --no-scripts --no-plugins"
-                ],
-                "phive": [
-                    "@bin_phive update --force-accept-unsigned",
-                    "@bin_phive purge"
-                ],
-                "phive:install": [
-                    "@bin_phive install --copy --force-accept-unsigned "
-                ],
-                "phive:update": [
-                    "@bin_phive update"
-                ],
-                "phpunit": [
-                    "@xdebug",
-                    "@bin_phpunit"
-                ],
-                "phpunit:migrate": [
-                    "@xdebug",
-                    "@bin_phpunit --migrate-configuration"
-                ],
-                "psalm": [
-                    "@bin_psalm --show-info=true --no-diff --shepherd --stats"
-                ],
-                "psalm:alter": [
-                    "@bin_psalm --alter --allow-backwards-incompatible-changes=false --safe-types"
-                ],
-                "psalm:baseline": [
-                    "@bin_psalm --no-diff --set-baseline=psalm-baseline.xml"
-                ],
-                "psalm:dry-run": [
-                    "@bin_psalm --alter --issues=all --dry-run"
-                ],
-                "psalm:fix": [
-                    "@bin_psalm --alter --issues=UnnecessaryVarAnnotation"
-                ],
-                "psalm:security": [
-                    "@bin_psalm --no-diff --taint-analysis"
-                ],
-                "psalm:update": [
-                    "@bin_psalm --no-diff --update-baseline=psalm-baseline.xml"
-                ],
-                "test": [
-                    "@phpunit",
-                    "@infection",
-                    "@psalm"
-                ],
-                "xdebug": [
-                    "@putenv XDEBUG_MODE=coverage"
-                ]
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "BSD-4-Clause"
             ],
@@ -952,22 +827,20 @@
                 "ghostwriter"
             ],
             "support": {
-                "issues": "https://github.com/ghostwriter/coding-standard/issues",
-                "forum": "https://github.com/ghostwriter/coding-standard/discussions",
-                "source": "https://github.com/ghostwriter/coding-standard",
                 "docs": "https://github.com/ghostwriter/coding-standard",
+                "forum": "https://github.com/ghostwriter/coding-standard/discussions",
+                "issues": "https://github.com/ghostwriter/coding-standard/issues",
                 "rss": "https://github.com/ghostwriter/coding-standard/releases.atom",
-                "security": "https://github.com/ghostwriter/coding-standard/security/advisories/new"
+                "security": "https://github.com/ghostwriter/coding-standard/security/advisories/new",
+                "source": "https://github.com/ghostwriter/coding-standard"
             },
             "funding": [
                 {
-                    "type": "github",
-                    "url": "https://github.com/sponsors/ghostwriter"
+                    "url": "https://github.com/sponsors/ghostwriter",
+                    "type": "github"
                 }
             ],
-            "transport-options": {
-                "relative": false
-            }
+            "time": "2025-11-14T05:12:58+00:00"
         },
         {
             "name": "hamcrest/hamcrest-php",
@@ -4444,7 +4317,6 @@
         "php": "~8.4.0 || ~8.5.0"
     },
     "platform-dev": {
-        "ext-pdo": "*",
         "ext-xdebug": "*"
     },
     "platform-overrides": {
