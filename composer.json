@@ -90,8 +90,8 @@
             }
         },
         "thanks": {
-            "url": "https://github.com/ghostwriter/container",
-            "name": "ghostwriter/container"
+            "name": "ghostwriter/container",
+            "url": "https://github.com/ghostwriter/container"
         }
     },
     "scripts": {
