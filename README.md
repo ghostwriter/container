@@ -45,10 +45,10 @@ assert($service->dependency() instanceof Dependency); // true
 
 ### Automatic Service Definition Registration
 
-Automatically register a service definition class using Composer's `extra` config in your `composer.json` file.
-
 > [!IMPORTANT]  
 > A service definition class MUST implement `Ghostwriter\Container\Interface\Service\DefinitionInterface` [[class]](src/Interface/Service/DefinitionInterface.php).
+
+Automatically register a service definition class using Composer's `extra` config in your `composer.json` file.
 
 It should look like the following:
 
