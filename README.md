@@ -35,180 +35,111 @@ final readonly class Service
 }
 
 $container = Container::getInstance();
+
 $service = $container->get(Service::class);
 
 assert($service instanceof Service); // true
+
 assert($service->dependency() instanceof Dependency); // true
 ```
 
-### Attributes
+### Automatic Service Definition Registration
 
-Registering services using attributes.
+> [!IMPORTANT]  
+> A service definition class MUST implement `Ghostwriter\Container\Interface\Service\DefinitionInterface` [[class]](src/Interface/Service/DefinitionInterface.php).
 
-#### `#[Inject]`
+Automatically register a service definition class using Composer's `extra` config in your `composer.json` file.
 
-Registering a service on the container using attributes.
+It should look like the following:
 
-```php
-use Ghostwriter\Container\Attribute\Inject;
-
-final readonly class Service
+```json
 {
-    public function __construct(
-        #[Inject(Dependency::class)]
-        private DependencyInterface $dependency
-    ) {}
-
-    public function dependency():Dependency
-    {
-        return $this->dependency;
+    "extra": {
+        "ghostwriter": {
+            "container": {
+                "definition": "App\\Service\\Definition"
+            }
+        }
     }
 }
-
-// the above is equivalent to the following
-// $container->alias(Dependency::class, DependencyInterface::class);
-
-final readonly class Service
-{
-    public function __construct(
-        #[Inject(Dependency::class, Service::class)]
-        private DependencyInterface $dependency
-    ) {}
-
-    public function dependency():Dependency
-    {
-        return $this->dependency;
-    }
-}
-
-// the above is equivalent to the following
-// $container->bind(Service::class, DependencyInterface::class, Dependency::class);
 ```
 
----
+### Service Definition
 
-Registering a service factory on the container using attributes.
-
-#### `#[Factory]`
-
-```php
-use Ghostwriter\Container\Attribute\Factory;
-
-#[Factory(ServiceFactory::class)]
-final readonly class Service
-{
-    public function __construct(
-        #[Factory(DependencyFactory::class)]
-        private Dependency $dependency
-    ) {}
-
-    public function dependency():Dependency
-    {
-        return $this->dependency;
-    }
-}
-
-// the above is equivalent to the following
-// $container->factory(Dependency::class, DependencyFactory::class);
-// $container->factory(Service::class, ServiceFactory::class);
-```
-
----
-
-#### `#[Extension]`
-
-Registering a service extension on the container using attributes.
-
-```php
-use Ghostwriter\Container\Attribute\Extension;
-
-#[Extension(ServiceExtension::class)]
-final readonly class Service
-{
-    public function __construct(
-        #[Extension(DependencyExtension::class)]
-        private Dependency $dependency
-    ) {}
-
-    public function dependency():Dependency
-    {
-        return $this->dependency;
-    }
-}
-
-// the above is equivalent to the following
-// $container->extend(Service::class, ServiceExtension::class);
-// $container->extend(Dependency::class, DependencyExtension::class);
-```
-
----
-
-#### `#[Provider]`
-
-Registering a service provider on the container using attributes.
-
-```php
-use Ghostwriter\Container\Attribute\Provider;
-
-#[Provider(ServiceProvider::class)]
-final readonly class Service
-{
-    public function __construct(
-        private DependencyInterface $dependency
-    ) {}
-
-    public function dependency():DependencyInterface
-    {
-        return $this->dependency;
-    }
-}
-
-// the above is equivalent to the following
-// $container->provide(ServiceProvider::class);
-```
-
-### Service Providers
-
-Registering a service provider on the container.
+Registering a service definition on the container.
 
 ```php
 interface TaskInterface {}
+interface TaskCollectionInterface {
+    public function add(TaskInterface $task): void;
+    public function count(): int;
+}
 
-final readonly class Task implements TaskInterface {}
+final readonly class MainTask implements TaskInterface {
+    public function __construct(
+        private string $name
+    ) {}
+}
 
-final class Tasks
+final readonly class FirstTask implements TaskInterface {
+    public function __construct(
+        private string $name
+    ) {}
+}
+
+final class TaskCollection implements TaskCollectionInterface
 {
     private array $tasks = [];
-    public function addTask(TaskInterface $task)
+    public function add(TaskInterface $task): void
     {
         $this->tasks[] = $task;
     }
-}
-
-final readonly class TasksServiceProvider implements ServiceProviderInterface
-{
-    public function __invoke(ContainerInterface $container)
+    public function count(): int
     {
-        $container->alias(TaskInterface::class, Task::class);
-
-        $container->set(Tasks::class, static function (Container $container) {
-            /** @var Tasks $tasks */
-            $tasks = $container->build(Tasks::class);
-
-            foreach ($container->tagged(Task::class) as $service) {
-                $tasks->addTask($service);
-            }
-
-            return $tasks;
-        }, [Tasks::class, 'tasks']);
+        return count($this->tasks);
+    }
+}
+final class TaskCollectionFactory implements FactoryInterface
+{
+    public function __invoke(ContainerInterface $container): TaskCollection
+    {
+        return new TaskCollection();
+    }
+}
+final class TaskCollectionExtension implements ExtensionInterface
+{
+    /** @param TaskCollection $service */
+    public function __invoke(ContainerInterface $container, object $service): void
+    {
+        $service->add(new FirstTask('Task 1'));
+        
+        $mainTask = $container->build(TaskInterface::class, ['name' => 'Main Task']);
+        
+        assert($mainTask instanceof MainTask); // true
+        
+        $service->add($mainTask);
     }
 }
 
-$container->provide(TasksServiceProvider::class);
+final readonly class TasksServiceDefinition implements DefinitionInterface
+{
+    public function __invoke(ContainerInterface $container)
+    {
+        $container->alias(MainTask::class, TaskInterface::class);
+        $container->alias(TaskCollection::class, TaskCollectionInterface::class);
+        $container->extend(TaskCollection::class, TaskCollectionExtension::class);
+        $container->factory(TaskCollection::class, TaskCollectionFactory::class);
+    }
+}
 
-$service = $container->get(TaskInterface::class);
+$container = Container::getInstance();
 
-assert($service instanceof Task); // true
+$container->define(TasksDefinition::class);
+
+$service = $container->get(TaskCollectionInterface::class); 
+assert($service instanceof TaskCollection); // true
+
+assert($service->count() === 2); // true
 ```
 
 ### Contextual Bindings
@@ -216,13 +147,11 @@ assert($service instanceof Task); // true
 Registering a Contextual Bindings on the container.
 
 ```php
-interface ClientInterface { }
+interface ClientInterface {}
 
-final readonly class RestClient implements ClientInterface {
-}
+final readonly class RestClient implements ClientInterface {}
 
-final readonly class GraphQLClient implements ClientInterface {
-}
+final readonly class GraphQLClient implements ClientInterface {}
 
 final readonly class GitHub
 {
@@ -255,20 +184,17 @@ final readonly class GitHubExtension implements ExtensionInterface
 {
     /**
      * @param GitHubClient $service
-     * @return GitHubClient
      */
-    public function __invoke(ContainerInterface $container, object $service): object
+    public function __invoke(ContainerInterface $container, object $service): void
     {
         $service->setEnterpriseUrl(
             $container->get(GitHubClient::GITHUB_HOST)
         );
-
-        return $service;
     }
 }
 
 $container->alias(GitHubClientInterface::class, GitHubClient::class);
-$container->extend(GitHubClientInterface::class, $container->get(GitHubExtention::class));
+$container->extend(GitHubClientInterface::class, GitHubExtention::class);
 ```
 
 ### Service Factory

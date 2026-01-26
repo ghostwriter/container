@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [5.0.0] - 2025-02-21
+
+### Added
+
+- Method `clear()` was added to interface `Ghostwriter\Container\Interface\ContainerInterface`
+- Method `define()` was added to interface `Ghostwriter\Container\Interface\ContainerInterface`
+
+### Changed
+
+- Parameter `$value` of `Ghostwriter\Container\Container#set()` changed from `callable|object` to `object`
+- Parameter `$value` of `Ghostwriter\Container\Interface\ContainerInterface#set()` changed from `callable|object` to `object`
+
+### Removed
+
+- Class `Ghostwriter\Container\Exception\ReflectionException` has been deleted
+- Method `Ghostwriter\Container\Container#purge()` was removed
+- Method `Ghostwriter\Container\Container#register()` was removed
+- Method `Ghostwriter\Container\Interface\ContainerInterface#purge()` was removed
+- Method `Ghostwriter\Container\Interface\ContainerInterface#register()` was removed
+
 ## [4.0.0] - 2024-06-20
 
 ### Added

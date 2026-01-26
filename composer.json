@@ -31,15 +31,23 @@
     "_comment": [
         "#BlackLivesMatter",
         "#FreePalestine",
-        "#StandWithUkraine"
+        "#StandWithUkraine",
+        "#StopGenocide"
     ],
     "require": {
-        "php": ">=8.3"
+        "php": "~8.4.0 || ~8.5.0",
+        "psr/container": "^2.0.2"
     },
     "require-dev": {
-        "ghostwriter/coding-standard": "dev-main"
+        "ext-xdebug": "*",
+        "ghostwriter/coding-standard": "dev-main",
+        "mockery/mockery": "^1.6.12",
+        "phpunit/phpunit": "^12.5.7",
+        "symfony/var-dumper": "^8.0.4"
     },
-    "minimum-stability": "stable",
+    "provide": {
+        "psr/container-implementation": "*"
+    },
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
@@ -48,21 +56,20 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\Unit\\": "tests/unit/"
+            "": "tests/Fixture/",
+            "Tests\\": "tests/"
         },
         "files": [
-            "tests/fixture/functions.php",
+            "tests/Fixture/functions.php",
             "tests/bootstrap.php"
         ],
-        "exclude-from-classmap": [
-            "tests/fixture/"
-        ]
+        "exclude-from-classmap": ["/tests/"]
     },
     "config": {
         "allow-plugins": {
             "ghostwriter/coding-standard": true
         },
-        "bump-after-update": true,
+        "bump-after-update": false,
         "classmap-authoritative": false,
         "discard-changes": true,
         "optimize-autoloader": true,
@@ -76,44 +83,29 @@
         "sort-packages": true,
         "use-parent-dir": false
     },
+    "extra": {
+        "ghostwriter": {
+            "container": {
+                "definition": "Ghostwriter\\Container\\Service\\Definition\\ContainerDefinition"
+            }
+        },
+        "thanks": {
+            "name": "ghostwriter/container",
+            "url": "https://github.com/ghostwriter/container"
+        }
+    },
     "scripts": {
-        "bin_composer": "vendor/ghostwriter/coding-standard/tools/composer",
-        "bin_ecs": "ecs check --clear-cache --no-interaction",
-        "bin_infection": "vendor/ghostwriter/coding-standard/tools/infection --ansi --min-covered-msi=0 --min-msi=0 --show-mutations --threads=max",
-        "bin_normalize": "vendor/ghostwriter/coding-standard/tools/composer-normalize",
-        "bin_phive": "vendor/ghostwriter/coding-standard/tools/phive",
-        "bin_phpunit": "vendor/ghostwriter/coding-standard/tools/phpunit --do-not-cache-result --colors=always",
-        "bin_psalm": "vendor/ghostwriter/coding-standard/tools/psalm --no-cache",
-        "bin_rector": "rector process --clear-cache --no-ansi",
         "cache:clear": "rm -rf ./.cache/*",
-        "check": [
-            "@cache:clear",
-            "@bin_composer validate",
-            "@composer-normalize",
-            "@ecs",
-            "@test"
-        ],
-        "composer-normalize": "@bin_normalize --no-cache --diff --no-check-lock --no-scripts --no-plugins",
-        "ecs": "@bin_ecs --fix",
+        "check": ["@cache:clear", "tools/phar/composer validate", "@test"],
+        "docker": ["@docker:build", "@docker:run"],
+        "docker:build": "docker buildx build --pull --tag workspace .",
+        "docker:run": "docker run -v $(PWD):/github/workspace -w=/github/workspace -e GITHUB_DEBUG=1 -e GITHUB_WORKSPACE=/github/workspace -e GITHUB_TOKEN=github-token -e SIGNING_SECRET_KEY=secret-key workspace",
         "git:submodule:update": "git submodule update --depth=1 --init --recursive --recommend-shallow --remote",
-        "infection": [
-            "@xdebug",
-            "@bin_infection"
-        ],
-        "phpunit": [
-            "@xdebug",
-            "@bin_phpunit"
-        ],
-        "phpunit:migrate": [
-            "@xdebug",
-            "@bin_phpunit --migrate-configuration"
-        ],
-        "rector": "@bin_rector",
-        "rector:dry-run": "@rector --dry-run",
-        "test": [
-            "@phpunit",
-            "@infection"
-        ],
+        "infection": ["@xdebug", "tools/phar/infection --min-covered-msi=0 --min-msi=0 --show-mutations --threads=max"],
+        "phpbench": "tools/phar/phpbench run --report='extends:aggregate,cols:[benchmark,subject,revs,its,mem_peak,mode,rstdev]' --time-unit=milliseconds ./tests/Benchmark",
+        "phpunit": ["@xdebug", "vendor/bin/phpunit --do-not-cache-result --colors=always"],
+        "test": ["@phpunit", "@infection"],
+        "unused": "tools/phar/composer-unused --no-interaction --ansi",
         "xdebug": "@putenv XDEBUG_MODE=coverage"
     }
 }
