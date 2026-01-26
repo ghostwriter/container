@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Ghostwriter\Container\Exception;
 
-use Ghostwriter\Container\Interface\ExceptionInterface;
+use Ghostwriter\Container\Interface\ContainerExceptionInterface;
 use InvalidArgumentException;
 
-final class AliasNameAndServiceNameCannotBeTheSameException extends InvalidArgumentException implements ExceptionInterface {}
+final class AliasNameAndServiceNameCannotBeTheSameException extends InvalidArgumentException implements ContainerExceptionInterface {}
