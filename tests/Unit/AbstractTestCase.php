@@ -10,7 +10,6 @@ use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\Exception\ContainerNotFoundExceptionInterface;
 use InvalidArgumentException;
 use Mockery;
-use Override;
 use PHPUnit\Framework\TestCase;
 use Throwable;
 
@@ -18,21 +17,17 @@ abstract class AbstractTestCase extends TestCase
 {
     protected ContainerInterface $container;
 
-    #[Override]
     final protected function setUp(): void
     {
         parent::setUp();
-
         $this->container = Container::getInstance();
         $this->container->reset();
     }
 
     /** @throws Throwable */
-    #[Override]
     final protected function tearDown(): void
     {
         parent::tearDown();
-
         Mockery::close();
     }
 

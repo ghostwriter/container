@@ -6,11 +6,13 @@ namespace Tests\Unit;
 
 use Generator;
 use Ghostwriter\Container\Container;
-use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\ContainerExceptionInterface;
+use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\Service\DefinitionInterface;
+use Ghostwriter\Container\PsrContainer;
 use Ghostwriter\Container\Service\Definition\ComposerExtraDefinition;
-use Ghostwriter\Container\Service\Definition\ContainerDefinition;
+use Ghostwriter\Container\Service\Provider\ComposerDefinitionProvider;
+use Ghostwriter\Container\Service\Provider\ContainerProvider;
 use PDO;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversClassesThatImplementInterface;
@@ -34,6 +36,8 @@ use Tests\Fixture\Constructor\ObjectConstructor;
 use Tests\Fixture\Constructor\OptionalConstructor;
 use Tests\Fixture\Constructor\StringConstructor;
 use Tests\Fixture\Constructor\TypelessConstructor;
+use Tests\Fixture\Definition\FoobarDefinition;
+use Tests\Fixture\Definition\FoobarWithDependencyDefinition;
 use Tests\Fixture\Dummy;
 use Tests\Fixture\Extension\FoobarExtension;
 use Tests\Fixture\Extension\StdClassOneExtension;
@@ -43,27 +47,26 @@ use Tests\Fixture\Foo;
 use Tests\Fixture\Foobar;
 use Tests\Fixture\GitHub;
 use Tests\Fixture\GitHubClient;
-use Tests\Fixture\Definition\FoobarDefinition;
-use Tests\Fixture\Definition\FoobarWithDependencyDefinition;
 use Tests\Fixture\TestEvent;
 use Tests\Fixture\TestEventListener;
 use Tests\Fixture\UnionTypehintWithDefaultValue;
 use Tests\Fixture\UnionTypehintWithoutDefaultValue;
 use Throwable;
+
 use function array_key_exists;
 use function random_int;
 
 #[CoversClass(ComposerExtraDefinition::class)]
-#[CoversClass(ContainerDefinition::class)]
+#[CoversClass(PsrContainer::class)]
 #[CoversClass(Container::class)]
+#[CoversClass(ContainerProvider::class)]
+#[CoversClass(ComposerDefinitionProvider::class)]
 #[CoversClassesThatImplementInterface(ContainerInterface::class)]
 #[CoversClassesThatImplementInterface(ContainerExceptionInterface::class)]
 #[CoversClassesThatImplementInterface(DefinitionInterface::class)]
 final class ContainerTest extends AbstractTestCase
 {
-    /**
-     * @throws Throwable
-     */
+    /** @throws Throwable */
     public function testBuildParamPosition(): void
     {
         $classWithArray = $this->container->build(ClassWithArray::class, [
@@ -73,41 +76,39 @@ final class ContainerTest extends AbstractTestCase
         self::assertInstanceOf(ClassWithArray::class, $classWithArray);
     }
 
-    /**
-     * @throws Throwable
-     */
+    /** @throws Throwable */
     public function testBuildResolvesAlias(): void
     {
-        $this->container->alias(GitHubClient::class, ClientInterface::class);
+        $this->container->alias(ClientInterface::class, GitHubClient::class);
 
         self::assertInstanceOf(GitHubClient::class, $this->container->build(ClientInterface::class));
     }
 
-    /**
-     * @throws Throwable
-     */
+    /** @throws Throwable */
     public function testContainerAlias(): void
     {
         self::assertFalse($this->container->has(GitHub::class));
 
-        $std = new GitHub($this->createMock(ClientInterface::class));
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects(self::never())
+            ->method('token')
+            ->seal();
+        $gitHub = new GitHub($client);
 
-        $this->container->set(GitHub::class, $std);
+        $this->container->set(GitHub::class, $gitHub);
 
         self::assertTrue($this->container->has(GitHub::class));
 
         self::assertFalse($this->container->has(PDO::class));
 
-        $this->container->alias(GitHub::class, PDO::class);
+        $this->container->alias(PDO::class, GitHub::class);
 
         self::assertTrue($this->container->has(PDO::class));
 
-        self::assertSame($std, $this->container->get(PDO::class));
+        self::assertSame($gitHub, $this->container->get(PDO::class));
     }
 
-    /**
-     * @throws Throwable
-     */
+    /** @throws Throwable */
     public function testContainerBind(): void
     {
         self::assertFalse($this->container->has(ClientInterface::class));
@@ -135,7 +136,7 @@ final class ContainerTest extends AbstractTestCase
      *
      * @throws Throwable
      */
-    #[DataProvider('dataProviderServiceClasses')]
+    #[DataProvider('provideContainerBuildCases')]
     public function testContainerBuild(string $class, array $arguments = []): void
     {
         $instance = $this->container->build($class, $arguments);
@@ -149,9 +150,7 @@ final class ContainerTest extends AbstractTestCase
         self::assertSame($arguments['value'], $instance->value());
     }
 
-    /**
-     * @throws Throwable
-     */
+    /** @throws Throwable */
     public function testContainerBuildDefinitionDoesNotRegisterDefinition(): void
     {
         $foobarDefinition = $this->container->build(FoobarDefinition::class);
@@ -168,7 +167,7 @@ final class ContainerTest extends AbstractTestCase
      *
      * @throws Throwable
      */
-    #[DataProvider('dataProviderContainerCallables')]
+    #[DataProvider('provideContainerCallCases')]
     public function testContainerCall(callable $callback): void
     {
         $testEvent = $this->container->get(TestEvent::class);
@@ -200,9 +199,7 @@ final class ContainerTest extends AbstractTestCase
         self::assertSame($this->container, $this->container);
     }
 
-    /**
-     * @throws Throwable
-     */
+    /** @throws Throwable */
     public function testContainerExtend(): void
     {
         $this->container->extend(stdClass::class, StdClassOneExtension::class);
@@ -216,9 +213,7 @@ final class ContainerTest extends AbstractTestCase
         self::assertInstanceOf(stdClass::class, $this->container->get(stdClass::class)->two);
     }
 
-    /**
-     * @throws Throwable
-     */
+    /** @throws Throwable */
     public function testContainerExtendFactory(): void
     {
         $this->container->factory(stdClass::class, StdClassFactory::class);
@@ -237,9 +232,7 @@ final class ContainerTest extends AbstractTestCase
         self::assertSame($this->container->get(stdClass::class), $this->container->get(stdClass::class));
     }
 
-    /**
-     * @throws Throwable
-     */
+    /** @throws Throwable */
     public function testContainerImplementsContainerInterface(): void
     {
         $container = $this->container;
@@ -248,9 +241,7 @@ final class ContainerTest extends AbstractTestCase
         self::assertInstanceOf(Container::class, $container);
     }
 
-    /**
-     * @throws Throwable
-     */
+    /** @throws Throwable */
     public function testContainerInvokeDefaultValueAvailable(): void
     {
         self::assertSame('Untitled Text', $this->container->call(Dummy::class));
@@ -266,9 +257,7 @@ final class ContainerTest extends AbstractTestCase
         ]));
     }
 
-    /**
-     * @throws Throwable
-     */
+    /** @throws Throwable */
     public function testContainerProvideDefinition(): void
     {
         $this->container->define(FoobarDefinition::class);
@@ -279,26 +268,7 @@ final class ContainerTest extends AbstractTestCase
         self::assertInstanceOf(stdClass::class, $this->container->get(Foobar::class));
     }
 
-    /**
-     * @throws Throwable
-     */
-    public function testContainerResetClass(): void
-    {
-        $instance = new stdClass();
-        $this->container->set(stdClass::class, $instance);
-
-        self::assertTrue($this->container->has(stdClass::class));
-        self::assertSame($instance, $this->container->get(stdClass::class));
-
-        $this->container->reset();
-
-        self::assertTrue($this->container->has(stdClass::class));
-        self::assertNotSame($instance, $this->container->get(stdClass::class));
-    }
-
-    /**
-     * @throws Throwable
-     */
+    /** @throws Throwable */
     public function testContainerRemove(): void
     {
         $this->container->define(FoobarDefinition::class);
@@ -333,9 +303,7 @@ final class ContainerTest extends AbstractTestCase
         self::assertNotSame($baz, $bazAfterUnset);
     }
 
-    /**
-     * @throws Throwable
-     */
+    /** @throws Throwable */
     public function testContainerReset(): void
     {
         $this->container->define(FoobarDefinition::class);
@@ -361,9 +329,22 @@ final class ContainerTest extends AbstractTestCase
         self::assertNotSame($baz, $this->container->get(Baz::class));
     }
 
-    /**
-     * @throws Throwable
-     */
+    /** @throws Throwable */
+    public function testContainerResetClass(): void
+    {
+        $instance = new stdClass();
+        $this->container->set(stdClass::class, $instance);
+
+        self::assertTrue($this->container->has(stdClass::class));
+        self::assertSame($instance, $this->container->get(stdClass::class));
+
+        $this->container->reset();
+
+        self::assertTrue($this->container->has(stdClass::class));
+        self::assertNotSame($instance, $this->container->get(stdClass::class));
+    }
+
+    /** @throws Throwable */
     public function testContainerSetObject(): void
     {
         $object = new stdClass();
@@ -373,21 +354,12 @@ final class ContainerTest extends AbstractTestCase
         self::assertSame($object, $this->container->get(stdClass::class));
     }
 
-    /**
-     * @throws Throwable
-     */
+    /** @throws Throwable */
     public function testFactory(): void
     {
         $this->container->factory(stdClass::class, StdClassFactory::class);
 
         self::assertSame('#FreePalestine', $this->container->get(stdClass::class)->blackLivesMatter);
-    }
-
-    public function testPurgeContainerInterfaceAliasExists(): void
-    {
-        $this->container->reset();
-
-        self::assertTrue($this->container->has(ContainerInterface::class));
     }
 
     /**
@@ -397,20 +369,22 @@ final class ContainerTest extends AbstractTestCase
      */
     public function testGhostwriterContainerCanInstantiatePsrContainer(): void
     {
-        self::assertInstanceOf(Container::class, $this->container->get(PsrContainerInterface::class));
+        self::assertInstanceOf(PsrContainer::class, $this->container->get(PsrContainerInterface::class));
     }
 
     public function testImplementsPsrContainerInterface(): void
     {
-        self::assertInstanceOf(PsrContainerInterface::class, Container::getInstance());
+        self::assertInstanceOf(PsrContainerInterface::class, $this->container->get(PsrContainerInterface::class));
     }
 
+    public function testPurgeContainerInterfaceAliasExists(): void
+    {
+        $this->container->reset();
 
+        self::assertTrue($this->container->has(ContainerInterface::class));
+    }
 
-
-    /**
-     * @throws Throwable
-     */
+    /** @throws Throwable */
     public static function buildParametersDataProvider(): Generator
     {
         $stdClass = new stdClass();
@@ -430,32 +404,8 @@ final class ContainerTest extends AbstractTestCase
         ];
     }
 
-    /**
-     * @return Generator<string,array>
-     */
-    public static function dataProviderContainerCallables(): Generator
-    {
-        yield 'AnonymousFunctionCall' => [static function (TestEvent $testEvent): void {
-            $testEvent->collect($testEvent::class);
-        }];
-        yield 'CallableArrayInstanceMethodCall' => [[new TestEventListener(), 'onTest']];
-        yield 'CallableArrayInstanceMethodCallOnVariadic' => [[new TestEventListener(), 'onVariadicTest']];
-        yield 'CallableArrayStaticMethodCall' => [[TestEventListener::class, 'onStaticCallableArray']];
-        yield 'FunctionCall@typedFunction' => ['Tests\Fixture\typedFunction'];
-        yield 'FunctionCall@typelessFunction' => ['Tests\Fixture\typelessFunction'];
-        yield 'Invokable' => [new TestEventListener()];
-        yield 'StaticMethodCall' => [TestEventListener::class . '::onStatic'];
-        yield 'TypelessAnonymousFunctionCall' => [
-            static function (TestEvent $testEvent): void {
-                $testEvent->collect($testEvent::class);
-            },
-        ];
-    }
-
-    /**
-     * @return Generator<class-string<ArrayConstructor|Bar|Baz|BoolConstructor|CallableConstructor|EmptyConstructor|FloatConstructor|Foo|FoobarExtension|FoobarDefinition|FoobarWithDependencyDefinition|IntConstructor|IterableConstructor|MixedConstructor|ObjectConstructor|OptionalConstructor|self|StringConstructor|TypelessConstructor|UnionTypehintWithDefaultValue|UnionTypehintWithoutDefaultValue>,array>
-     */
-    public static function dataProviderServiceClasses(): Generator
+    /** @return Generator<class-string<ArrayConstructor|Bar|Baz|BoolConstructor|CallableConstructor|EmptyConstructor|FloatConstructor|Foo|FoobarDefinition|FoobarExtension|FoobarWithDependencyDefinition|IntConstructor|IterableConstructor|MixedConstructor|ObjectConstructor|OptionalConstructor|self|StringConstructor|TypelessConstructor|UnionTypehintWithDefaultValue|UnionTypehintWithoutDefaultValue>,array> */
+    public static function provideContainerBuildCases(): iterable
     {
         yield ContainerInterface::class => [ContainerInterface::class, []];
         yield ArrayConstructor::class => [
@@ -545,5 +495,25 @@ final class ContainerTest extends AbstractTestCase
         yield FoobarDefinition::class => [FoobarDefinition::class];
         yield FoobarExtension::class => [FoobarExtension::class];
         yield self::class => [self::class, ['name']];
+    }
+
+    /** @return Generator<string,array> */
+    public static function provideContainerCallCases(): iterable
+    {
+        yield 'AnonymousFunctionCall' => [static function (TestEvent $testEvent): void {
+            $testEvent->collect($testEvent::class);
+        }];
+        yield 'CallableArrayInstanceMethodCall' => [[new TestEventListener(), 'onTest']];
+        yield 'CallableArrayInstanceMethodCallOnVariadic' => [[new TestEventListener(), 'onVariadicTest']];
+        yield 'CallableArrayStaticMethodCall' => [[TestEventListener::class, 'onStaticCallableArray']];
+        yield 'FunctionCall@typedFunction' => ['Tests\Fixture\typedFunction'];
+        yield 'FunctionCall@typelessFunction' => ['Tests\Fixture\typelessFunction'];
+        yield 'Invokable' => [new TestEventListener()];
+        yield 'StaticMethodCall' => [TestEventListener::class . '::onStatic'];
+        yield 'TypelessAnonymousFunctionCall' => [
+            static function (TestEvent $testEvent): void {
+                $testEvent->collect($testEvent::class);
+            },
+        ];
     }
 }

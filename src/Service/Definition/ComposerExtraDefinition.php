@@ -158,7 +158,7 @@ final class ComposerExtraDefinition implements DefinitionInterface
      *
      * @return string
      */
-    private function installedJsonPath($composerJsonPath): string
+    private function installedJsonPath(string $composerJsonPath): string
     {
         $installedJsonPath = implode(
             DIRECTORY_SEPARATOR,
