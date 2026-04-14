@@ -8,6 +8,8 @@ use Ghostwriter\Container\Interface\ContainerInterface;
 
 /**
  * A provider is an invokable class that registers services on the given container instance.
+ *
+ * @deprecated Use `ProviderInterface` instead, will be removed in v7.0.0.
  */
 interface DefinitionInterface
 {

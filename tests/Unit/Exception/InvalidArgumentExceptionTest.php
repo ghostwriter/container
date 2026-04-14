@@ -11,6 +11,8 @@ use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\Service\DefinitionInterface;
 use Ghostwriter\Container\Interface\Service\ExtensionInterface;
 use Ghostwriter\Container\Service\Definition\ComposerExtraDefinition;
+use Ghostwriter\Container\Service\Provider\ComposerDefinitionProvider;
+use Ghostwriter\Container\Service\Provider\ContainerProvider;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversClassesThatImplementInterface;
 use stdClass;
@@ -18,40 +20,19 @@ use Tests\Fixture\InvalidStdClassFactoryThatDoesNotImplementFactoryInterface;
 use Tests\Unit\AbstractTestCase;
 use Throwable;
 
+use function sprintf;
+
 #[CoversClass(InvalidArgumentException::class)]
 #[CoversClass(ComposerExtraDefinition::class)]
 #[CoversClass(Container::class)]
+#[CoversClass(ContainerProvider::class)]
+#[CoversClass(ComposerDefinitionProvider::class)]
 #[CoversClassesThatImplementInterface(ContainerInterface::class)]
 #[CoversClassesThatImplementInterface(ContainerExceptionInterface::class)]
 #[CoversClassesThatImplementInterface(DefinitionInterface::class)]
 final class InvalidArgumentExceptionTest extends AbstractTestCase
 {
-    /**
-     * @throws Throwable
-     *
-     *
-     */
-    public function testContainerFactory(): void
-    {
-        $this->assertException(InvalidArgumentException::class);
-
-        $this->container->factory(stdClass::class, stdClass::class);
-    }
-
-    /**
-     * @throws Throwable
-     *
-     *
-     */
-    public function testContainerFactoryWithInvalidFactory(): void
-    {
-        $this->assertException(InvalidArgumentException::class);
-
-        $this->container->factory(stdClass::class, InvalidStdClassFactoryThatDoesNotImplementFactoryInterface::class);
-    }
-    /**
-     * @throws Throwable
-     */
+    /** @throws Throwable */
     public function testContainerDefine(): void
     {
         $this->assertException(InvalidArgumentException::class);
@@ -60,12 +41,7 @@ final class InvalidArgumentExceptionTest extends AbstractTestCase
         $this->container->define(self::class);
     }
 
-
-    /**
-     * @throws Throwable
-     *
-     *
-     */
+    /** @throws Throwable */
     public function testContainerExtend(): void
     {
         self::expectExceptionMessage(
@@ -80,5 +56,21 @@ final class InvalidArgumentExceptionTest extends AbstractTestCase
         $this->assertException(InvalidArgumentException::class);
 
         $this->container->extend(stdClass::class, stdClass::class);
+    }
+
+    /** @throws Throwable */
+    public function testContainerFactory(): void
+    {
+        $this->assertException(InvalidArgumentException::class);
+
+        $this->container->factory(stdClass::class, stdClass::class);
+    }
+
+    /** @throws Throwable */
+    public function testContainerFactoryWithInvalidFactory(): void
+    {
+        $this->assertException(InvalidArgumentException::class);
+
+        $this->container->factory(stdClass::class, InvalidStdClassFactoryThatDoesNotImplementFactoryInterface::class);
     }
 }

@@ -10,6 +10,8 @@ use Ghostwriter\Container\Interface\ContainerExceptionInterface;
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\Service\DefinitionInterface;
 use Ghostwriter\Container\Service\Definition\ComposerExtraDefinition;
+use Ghostwriter\Container\Service\Provider\ComposerDefinitionProvider;
+use Ghostwriter\Container\Service\Provider\ContainerProvider;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversClassesThatImplementInterface;
 use PHPUnit\Framework\TestCase;
@@ -17,10 +19,11 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(InvokableClassMustBeCallableException::class)]
 #[CoversClass(ComposerExtraDefinition::class)]
 #[CoversClass(Container::class)]
+#[CoversClass(ContainerProvider::class)]
+#[CoversClass(ComposerDefinitionProvider::class)]
 #[CoversClassesThatImplementInterface(ContainerInterface::class)]
 #[CoversClassesThatImplementInterface(ContainerExceptionInterface::class)]
 #[CoversClassesThatImplementInterface(DefinitionInterface::class)]
-
 final class InvokableClassMustBeCallableExceptionTest extends TestCase
 {
     public function testThrowsInvokableClassMustBeCallableException(): void

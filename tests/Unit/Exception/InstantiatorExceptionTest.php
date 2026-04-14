@@ -6,11 +6,12 @@ namespace Tests\Unit\Exception;
 
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Exception\InstantiatorException;
-use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\ContainerExceptionInterface;
+use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\Service\DefinitionInterface;
 use Ghostwriter\Container\Service\Definition\ComposerExtraDefinition;
-use Ghostwriter\Container\Service\Definition\ContainerDefinition;
+use Ghostwriter\Container\Service\Provider\ComposerDefinitionProvider;
+use Ghostwriter\Container\Service\Provider\ContainerProvider;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversClassesThatImplementInterface;
 use Tests\Fixture\FoobarWithoutFactoryAttribute;
@@ -18,9 +19,10 @@ use Tests\Unit\AbstractTestCase;
 use Throwable;
 
 #[CoversClass(InstantiatorException::class)]
-#[CoversClass(ContainerDefinition::class)]
 #[CoversClass(ComposerExtraDefinition::class)]
 #[CoversClass(Container::class)]
+#[CoversClass(ContainerProvider::class)]
+#[CoversClass(ComposerDefinitionProvider::class)]
 #[CoversClassesThatImplementInterface(ContainerInterface::class)]
 #[CoversClassesThatImplementInterface(ContainerExceptionInterface::class)]
 #[CoversClassesThatImplementInterface(DefinitionInterface::class)]

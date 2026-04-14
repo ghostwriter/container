@@ -6,4 +6,5 @@ namespace Tests\Fixture;
 
 interface ClientInterface
 {
+    public function token(): string;
 }

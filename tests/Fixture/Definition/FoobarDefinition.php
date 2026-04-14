@@ -22,7 +22,7 @@ final readonly class FoobarDefinition implements DefinitionInterface
     #[Override]
     public function __invoke(ContainerInterface $container): void
     {
-        $container->alias(stdClass::class, Foobar::class);
+        $container->alias(Foobar::class, stdClass::class);
         $container->set(Foo::class, $container->build(Foo::class));
         $container->set(Bar::class, $container->build(Bar::class));
         $container->set(Baz::class, $container->build(Baz::class));
