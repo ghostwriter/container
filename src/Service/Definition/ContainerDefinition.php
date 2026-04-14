@@ -6,8 +6,8 @@ namespace Ghostwriter\Container\Service\Definition;
 
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\Service\DefinitionInterface;
+use Ghostwriter\Container\PsrContainer;
 use Override;
-use Psr\Container\ContainerInterface as PsrContainerInterface;
 use Throwable;
 
 final class ContainerDefinition implements DefinitionInterface
@@ -16,6 +16,6 @@ final class ContainerDefinition implements DefinitionInterface
     #[Override]
     public function __invoke(ContainerInterface $container): void
     {
-        $container->alias(ContainerInterface::class, PsrContainerInterface::class);
+        $container->alias(\Psr\Container\ContainerInterface::class, PsrContainer::class);
     }
 }

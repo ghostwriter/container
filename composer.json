@@ -54,7 +54,6 @@
             "Tests\\": "tests/"
         },
         "files": [
-            "tests/Fixture/functions.php",
             "tests/bootstrap.php"
         ],
         "exclude-from-classmap": ["/tests/"]
@@ -81,7 +80,7 @@
     "extra": {
         "ghostwriter": {
             "container": {
-                "definition": "Ghostwriter\\Container\\Service\\Definition\\ContainerDefinition"
+                "provider": ["Ghostwriter\\Container\\Service\\Provider\\ContainerProvider"]
             }
         },
         "thanks": {

@@ -4,61 +4,25 @@ declare(strict_types=1);
 
 namespace Ghostwriter\Container\Interface;
 
+use Deprecated;
 use Ghostwriter\Container\Interface\Exception\ContainerNotFoundExceptionInterface;
 use Ghostwriter\Container\Interface\Service\DefinitionInterface;
-use Ghostwriter\Container\Interface\Service\ExtensionInterface;
-use Ghostwriter\Container\Interface\Service\FactoryInterface;
-use Psr\Container\ContainerInterface as PsrContainerInterface;
 use Throwable;
 
 /**
  * An extendable, closure based dependency injection container.
  */
-interface ContainerInterface extends PsrContainerInterface
+interface ContainerInterface extends BuilderInterface
 {
     /**
-     * Provide an alternative name for a service.
-     *
-     * @template TService of object
-     * @template TAlias of object
-     *
-     * @param class-string<TService> $id
-     * @param class-string<TAlias>   $alias
-     *
-     * @throws ContainerNotFoundExceptionInterface
-     * @throws ContainerExceptionInterface
-     */
-    public function alias(string $id, string $alias): void;
-
-    /**
-     * Provide contextual binding for the given concrete class.
-     *
-     * $container->bind(GitHub::class, ClientInterface::class, GitHubClient::class);
-     *
-     * when building $concrete (GitHub::class),
-     * if $abstract (ClientInterface::class) is requested,
-     * then $implementation (GitHubClient::class) will be provided.
-     *
-     * @template TBindConcrete of object
-     * @template TBindAbstract of object
-     * @template TBindImplementation of object
-     *
-     * @param class-string<TBindConcrete>       $concrete
-     * @param class-string<TBindAbstract>       $abstract
-     * @param class-string<TBindImplementation> $implementation
-     *
-     * @throws ContainerNotFoundExceptionInterface
-     * @throws ContainerExceptionInterface
-     */
-    public function bind(string $concrete, string $abstract, string $implementation): void;
-
-    /**
      * Create an object using the given Container to resolve dependencies.
+     *
+     * Returns a new instance on each call, Use `$container->get()` to return the same instance on subsequent calls.
      *
      * @template TBuild of object
      * @template TArgument
      *
-     * @param class-string<TBuild> $id
+     * @param class-string<TBuild> $service
      * @param list<TArgument>      $arguments optional constructor arguments passed to build the new class instance
      *
      * @throws ContainerExceptionInterface         if there is an error while retrieving the entry
@@ -66,7 +30,7 @@ interface ContainerInterface extends PsrContainerInterface
      *
      * @return TBuild
      */
-    public function build(string $id, array $arguments = []): object;
+    public function build(string $service, array $arguments = []): object;
 
     /**
      * Invoke a callable string with optional arguments.
@@ -86,32 +50,16 @@ interface ContainerInterface extends PsrContainerInterface
     public function call(callable|string $callable, array $arguments = []): mixed;
 
     /**
+     *
      * @param class-string<DefinitionInterface> $definition
      *
      * @throws ContainerExceptionInterface
      * @throws ContainerNotFoundExceptionInterface
      */
+    #[Deprecated(
+        message: 'Use `ProviderInterface` with a composer extra definition instead, will be removed in v7.0.0.'
+    )]
     public function define(string $definition): void;
-
-    /**
-     * "Extend" a service object in the container.
-     *
-     * @template TService of object
-     *
-     * @param class-string<TService>                     $id
-     * @param class-string<ExtensionInterface<TService>> $extension
-     */
-    public function extend(string $id, string $extension): void;
-
-    /**
-     * Provide a FactoryInterface for a service.
-     *
-     * @template TService of object
-     *
-     * @param class-string<TService>                   $id
-     * @param class-string<FactoryInterface<TService>> $factory
-     */
-    public function factory(string $id, string $factory): void;
 
     /**
      * Instantiate and return the service with the given id.
@@ -120,42 +68,25 @@ interface ContainerInterface extends PsrContainerInterface
      *
      * @template TService of object
      *
-     * @param class-string<TService> $id
+     * @param class-string<TService> $service
      *
      * @throws ContainerExceptionInterface         If error while retrieving the entry
      * @throws ContainerNotFoundExceptionInterface if no entry was found for the given identifier
      *
      * @return TService
      */
-    public function get(string $id): object;
+    public function get(string $service): object;
 
     /**
-     * Determine if a $id exists in the Container.
+     * Determine if the $service exists in the Container.
      *
      * @template TService of object
      *
-     * @param class-string<TService> $id
+     * @param class-string<TService> $service
      *
-     * @psalm-assert-if-true class-string<TService> $id
+     * @psalm-assert-if-true class-string<TService> $service
      */
-    public function has(string $id): bool;
+    public function has(string $service): bool;
 
     public function reset(): void;
-
-    /**
-     * @template TService of object
-     *
-     * @param class-string<TService> $id
-     * @param TService               $value
-     */
-    public function set(string $id, object $value): void;
-
-    /**
-     * Remove a service from the container.
-     *
-     * @template TService of object
-     *
-     * @param class-string<TService> $id
-     */
-    public function unset(string $id): void;
 }
