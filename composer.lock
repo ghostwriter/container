@@ -67,12 +67,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/ghostwriter/coding-standard.git",
-                "reference": "92b83a50e9bd61fd6fd18c51796ac1c653ec0a7e"
+                "reference": "42659c01dc101851ef88c4c3491581a59743b36a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ghostwriter/coding-standard/zipball/92b83a50e9bd61fd6fd18c51796ac1c653ec0a7e",
-                "reference": "92b83a50e9bd61fd6fd18c51796ac1c653ec0a7e",
+                "url": "https://api.github.com/repos/ghostwriter/coding-standard/zipball/42659c01dc101851ef88c4c3491581a59743b36a",
+                "reference": "42659c01dc101851ef88c4c3491581a59743b36a",
                 "shasum": ""
             },
             "require": {
@@ -186,7 +186,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-04-18T08:50:30+00:00"
+            "time": "2026-04-19T01:32:06+00:00"
         },
         {
             "name": "hamcrest/hamcrest-php",
@@ -2123,7 +2123,7 @@
         },
         {
             "name": "symfony/polyfill-mbstring",
-            "version": "v1.34.0",
+            "version": "v1.36.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-mbstring.git",
@@ -2184,7 +2184,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.34.0"
+                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.36.0"
             },
             "funding": [
                 {
