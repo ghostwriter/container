@@ -336,9 +336,9 @@ final class Container implements ContainerInterface
     public function reset(): void
     {
         $this->aliases = [
-            ContainerInterface::class => self::class,
             BuilderInterface::class => self::class,
             ComposerDefinitionProviderInterface::class => ComposerDefinitionProvider::class,
+            ContainerInterface::class => self::class,
         ];
 
         $this->bindings = [];

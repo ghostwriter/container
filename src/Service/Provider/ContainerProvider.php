@@ -7,6 +7,7 @@ namespace Ghostwriter\Container\Service\Provider;
 use Ghostwriter\Container\Interface\BuilderInterface;
 use Ghostwriter\Container\PsrContainer;
 use Override;
+use Psr\Container\ContainerInterface;
 use Throwable;
 
 final class ContainerProvider extends AbstractProvider
@@ -15,6 +16,6 @@ final class ContainerProvider extends AbstractProvider
     #[Override]
     public function register(BuilderInterface $builder): void
     {
-        $builder->alias(\Psr\Container\ContainerInterface::class, PsrContainer::class);
+        $builder->alias(ContainerInterface::class, PsrContainer::class);
     }
 }
