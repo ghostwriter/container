@@ -6,6 +6,7 @@ namespace Ghostwriter\Container;
 
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Override;
+use Throwable;
 
 final readonly class PsrContainer implements \Psr\Container\ContainerInterface
 {
@@ -22,6 +23,12 @@ final readonly class PsrContainer implements \Psr\Container\ContainerInterface
     #[Override]
     public function has(string $id): bool
     {
-        return $this->container->has($id);
+        try {
+            $this->container->get($id);
+
+            return true;
+        } catch (Throwable) {
+            return false;
+        }
     }
 }
