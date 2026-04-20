@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Ghostwriter\Container\Interface;
 
-use Deprecated;
 use Ghostwriter\Container\Interface\Exception\ContainerNotFoundExceptionInterface;
-use Ghostwriter\Container\Interface\Service\DefinitionInterface;
 use Throwable;
 
 /**
@@ -39,27 +37,14 @@ interface ContainerInterface extends BuilderInterface
      * @template TArgument
      * @template TResult
      *
-     * @param (array{0:(class-string<TInvoke>|TInvoke),1:'__invoke'|string}|callable|callable-string|(Closure(TArgument...):TResult)|TInvoke) $callable
-     * @param array<non-empty-string,TArgument>                                                                                               $arguments
+     * @param callable|string                   $callable
+     * @param array<non-empty-string,TArgument> $arguments
      *
      * @throws Throwable
      *
      * @return TResult
-     *
      */
     public function call(callable|string $callable, array $arguments = []): mixed;
-
-    /**
-     *
-     * @param class-string<DefinitionInterface> $definition
-     *
-     * @throws ContainerExceptionInterface
-     * @throws ContainerNotFoundExceptionInterface
-     */
-    #[Deprecated(
-        message: 'Use `ProviderInterface` with a composer extra definition instead, will be removed in v7.0.0.'
-    )]
-    public function define(string $definition): void;
 
     /**
      * Instantiate and return the service with the given id.
@@ -88,5 +73,6 @@ interface ContainerInterface extends BuilderInterface
      */
     public function has(string $service): bool;
 
+    /** Reset the container to its initial state, removing all services and definitions. */
     public function reset(): void;
 }

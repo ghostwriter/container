@@ -8,9 +8,7 @@ use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Exception\ServiceNotFoundException;
 use Ghostwriter\Container\Interface\ContainerExceptionInterface;
 use Ghostwriter\Container\Interface\ContainerInterface;
-use Ghostwriter\Container\Interface\Service\DefinitionInterface;
-use Ghostwriter\Container\Service\Definition\ComposerExtraDefinition;
-use Ghostwriter\Container\Service\Provider\ComposerDefinitionProvider;
+use Ghostwriter\Container\Service\Provider\ComposerServiceProvider;
 use Ghostwriter\Container\Service\Provider\ContainerProvider;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversClassesThatImplementInterface;
@@ -26,13 +24,11 @@ use Throwable;
  * @psalm-suppress UndefinedClass
  */
 #[CoversClass(ServiceNotFoundException::class)]
-#[CoversClass(ComposerExtraDefinition::class)]
 #[CoversClass(Container::class)]
 #[CoversClass(ContainerProvider::class)]
-#[CoversClass(ComposerDefinitionProvider::class)]
+#[CoversClass(ComposerServiceProvider::class)]
 #[CoversClassesThatImplementInterface(ContainerInterface::class)]
 #[CoversClassesThatImplementInterface(ContainerExceptionInterface::class)]
-#[CoversClassesThatImplementInterface(DefinitionInterface::class)]
 final class ServiceNotFoundExceptionTest extends AbstractTestCase
 {
     /** @throws Throwable */

@@ -6,7 +6,7 @@ namespace Ghostwriter\Container\Interface\Service\Provider;
 
 use Ghostwriter\Container\Interface\Service\ProviderInterface;
 
-interface ComposerDefinitionProviderInterface extends ProviderInterface
+interface ComposerServiceProviderInterface extends ProviderInterface
 {
     /** @param class-string<ProviderInterface> $provider */
     public function add(string $provider): void;

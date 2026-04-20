@@ -7,9 +7,7 @@ namespace Tests\Unit\Exception;
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Exception\DontUnserializeContainerException;
 use Ghostwriter\Container\Interface\ContainerInterface;
-use Ghostwriter\Container\Interface\Service\DefinitionInterface;
-use Ghostwriter\Container\Service\Definition\ComposerExtraDefinition;
-use Ghostwriter\Container\Service\Provider\ComposerDefinitionProvider;
+use Ghostwriter\Container\Service\Provider\ComposerServiceProvider;
 use Ghostwriter\Container\Service\Provider\ContainerProvider;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversClassesThatImplementInterface;
@@ -21,11 +19,9 @@ use function sprintf;
 use function unserialize;
 
 #[CoversClass(DontUnserializeContainerException::class)]
-#[CoversClass(ComposerExtraDefinition::class)]
 #[CoversClass(Container::class)]
 #[CoversClass(ContainerProvider::class)]
-#[CoversClass(ComposerDefinitionProvider::class)]
-#[CoversClassesThatImplementInterface(DefinitionInterface::class)]
+#[CoversClass(ComposerServiceProvider::class)]
 #[CoversClassesThatImplementInterface(ContainerInterface::class)]
 final class DontUnserializeContainerExceptionTest extends AbstractTestCase
 {

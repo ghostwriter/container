@@ -7,7 +7,7 @@ namespace Ghostwriter\Container\Service\Provider;
 use Ghostwriter\Container\Exception\ShouldNotHappenException;
 use Ghostwriter\Container\Interface\BuilderInterface;
 use Ghostwriter\Container\Interface\ContainerInterface;
-use Ghostwriter\Container\Interface\Service\Provider\ComposerDefinitionProviderInterface;
+use Ghostwriter\Container\Interface\Service\Provider\ComposerServiceProviderInterface;
 use Ghostwriter\Container\Interface\Service\ProviderInterface;
 use InvalidArgumentException;
 use Override;
@@ -34,7 +34,7 @@ use function mb_rtrim;
 use function mb_trim;
 use function sprintf;
 
-final class ComposerDefinitionProvider implements ComposerDefinitionProviderInterface
+final class ComposerServiceProvider extends AbstractProvider implements ComposerServiceProviderInterface
 {
     private const array COMPOSER_EXTRA_GHOSTWRITER_CONTAINER_PROVIDER = [
         'extra',
@@ -60,9 +60,7 @@ final class ComposerDefinitionProvider implements ComposerDefinitionProviderInte
     public function __construct(
         private readonly ContainerInterface $container
     ) {
-        $rootPath = $this->projectRootPath();
-
-        foreach ($this->getInstalledPackages($rootPath) as $package) {
+        foreach ($this->getInstalledPackages() as $package) {
             $this->addProvidersFromPackage($package);
         }
     }
@@ -216,26 +214,19 @@ final class ComposerDefinitionProvider implements ComposerDefinitionProviderInte
      *
      * @return list<array{name: string, extra?: array{ghostwriter?: array{container?: array{provider?: string}}}}>
      */
-    private function getInstalledPackages(string ...$rootPaths): array
+    private function getInstalledPackages(): array
     {
-        $packages = [];
+        $rootPath = $this->projectRootPath();
 
-        foreach ($rootPaths as $rootPath) {
-            $composerJsonPath = $this->getComposerJsonPath($rootPath);
-            $installedJsonPath = $this->getInstalledJsonPath($rootPath);
+        $composerJsonPath = $this->getComposerJsonPath($rootPath);
 
-            if (! $this->rootComposerFilesExist($rootPath, $composerJsonPath, $installedJsonPath)) {
-                continue;
-            }
+        $installedJsonPath = $this->getInstalledJsonPath($rootPath);
 
-            $packages = [
-                ...$packages,
-                ...$this->getInstalledJson($installedJsonPath),
-                $this->getComposerJson($composerJsonPath),
-            ];
+        if ($this->missingComposerFiles($rootPath, $composerJsonPath, $installedJsonPath)) {
+            return [];
         }
 
-        return $packages;
+        return [...$this->getInstalledJson($installedJsonPath), $this->getComposerJson($composerJsonPath)];
     }
 
     /** @param class-string<ProviderInterface> $provider */
@@ -254,6 +245,20 @@ final class ComposerDefinitionProvider implements ComposerDefinitionProviderInte
         }
 
         return array_key_exists($provider, $this->providers);
+    }
+
+    private function missingComposerFiles(string $rootPath, string $composerJsonPath, string $installedJsonPath): bool
+    {
+        return match (true) {
+            is_dir($rootPath) => match (true) {
+                is_file($composerJsonPath) => match (true) {
+                    is_file($installedJsonPath) => false,
+                    default => true
+                },
+                default => true
+            },
+            default => true
+        };
     }
 
     /**
@@ -331,19 +336,5 @@ final class ComposerDefinitionProvider implements ComposerDefinitionProviderInte
         }
 
         return $contents;
-    }
-
-    private function rootComposerFilesExist(
-        string $rootPath,
-        string $composerJsonPath,
-        string $installedJsonPath
-    ): bool {
-        return match (true) {
-            is_dir($rootPath) => match (true) {
-                is_file($composerJsonPath) => is_file($installedJsonPath),
-                default => false
-            },
-            default => false
-        };
     }
 }

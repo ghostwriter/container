@@ -7,8 +7,7 @@ namespace Tests\Unit\Service\Provider;
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Interface\Service\ProviderInterface;
 use Ghostwriter\Container\PsrContainer;
-use Ghostwriter\Container\Service\Definition\ComposerExtraDefinition;
-use Ghostwriter\Container\Service\Provider\ComposerDefinitionProvider;
+use Ghostwriter\Container\Service\Provider\ComposerServiceProvider;
 use Ghostwriter\Container\Service\Provider\ContainerProvider;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -16,8 +15,7 @@ use Psr\Container\ContainerInterface;
 use Tests\Unit\AbstractTestCase;
 
 #[CoversClass(ContainerProvider::class)]
-#[UsesClass(ComposerDefinitionProvider::class)]
-#[UsesClass(ComposerExtraDefinition::class)]
+#[UsesClass(ComposerServiceProvider::class)]
 #[UsesClass(Container::class)]
 final class ContainerProviderTest extends AbstractTestCase
 {

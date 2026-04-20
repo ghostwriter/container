@@ -1,8 +1,31 @@
 # Changelog
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
+
+## [7.0.0] - 2026-04-20
+
+### Removed
+
+- **Definition-based registration:** Removed `DefinitionInterface` and all related Composer `extra/container` definition classes.
+- **Deprecated APIs:** Removed the `define()` method from `Container` and all definition-based registration logic.
+- **Reflection/parameter caches:** Removed all internal reflection and parameter caches from the container.
+
+### Changed
+
+- **Composer Provider Renaming:**  
+  - Renamed `ComposerDefinitionProviderInterface` to `ComposerServiceProviderInterface`.
+  - Renamed `ComposerDefinitionProvider` to `ComposerServiceProvider`.
+- **Container internals:**  
+  - Simplified callable and service normalization logic.
+  - Improved circular dependency detection and service-not-found exception handling.
+  - Updated container to use only service/provider-based registration.
+- **Composer provider:**  
+  - Refactored internals for installed package discovery.
+  - Added `missingComposerFiles` helper for improved Composer integration.
+  - Updated all tests to reflect the new API and the removal of definition-based behavior.
 
 ## [5.0.0] - 2025-02-21
 
@@ -84,9 +107,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [2.0.1] - 2023-11-15
 
 ### Added
+
 - Add `factory` to register a [`service factory`](https://github.com/ghostwriter/container/blob/main/README.md#service-factory)
 
 ### Fixed
+
 - `Build` resolves aliases
 - `ParameterBuilder` resolves default/nullable values from the container
 - `Extend` supports service name and service type
@@ -94,6 +119,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [2.0.0] - 2023-11-12
 
 ### Changed
+
 - Rename `bind` method name to `register`
 - Rename `register` method name to `provide`
 - Rename `provide` method name to `bind`

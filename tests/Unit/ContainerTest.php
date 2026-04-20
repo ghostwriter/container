@@ -8,10 +8,8 @@ use Generator;
 use Ghostwriter\Container\Container;
 use Ghostwriter\Container\Interface\ContainerExceptionInterface;
 use Ghostwriter\Container\Interface\ContainerInterface;
-use Ghostwriter\Container\Interface\Service\DefinitionInterface;
 use Ghostwriter\Container\PsrContainer;
-use Ghostwriter\Container\Service\Definition\ComposerExtraDefinition;
-use Ghostwriter\Container\Service\Provider\ComposerDefinitionProvider;
+use Ghostwriter\Container\Service\Provider\ComposerServiceProvider;
 use Ghostwriter\Container\Service\Provider\ContainerProvider;
 use PDO;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -44,7 +42,6 @@ use Tests\Fixture\Extension\StdClassOneExtension;
 use Tests\Fixture\Extension\StdClassTwoExtension;
 use Tests\Fixture\Factory\StdClassFactory;
 use Tests\Fixture\Foo;
-use Tests\Fixture\Foobar;
 use Tests\Fixture\GitHub;
 use Tests\Fixture\GitHubClient;
 use Tests\Fixture\TestEvent;
@@ -56,14 +53,12 @@ use Throwable;
 use function array_key_exists;
 use function random_int;
 
-#[CoversClass(ComposerExtraDefinition::class)]
 #[CoversClass(PsrContainer::class)]
 #[CoversClass(Container::class)]
 #[CoversClass(ContainerProvider::class)]
-#[CoversClass(ComposerDefinitionProvider::class)]
+#[CoversClass(ComposerServiceProvider::class)]
 #[CoversClassesThatImplementInterface(ContainerInterface::class)]
 #[CoversClassesThatImplementInterface(ContainerExceptionInterface::class)]
-#[CoversClassesThatImplementInterface(DefinitionInterface::class)]
 final class ContainerTest extends AbstractTestCase
 {
     /** @throws Throwable */
@@ -90,9 +85,11 @@ final class ContainerTest extends AbstractTestCase
         self::assertFalse($this->container->has(GitHub::class));
 
         $client = $this->createMock(ClientInterface::class);
+
         $client->expects(self::never())
             ->method('token')
             ->seal();
+
         $gitHub = new GitHub($client);
 
         $this->container->set(GitHub::class, $gitHub);
@@ -148,18 +145,6 @@ final class ContainerTest extends AbstractTestCase
         }
 
         self::assertSame($arguments['value'], $instance->value());
-    }
-
-    /** @throws Throwable */
-    public function testContainerBuildDefinitionDoesNotRegisterDefinition(): void
-    {
-        $foobarDefinition = $this->container->build(FoobarDefinition::class);
-        self::assertInstanceOf(FoobarDefinition::class, $foobarDefinition);
-
-        $second = $this->container->build(FoobarDefinition::class);
-        self::assertInstanceOf(FoobarDefinition::class, $second);
-
-        self::assertNotSame($foobarDefinition, $second);
     }
 
     /**
@@ -255,78 +240,6 @@ final class ContainerTest extends AbstractTestCase
             'data' => ['BlackLivesMatter'],
             'text' => '#%s',
         ]));
-    }
-
-    /** @throws Throwable */
-    public function testContainerProvideDefinition(): void
-    {
-        $this->container->define(FoobarDefinition::class);
-
-        self::assertTrue($this->container->has(Foo::class));
-        self::assertTrue($this->container->has(Bar::class));
-        self::assertTrue($this->container->has(Baz::class));
-        self::assertInstanceOf(stdClass::class, $this->container->get(Foobar::class));
-    }
-
-    /** @throws Throwable */
-    public function testContainerRemove(): void
-    {
-        $this->container->define(FoobarDefinition::class);
-
-        self::assertTrue($this->container->has(Foo::class));
-        $foo = $this->container->get(Foo::class);
-        self::assertSame($foo, $this->container->get(Foo::class));
-
-        self::assertTrue($this->container->has(Bar::class));
-        $bar = $this->container->get(Bar::class);
-        self::assertSame($bar, $this->container->get(Bar::class));
-
-        self::assertTrue($this->container->has(Baz::class));
-
-        $baz = $this->container->get(Baz::class);
-        self::assertSame($baz, $this->container->get(Baz::class));
-
-        $this->container->unset(Foo::class);
-        $this->container->unset(Bar::class);
-        $this->container->unset(Baz::class);
-
-        self::assertTrue($this->container->has(Foo::class));
-        $fooAfterUnset = $this->container->get(Foo::class);
-        self::assertNotSame($foo, $fooAfterUnset);
-
-        self::assertTrue($this->container->has(Bar::class));
-        $barAfterUnset = $this->container->get(Bar::class);
-        self::assertNotSame($bar, $barAfterUnset);
-
-        self::assertTrue($this->container->has(Baz::class));
-        $bazAfterUnset = $this->container->get(Baz::class);
-        self::assertNotSame($baz, $bazAfterUnset);
-    }
-
-    /** @throws Throwable */
-    public function testContainerReset(): void
-    {
-        $this->container->define(FoobarDefinition::class);
-
-        self::assertTrue($this->container->has(Foo::class));
-        self::assertTrue($this->container->has(Bar::class));
-        self::assertTrue($this->container->has(Baz::class));
-
-        $foo = $this->container->get(Foo::class);
-        $bar = $this->container->get(Bar::class);
-        $baz = $this->container->get(Baz::class);
-
-        $this->container->set(Foo::class, $this->container->build(Foo::class));
-        $this->container->set(Bar::class, $this->container->build(Bar::class));
-        $this->container->set(Baz::class, $this->container->build(Baz::class));
-
-        self::assertInstanceOf(Foo::class, $this->container->get(Foo::class));
-        self::assertInstanceOf(Bar::class, $this->container->get(Bar::class));
-        self::assertInstanceOf(Baz::class, $this->container->get(Baz::class));
-
-        self::assertNotSame($foo, $this->container->get(Foo::class));
-        self::assertNotSame($bar, $this->container->get(Bar::class));
-        self::assertNotSame($baz, $this->container->get(Baz::class));
     }
 
     /** @throws Throwable */
@@ -491,8 +404,6 @@ final class ContainerTest extends AbstractTestCase
         yield Foo::class => [Foo::class];
         yield Bar::class => [Bar::class];
         yield Baz::class => [Baz::class];
-        yield FoobarWithDependencyDefinition::class => [FoobarWithDependencyDefinition::class];
-        yield FoobarDefinition::class => [FoobarDefinition::class];
         yield FoobarExtension::class => [FoobarExtension::class];
         yield self::class => [self::class, ['name']];
     }
