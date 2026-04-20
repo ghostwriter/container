@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Fixture;
 
-use Ghostwriter\Container\Attribute\Factory;
 use Tests\Fixture\Factory\DummyFactory;
 
 use function array_values;
 use function sprintf;
 
-#[Factory(DummyFactory::class)]
 final readonly class Dummy implements DummyInterface
 {
     public function __construct(

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Fixture\Attribute\Extension;
 
-use Ghostwriter\Container\Attribute\Extension;
 use Tests\Fixture\Extension\ClassRequiresExtensionAttributeExtension;
 use Tests\Fixture\Foobar;
 

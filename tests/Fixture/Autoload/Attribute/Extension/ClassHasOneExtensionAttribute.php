@@ -2,16 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Tests\Fixture\Attribute\Inject;
+namespace Tests\Fixture\Attribute\Extension;
 
-use Ghostwriter\Container\Attribute\Inject;
 use Tests\Fixture\ClientInterface;
-use Tests\Fixture\GitHubClient;
+use Tests\Fixture\Extension\ClassHasExtensionAttributeExtension;
 
-final readonly class ClassParameterHasInjectAttribute
+final readonly class ClassHasOneExtensionAttribute
 {
     public function __construct(
-        #[Inject(GitHubClient::class)]
         private ClientInterface $client
     ) {
     }

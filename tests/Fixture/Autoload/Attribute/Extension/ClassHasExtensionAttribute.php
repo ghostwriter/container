@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Fixture\Attribute\Extension;
 
-use Ghostwriter\Container\Attribute\Extension;
 use RuntimeException;
-use Tests\Fixture\Extension\ClassRequiresExtensionAttributeExtension;
+use Tests\Fixture\Extension\ClassHasExtensionAttributeExtension;
 use Tests\Fixture\Foobar;
 
-#[Extension(ClassRequiresExtensionAttributeExtension::class)]
-final class ClassRequiresExtensionAttribute
+final class ClassHasExtensionAttribute
 {
     public function __construct(
         private ?Foobar $foobar = null
