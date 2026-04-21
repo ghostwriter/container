@@ -158,8 +158,8 @@ final class Container implements ContainerInterface
      * @template TService of object
      * @template TArgument
      *
-     * @param class-string<TService> $service
-     * @param list<TArgument>        $arguments
+     * @param class-string<TService>     $service
+     * @param array<array-key,TArgument> $arguments
      *
      * @throws CircularDependencyException
      * @throws ClassNotInstantiableException
@@ -184,7 +184,7 @@ final class Container implements ContainerInterface
      * @template TArgument
      * @template TResult
      *
-     * @param list<TArgument> $arguments
+     * @param array<array-key,TArgument> $arguments
      *
      * @throws Throwable
      *
@@ -580,8 +580,8 @@ final class Container implements ContainerInterface
      * @template TService of object
      * @template TArgument
      *
-     * @param class-string<TService> $service
-     * @param list<TArgument>        $arguments
+     * @param class-string<TService>     $service
+     * @param array<array-key,TArgument> $arguments
      *
      * @throws Throwable
      *
@@ -650,8 +650,8 @@ final class Container implements ContainerInterface
      * @template TService of object
      * @template TArgument
      *
-     * @param class-string<TService> $service
-     * @param list<TArgument>        $arguments
+     * @param class-string<TService>     $service
+     * @param array<array-key,TArgument> $arguments
      *
      * @throws Throwable
      *
@@ -800,8 +800,8 @@ final class Container implements ContainerInterface
      * @template TArgument
      * @template TService of object
      *
-     * @param list<TArgument>           $arguments
-     * @param list<ReflectionParameter> $reflectionParameters
+     * @param array<array-key,TArgument> $arguments
+     * @param list<ReflectionParameter>  $reflectionParameters
      *
      * @throws Throwable
      *
