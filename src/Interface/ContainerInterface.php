@@ -20,8 +20,8 @@ interface ContainerInterface extends BuilderInterface
      * @template TBuild of object
      * @template TArgument
      *
-     * @param class-string<TBuild> $service
-     * @param list<TArgument>      $arguments optional constructor arguments passed to build the new class instance
+     * @param class-string<TBuild>       $service
+     * @param array<array-key,TArgument> $arguments optional constructor arguments passed to build the new class instance
      *
      * @throws ContainerExceptionInterface         if there is an error while retrieving the entry
      * @throws ContainerNotFoundExceptionInterface if no entry was found for **this** identifier
@@ -37,8 +37,8 @@ interface ContainerInterface extends BuilderInterface
      * @template TArgument
      * @template TResult
      *
-     * @param callable|string                   $callable
-     * @param array<non-empty-string,TArgument> $arguments
+     * @param callable|string            $callable
+     * @param array<array-key,TArgument> $arguments
      *
      * @throws Throwable
      *
