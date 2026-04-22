@@ -14,20 +14,26 @@ use Throwable;
 
 abstract class AbstractProvider implements ProviderInterface
 {
-    /** @var array<class-string,class-string> */
-    protected const array ALIAS = [
-        // alias => service
-    ];
+    /**
+     * alias => service.
+     *
+     * @var array<class-string,class-string>
+     */
+    public const array ALIAS = [];
 
-    /** @var array<class-string,list<class-string<ExtensionInterface>>> */
-    protected const array EXTEND = [
-        // service => [extension, ...]
-    ];
+    /**
+     * service => [extension, ...].
+     *
+     * @var array<class-string,list<class-string<ExtensionInterface>>>
+     */
+    public const array EXTEND = [];
 
-    /** @var array<class-string,class-string<FactoryInterface>> */
-    protected const array FACTORY = [
-        // service => factory
-    ];
+    /**
+     * service => factory.
+     *
+     * @var array<class-string,class-string<FactoryInterface>>
+     */
+    public const array FACTORY = [];
 
     /** @throws Throwable */
     #[Override]
