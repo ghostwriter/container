@@ -131,10 +131,6 @@
 "repository":
   "name": "container"
   "description": "Provides an extensible Dependency Injection Service Container for Automated Object Composition, Interception, and Lifetime Management."
-  "topics":
-    - "ghostwriter"
-    - "container"
-    - "php"
   "homepage": "https://github.com/ghostwriter/container"
   "default_branch": "7.0.x"
   "allow_auto_merge": true
