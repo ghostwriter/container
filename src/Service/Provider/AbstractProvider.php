@@ -15,21 +15,28 @@ use Throwable;
 abstract class AbstractProvider implements ProviderInterface
 {
     /**
-     * alias => service.
+     * [alias => service].
      *
      * @var array<class-string,class-string>
      */
     public const array ALIAS = [];
 
     /**
-     * service => [extension, ...].
+     * [concrete => [abstract => implementation]].
+     *
+     * @var array<class-string,array<class-string,class-string>>
+     */
+    public const array BIND = [];
+
+    /**
+     * [service => [extension, ...]].
      *
      * @var array<class-string,list<class-string<ExtensionInterface>>>
      */
     public const array EXTEND = [];
 
     /**
-     * service => factory.
+     * [service => factory].
      *
      * @var array<class-string,class-string<FactoryInterface>>
      */
@@ -48,6 +55,12 @@ abstract class AbstractProvider implements ProviderInterface
     {
         foreach (static::ALIAS as $alias => $service) {
             $builder->alias($alias, $service);
+        }
+
+        foreach (static::BIND as $concrete => $bindings) {
+            foreach ($bindings as $abstract => $implementation) {
+                $builder->bind($concrete, $abstract, $implementation);
+            }
         }
 
         foreach (static::EXTEND as $service => $extensions) {
