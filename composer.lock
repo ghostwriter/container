@@ -67,12 +67,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/ghostwriter/coding-standard.git",
-                "reference": "a5b672744984c25b10cea76bd590701a01b254c1"
+                "reference": "48545d4aaecba6bd9bf4dcb16a7a94d4ad268e6a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ghostwriter/coding-standard/zipball/a5b672744984c25b10cea76bd590701a01b254c1",
-                "reference": "a5b672744984c25b10cea76bd590701a01b254c1",
+                "url": "https://api.github.com/repos/ghostwriter/coding-standard/zipball/48545d4aaecba6bd9bf4dcb16a7a94d4ad268e6a",
+                "reference": "48545d4aaecba6bd9bf4dcb16a7a94d4ad268e6a",
                 "shasum": ""
             },
             "require": {
@@ -82,7 +82,6 @@
                 "ext-curl": "*",
                 "ext-dom": "*",
                 "ext-ds": "*",
-                "ext-event": "*",
                 "ext-exif": "*",
                 "ext-fileinfo": "*",
                 "ext-filter": "*",
@@ -176,7 +175,7 @@
                     "type": "paypal"
                 }
             ],
-            "time": "2026-07-16T13:58:43+00:00"
+            "time": "2026-08-17T00:40:12+00:00"
         },
         {
             "name": "ghostwriter/phpunit-assertions",
