@@ -132,7 +132,7 @@
         ],
         "phpunit": [
             "@xdebug",
-            "vendor/bin/phpunit --do-not-cache-result --colors=always"
+            "vendor/bin/phpunit --colors=always"
         ],
         "test": [
             "@phpunit",
