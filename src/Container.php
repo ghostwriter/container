@@ -79,17 +79,6 @@ final class Container implements ContainerInterface
         $this->reset();
     }
 
-    public static function getInstance(): self
-    {
-        static $instance;
-
-        if ($instance instanceof self) {
-            return $instance;
-        }
-
-        return $instance = new self();
-    }
-
     /**
      * @throws DontCloneContainerException
      *
@@ -116,6 +105,17 @@ final class Container implements ContainerInterface
     public function __unserialize(array $_): never
     {
         throw new DontUnserializeContainerException();
+    }
+
+    public static function getInstance(): self
+    {
+        static $instance;
+
+        if ($instance instanceof self) {
+            return $instance;
+        }
+
+        return $instance = new self();
     }
 
     /**
@@ -155,10 +155,10 @@ final class Container implements ContainerInterface
     }
 
     /**
-     * @template TService of object
+     * @template TBuild of object
      * @template TArgument
      *
-     * @param class-string<TService>     $service
+     * @param class-string<TBuild>       $service
      * @param array<array-key,TArgument> $arguments
      *
      * @throws CircularDependencyException
@@ -167,15 +167,20 @@ final class Container implements ContainerInterface
      * @throws InvalidArgumentException
      * @throws Throwable
      *
-     * @return TService
+     * @return TBuild
      */
     #[Override]
     public function build(string $service, array $arguments = []): object
     {
-        /** @var class-string<TService> $service */
+        /** @var class-string<TBuild> $normalizedService */
         $normalizedService = $this->normalizeService($service);
 
-        /** @var TService */
+        if (array_key_exists($service, $this->factories) && empty($arguments)) {
+            /** @var TBuild */
+            return $this->createViaFactory($service);
+        }
+
+        /** @var TBuild */
         return $this->createViaInstantiation($normalizedService, $arguments);
     }
 
@@ -319,6 +324,13 @@ final class Container implements ContainerInterface
         $this->removeServiceState($service);
     }
 
+    /**
+     * @template TApplicableExtensionsFor of object
+     *
+     * @param TApplicableExtensionsFor $instance
+     *
+     * @return iterable<class-string<ExtensionInterface<TApplicableExtensionsFor>>>
+     */
     private function applicableExtensionsFor(object $instance): iterable
     {
         foreach (array_keys($this->extensions) as $serviceClass) {
@@ -560,17 +572,17 @@ final class Container implements ContainerInterface
     }
 
     /**
-     * @template TService of object
+     * @template TCreateViaFactory of object
      *
-     * @param class-string<TService> $service
+     * @param class-string<TCreateViaFactory> $service
      *
      * @throws Throwable
      *
-     * @return TService
+     * @return TCreateViaFactory
      */
     private function createViaFactory(string $service): object
     {
-        /** @var TService $instance */
+        /** @var TCreateViaFactory $instance */
         $instance = $this->call($this->factories[$service]);
 
         return $this->decorate($service, $instance);
@@ -614,14 +626,14 @@ final class Container implements ContainerInterface
     }
 
     /**
-     * @template TService of object
+     * @template TDecorate of object
      *
-     * @param class-string<TService> $service
-     * @param TService               $instance
+     * @param class-string<TDecorate> $service
+     * @param TDecorate               $instance
      *
      * @throws Throwable
      *
-     * @return TService
+     * @return TDecorate
      */
     private function decorate(string $service, object $instance): object
     {
@@ -629,7 +641,7 @@ final class Container implements ContainerInterface
 
         try {
             foreach ($this->applicableExtensionsFor($instance) as $extension) {
-                /** @var TService $instance */
+                /** @var TDecorate $instance */
                 $this->call($extension, [
                     'service' => $instance,
                 ]);
