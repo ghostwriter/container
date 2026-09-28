@@ -31,7 +31,7 @@ final class InvalidArgumentExceptionTest extends AbstractTestCase
     /** @throws Throwable */
     public function testContainerExtend(): void
     {
-        self::expectExceptionMessage(
+        self::expectExceptionMessageIsOrContains(
             sprintf(
                 'Service extension "%s" for service "%s" must implement %s.',
                 stdClass::class,

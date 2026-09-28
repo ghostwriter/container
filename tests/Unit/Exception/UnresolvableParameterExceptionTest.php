@@ -31,7 +31,7 @@ final class UnresolvableParameterExceptionTest extends AbstractTestCase
     public function testContainerBuild(): void
     {
         $this->assertException(UnresolvableParameterException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIsOrContains(sprintf(
             'Unresolvable class parameter "$number" in "%s::%s"; does not have a default value.',
             UnresolvableParameter::class,
             '__construct()'
@@ -44,7 +44,7 @@ final class UnresolvableParameterExceptionTest extends AbstractTestCase
     public function testContainerCall(): void
     {
         $this->assertException(UnresolvableParameterException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIsOrContains(sprintf(
             'Unresolvable function parameter "%s" in "%s"; does not have a default value.',
             '$event',
             'Tests\Fixture\typelessFunction()',

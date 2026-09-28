@@ -36,7 +36,7 @@ final class CircularDependencyExceptionTest extends AbstractTestCase
     public function testContainerBuild(): void
     {
         $this->assertException(CircularDependencyException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIsOrContains(sprintf(
             'Class: %s',
             implode(
                 ' -> ',
