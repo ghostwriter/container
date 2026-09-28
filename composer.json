@@ -45,11 +45,11 @@
     },
     "require-dev": {
         "ext-xdebug": "*",
-        "boundwize/structarmed": "^0.17.3",
+        "boundwize/structarmed": "^0.18.1",
         "ghostwriter/coding-standard": "dev-main",
         "ghostwriter/phpunit-assertions": "^0.1.1",
         "mockery/mockery": "^1.6.15",
-        "phpunit/phpunit": "^13.3.3"
+        "phpunit/phpunit": "^13.3.5"
     },
     "provide": {
         "psr/container-implementation": "*"
@@ -62,7 +62,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests/"
+            "Tests\\Unit\\": "tests/Unit/"
         },
         "files": [
             "tests/bootstrap.php"
@@ -129,7 +129,7 @@
         ],
         "infection": [
             "@xdebug",
-            "vendor/ghostwriter/coding-standard/tools/phar/infection --min-covered-msi=0 --min-msi=0 --show-mutations --threads=max"
+            "infection --min-covered-msi=0 --min-msi=0 --show-mutations --threads=max"
         ],
         "phpunit": [
             "@xdebug",
