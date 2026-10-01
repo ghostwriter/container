@@ -9,26 +9,21 @@ use Ghostwriter\Container\Interface\ContainerExceptionInterface;
 use Ghostwriter\Container\Interface\ContainerInterface;
 use Ghostwriter\Container\Interface\Exception\ContainerNotFoundExceptionInterface;
 use InvalidArgumentException;
-use Mockery;
-use PHPUnit\Framework\TestCase;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
+use Override;
 use Throwable;
 
-abstract class AbstractTestCase extends TestCase
+abstract class AbstractTestCase extends MockeryTestCase
 {
     protected ContainerInterface $container;
 
-    final protected function setUp(): void
+    #[Override]
+    final protected function mockeryTestSetUp(): void
     {
-        parent::setUp();
+        parent::mockeryTestSetUp();
+
         $this->container = Container::getInstance();
         $this->container->reset();
-    }
-
-    /** @throws Throwable */
-    final protected function tearDown(): void
-    {
-        parent::tearDown();
-        Mockery::close();
     }
 
     /** @param class-string<Throwable> $expected */

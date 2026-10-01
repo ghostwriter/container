@@ -28,13 +28,14 @@ final class ContainerProviderTest extends AbstractTestCase
             ->with(ContainerInterface::class, PsrContainer::class)
             ->seal();
 
-        $containerProvider = new ContainerProvider();
+        $containerProvider = new ContainerProvider($container);
 
         $containerProvider->register($container);
     }
 
     public function testImplementsProviderInterface(): void
     {
-        self::assertInstanceOf(ProviderInterface::class, new ContainerProvider());
+        $container = $this->createStub(\Ghostwriter\Container\Interface\ContainerInterface::class);
+        self::assertInstanceOf(ProviderInterface::class, new ContainerProvider($container));
     }
 }

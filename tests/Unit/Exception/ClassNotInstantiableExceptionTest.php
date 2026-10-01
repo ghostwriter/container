@@ -28,7 +28,7 @@ final class ClassNotInstantiableExceptionTest extends AbstractTestCase
     public function testContainerBuild(): void
     {
         $this->assertException(ClassNotInstantiableException::class);
-        $this->expectExceptionMessage(Throwable::class);
+        $this->expectExceptionMessageIsOrContains(Throwable::class);
 
         $this->container->build(Throwable::class);
     }

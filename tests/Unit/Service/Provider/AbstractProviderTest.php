@@ -24,8 +24,8 @@ final class AbstractProviderTest extends AbstractTestCase
 {
     public function testBootIsNoOp(): void
     {
-        $bootProviderMock = new BootProviderMock();
         $container = $this->createMock(ContainerInterface::class);
+        $bootProviderMock = new BootProviderMock($container);
 
         $container->expects(self::never())
             ->method('get')
@@ -36,7 +36,8 @@ final class AbstractProviderTest extends AbstractTestCase
 
     public function testRegisterIsNoOp(): void
     {
-        $registerProviderMock = new RegisterProviderMock();
+        $container = $this->createStub(ContainerInterface::class);
+        $registerProviderMock = new RegisterProviderMock($container);
         $builder = $this->createMock(BuilderInterface::class);
 
         $builder->expects(self::never())

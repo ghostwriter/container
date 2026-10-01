@@ -42,11 +42,24 @@ abstract class AbstractProvider implements ProviderInterface
      */
     public const array FACTORY = [];
 
+    /**
+     * [provider].
+     *
+     * @var list<class-string<ProviderInterface>>
+     */
+    public const array PROVIDER = [];
+
+    public function __construct(
+        public readonly ContainerInterface $container
+    ) {}
+
     /** @throws Throwable */
     #[Override]
     public function boot(ContainerInterface $container): void
     {
-        // no-op
+        foreach (static::PROVIDER as $provider) {
+            $container->get($provider)->boot($container);
+        }
     }
 
     /** @throws Throwable */
@@ -71,6 +84,11 @@ abstract class AbstractProvider implements ProviderInterface
 
         foreach (static::FACTORY as $service => $factory) {
             $builder->factory($service, $factory);
+        }
+
+        $container = $this->container;
+        foreach (static::PROVIDER as $provider) {
+            $container->get($provider)->register($builder);
         }
     }
 }

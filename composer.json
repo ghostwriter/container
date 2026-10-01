@@ -26,22 +26,31 @@
         {
             "type": "github",
             "url": "https://github.com/sponsors/ghostwriter"
+        },
+        {
+            "type": "paypal",
+            "url": "https://paypal.me/codepoet"
         }
     ],
-    "_comment": ["#BlackLivesMatter", "#FreePalestine", "#StandWithIran", "#StandWithUkraine", "#StopGenocide"],
+    "_comment": [
+        "#BlackLivesMatter",
+        "#FreePalestine",
+        "#StandWithIran",
+        "#StandWithUkraine",
+        "#StopGenocide"
+    ],
     "require": {
-        "php": "~8.4.0 || ~8.5.0",
+        "php": "~8.4.0 || ~8.5.0 || ~8.6.0",
         "psr/container": "^2.0.2"
     },
     "require-dev": {
         "ext-xdebug": "*",
-        "boundwize/structarmed": "^0.8.7",
+        "boundwize/structarmed": "^0.18.9",
         "ghostwriter/coding-standard": "dev-main",
-        "ghostwriter/phpunit-assertions": "^0.1.0",
+        "ghostwriter/phpunit-assertions": "^0.1.1",
         "ghostwriter/testify": "^0.1.2",
-        "mockery/mockery": "^1.6.12",
-        "phpunit/phpunit": "^13.1.12",
-        "symfony/var-dumper": "^8.1.0"
+        "mockery/mockery": "^1.6.15",
+        "phpunit/phpunit": "^13.3.6"
     },
     "provide": {
         "psr/container-implementation": "*"
@@ -54,12 +63,14 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests/"
+            "Tests\\Unit\\": "tests/Unit/"
         },
         "files": [
             "tests/bootstrap.php"
         ],
-        "exclude-from-classmap": ["/tests/"]
+        "exclude-from-classmap": [
+            "/tests/"
+        ]
     },
     "config": {
         "allow-plugins": {
@@ -73,16 +84,36 @@
             "php": "8.4.999"
         },
         "platform-check": true,
-        "preferred-install": "dist",
+        "policy": {
+            "advisories": {
+                "block": true,
+                "audit": "fail"
+            },
+            "malware": {
+                "block": true,
+                "block-scope": "all",
+                "audit": "fail"
+            },
+            "abandoned": {
+                "block": true,
+                "audit": "fail"
+            }
+        },
+        "preferred-install": {
+            "*": "dist"
+        },
         "prepend-autoloader": true,
         "process-timeout": 5000,
         "sort-packages": true,
+        "strict-psr-autoloader": true,
         "use-parent-dir": false
     },
     "extra": {
         "ghostwriter": {
             "container": {
-                "provider": ["Ghostwriter\\Container\\Service\\Provider\\ContainerProvider"]
+                "provider": [
+                    "Ghostwriter\\Container\\Service\\Provider\\ContainerProvider"
+                ]
             }
         },
         "thanks": {
@@ -92,16 +123,23 @@
     },
     "scripts": {
         "cache:clear": "rm -rf ./.cache/*",
-        "check": ["@cache:clear", "vendor/ghostwriter/coding-standard/tools/phar/composer validate", "@test"],
-        "docker": ["@docker:build", "@docker:run"],
-        "docker:build": "docker buildx build --pull --tag workspace .",
-        "docker:run": "docker run -v $(PWD):/github/workspace -w=/github/workspace -e GITHUB_DEBUG=1 -e GITHUB_WORKSPACE=/github/workspace -e GITHUB_TOKEN=github-token -e SIGNING_SECRET_KEY=secret-key workspace",
-        "git:submodule:update": "git submodule update --depth=1 --init --recursive --recommend-shallow --remote",
-        "infection": ["@xdebug", "vendor/ghostwriter/coding-standard/tools/phar/infection --min-covered-msi=0 --min-msi=0 --show-mutations --threads=max"],
-        "phpbench": "vendor/ghostwriter/coding-standard/tools/phar/phpbench run --report='extends:aggregate,cols:[benchmark,subject,revs,its,mem_peak,mode,rstdev]' --time-unit=milliseconds ./tests/Benchmark",
-        "phpunit": ["@xdebug", "vendor/bin/phpunit --do-not-cache-result --colors=always"],
-        "test": ["@phpunit", "@infection"],
-        "unused": "vendor/ghostwriter/coding-standard/tools/phar/composer-unused --no-interaction --ansi",
+        "check": [
+            "@cache:clear",
+            "@composer validate",
+            "@test"
+        ],
+        "infection": [
+            "@xdebug",
+            "infection --min-covered-msi=0 --min-msi=0 --show-mutations --threads=max"
+        ],
+        "phpunit": [
+            "@xdebug",
+            "vendor/bin/phpunit --colors=always"
+        ],
+        "test": [
+            "@phpunit",
+            "@infection"
+        ],
         "xdebug": "@putenv XDEBUG_MODE=coverage"
     }
 }

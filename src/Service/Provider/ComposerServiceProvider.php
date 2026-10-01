@@ -34,7 +34,7 @@ use function mb_rtrim;
 use function mb_trim;
 use function sprintf;
 
-final class ComposerServiceProvider extends AbstractProvider implements ComposerServiceProviderInterface
+final class ComposerServiceProvider implements ComposerServiceProviderInterface
 {
     private const array COMPOSER_EXTRA_GHOSTWRITER_CONTAINER_PROVIDER = [
         'extra',
